@@ -1,8 +1,3 @@
-flowvisor
-=========
-
-FlowVisor - A network hypervisor
-
 FlowVisor
 =========
     An OpenFlow controller that acts as a hypervisor/proxy
