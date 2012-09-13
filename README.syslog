@@ -1,0 +1,31 @@
+Introduction
+------------
+
+Flowvisor now incorporates Log4j and Syslog4j which removes the need
+for the JNI interface to the system syslog. Logging is controlled 
+from the fvlog.config configuration file. This file is essentially
+a log4j configuration file. Therefore a detailed description 
+can be found at http://logging.apache.org/log4j/1.2/manual.html.
+
+Features
+--------
+
+This logging systems is capable of logging to one or more destinations.
+So you can specify multiple logging destination will be written to 
+simultaneously. Moreover, you can modify the configuration at runtime
+to enable logging another location. Logging configuration changes will
+be updated every minute. 
+
+
+Possible Destinations
+---------------------
+
+Console
+[Externally] [Daily] [Rolling] File
+JDBC
+JMS
+NT Event Log
+Null
+SMTP
+Telnet
+

@@ -1,0 +1,104 @@
+High-level:
+    This document describes the FlowVisor's internals and is intended for
+    people looking to modify/develop the actual code.
+
+    It covers:
+    * testing
+    * I/O Logic
+    * Code layout
+    * Thread logic
+
+    A higher-level view of the code is described at:
+        https://openflow.stanford.edu/display/flowvisor/Internals+and+Dev+Docs
+
+
+
+
+====================================
+
+Tests:
+    Flowvisor has both JUNIT tests inside the java code
+    (./src/tests/....) and regression tests (`make tests`).  At minimum,
+    any changes to the code should not break these tests and would
+    ideally add their own tests.
+
+
+I/O LOGIC: 
+
+FlowVisor has two logical structures, a classifier
+(org.flowvisor.classifier.FVClassifier.java) and a slicer
+(org.flowvisor.slicer.FVSlicer.java).  The classifier is responsible for
+figuring out what to do with OF Messages to and from the switch and the
+slicer figures out what to do with messages to and from the controller.
+Both of them have methods sendMsg() and handleIOEvent().
+
+The handleIOEvent() is triggered when a message is received from a
+controller (in FVSlicer) or from the switch (in FVClassifier) *before*
+the FlowVisor does its rewriting.  This is the raw message off the wire.
+
+The method sendMsg() is for sending a message to the controller (in
+FVSlicer) or to the switch (in FVClassifer) *after* any sort of rewriting
+takes place.  The is the post-processed message that is about to be sent
+back onto the wire.
+
+
+CODE LAYOUT:
+
+All of the per-message processing logic is in 
+    org.flowvisor.messages.*
+
+    Each message implements the Classifiable and Slicable interfaces.
+
+    Classifiable means that message can be called with 
+        classifyFromSwitch(FVClassifier fvClassifier);
+    which translates to "the FlowVisor just got this message from a switch: what do I do with it
+    and which slice or slice(s) do I sent it to?".
+
+    Slicable means that the message can be called with 
+        sliceFromController(FVClassifier fvClassifier, FVSlicer fvSlicer);
+    which translates to "the FlowVisor just got this messages from a controller and
+    it's going to this switch: what message-level rewriting do I have to do to ensure
+    isolation is maintained?".
+          
+
+
+THREAD MODEL:
+
+FlowVisor has very little inter-thread interaction and consequently very
+little locking.  Threads send events to each other with the following
+logic.
+
+All FVEventHandlers support handleEvent().  This event first looks at
+the thread ID of the calling thread and compares it to the thread ID of
+the EventHandler.  If they match, the event is processed immediately,
+and if not, then the event is queued into the handler's event loop.
+There is no shared state between event handlers, only copies of state
+and events to update the copies when they become stale.
+
+All of the calls to FVConfig should have synchronization applied to them
+on the FVConfig.class object (because the methods and class are static).
+
+INLINE DOCUMENTATION:
+
+Most (all?) of the code is commented with javadoc.  See `make doc`.
+
+RELEASES:
+Update the RELEASE-NOTES and then run:
+    ./scripts/make-release flowvisor-$version
+        - for the make install prompts, enter:
+            /usr/local  (default)
+            root
+            root
+            <empty>     (default)
+nothing you have done yet is public or permanent; to make it 
+    permanent in git, run `git push --tags` and copy the ./scripts/DEB
+    tree into place on yuba per the instructions in ./scripts/DEB/README
+
+FYI, the make-release script will, all in one automated swoop:
+    1) update the version string in src/org/flowvisor/flowvisor.java
+    1.1) makes a new git comment with comment "release flowvisor-$version"
+    1.2) runs `git tag flowvisor-$version`
+    2) `make tests` and die if error
+    3) call ./scripts/make-deb.sh $version
+        - builds a debian package for the local architecture
+        - dumps the resulting .deb pkg in ./scripts/DEB/unstable/binary-$ARCH

@@ -1,0 +1,78 @@
+Flowvisor 0.8.5 : July 11 2012
+    * FLOWVISOR-177: fvctl dumpConfig should output the config file in fvctl's working directory
+    * FLOWVISOR-178: Slice creation renders flowvisor unresponsive in some cases
+    * FLOWVISOR-179: Need callback when slice controller disconnects
+
+Flowvisor 0.8.4 : June 22 2012
+    * FLOWVISOR-175: Provide API to change slice password.
+    * FLOWVISOR-173: FV rejects a Flow_mod request with DELETE_FLOW if the buffer_id is 0.
+    * FLOWVISOR-167: Need an RPC API to allow db backup
+    * FLOWVISOR-166: Update API to replace setConfig/getConfig
+    * FLOWVISOR-165: FlowRule ids change when the flowspace is manipulated
+    * FLOWVISOR-161: Checkpointing broken on FlowSpace modifications    
+    * FLOWVISOR-160: Prevent NoMatch exception from bubbling up to the output
+    * FLOWVISOR-159: Flowvisor crashes on empty flowspaces if there are controller connected
+
+Flowvisor 0.8.3 : May 20 2012
+    * Database-based flowspace storage
+    * Config storage transitioned to JSON
+    * Dump config file via API call
+    * FLOWVISOR-104: writing config after each change to disk hangs flowvisors with large flowspace
+    
+Flowvisor 0.8.2 : Febuary 2 2012
+    * Slice configuration parameter for controlling LLDP spam
+    * JSON callbacks for fine-grained topology changes
+    * FLOWVISOR-128: Warn users when adding flowspace rules for non-existing slices
+    * FLOWVISOR-126: Slices containing '<' can not be deleted
+    * FLOWVISOR-122: fvctl no longer supports registration of topology callbacks with authorization information
+    * FLOWVISOR-121: XMLRPC web server logs to stderr instead of FVLog
+    * FLOWVISOR-95: when slicing actions, the errors that bubble up are confusing
+    * FLOWVISOR-73: Buffer ID sanitizing
+    * FLOWVISOR-22: add config option for drop policy
+
+Flowvisor 0.8.1 : July 22 2011
+    * Better logging to find delays and process starvation
+    * Changed default GC to be mark/sweep
+    * Source documentation improvements
+    * FLOWVISOR-120: disabled DNS lookup for stats_desc
+    * FLOWVISOR-118: fixed FvSlicer memleak in XID translation
+    * FLOWVISOR-117: bind fails for override IPv4 stacks
+    * FLOWVISOR-116: move configfile read before logging
+
+FlowVisor 0.8.0 : July 13 2011
+    * fixed problem with FlowIDs exhausting
+    * fixed memleaks that caused instability
+    * fixed dynamic ports and topology discovery issues
+    * fixed bugs in Vendor Stats and sendlen handling
+    * updated developer documentation
+    * added better support for remote debugging and JVM tweaks
+    * fixed IPv6 dual-stack local port binding bug
+    * changed superuser from 'root' to 'fvadmin'
+    * lots of bugs fixed and sanity checks implemented
+
+FlowVisor 0.7.2 : Mar 17 2011
+    * added changeSlice fvctl/API command
+    * fixed big bug in drop rules for disconnected controllers
+    * fixed Null Pointer Exception race condition; stops crashing
+    * added MRTG formatting scripts (thanks Chris Tengi!)
+
+FlowVisor 0.7.1 : Feb 22 2011
+    * diabled flow tracking by default
+    * fixed bug in getSwitchFlowDB
+
+FlowVisor 0.7 : 
+    * fixed big I/O bug that caused switch flapping
+    * added msg statistics, see `fvctl get{Slice,Switch}stats`
+    * added flow tracking, see `fvctl get{Switch,SliceRewrite}FlowDB`
+        to enable, run `fvctl setConfig flowvisor\!track_flows true`
+    * lots of performance improvements
+        * flow setup time ~5x improved
+    * lots of small bugs fixed
+    * password prompt no longer echos plaintext
+    * better error handling in create slice and change flowspace
+
+FlowVisor 0.6 - total rewrite (in Java!)
+    * Single, unified flowspace config, not divided by slice
+    * lldp is now rewritten with a trailer, not by rewritting the dst mac
+    * OFError msgs now correctly encap the offending packet
+    * NEW FlowVisor UserAPI: query and manipulate slice info

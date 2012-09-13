@@ -1,0 +1,36 @@
+REQUIREMENTS:
+    
+    Running flowvisor at 0.8.x version.
+
+CONVERSION:
+   
+    To convert the xml file to the json format, run:
+
+    fvconfig convert config.xml
+
+    This will return a config.json file in the same
+    directory.
+
+LOADING:
+
+    Two options available:
+
+    1. Start flowvisor with config file parameter
+
+        flowvisor config.json
+
+    NOTE: This will overwrite contents of the database
+    with the configuration file. Make sure the database 
+    and config file are in sync by dumping the config
+    from a runnning flowvisor by:
+
+        fvctl dumpConfig config.json
+
+    Otherwise any undumped config will be lost.
+
+    
+    2. (RECOMMENDED) Loading the config into flowvisor
+       before starting.
+
+        fvconfig load config.json
+ 

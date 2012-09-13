@@ -1,0 +1,28 @@
+nload:
+
+Stupid program; sums up all packets that go by that match
+given tcpdump-style filter.
+
+Compile with gmake (sorry, not makefile independent -- could be changed
+trivially).
+
+Requires libpcap.
+
+
+If pcap.h is not in the standard path, add "CFLAGS+=-I/path/to/pcap.h" to
+make on the command line.  Ditto for "LDFLAGS+=-L/path/to/libpcap.a",
+and LIBS for extra libs. 
+
+I.e.
+
+gmake CFLAGS+=-I/path/to/pcap.h LDFLAGS+=-L/path/to/libpcap.a LIBS+=-lresolv \
+	LIBS+=-lnsl
+
+is needed to compile for solaris.
+
+This was writen (and looks like :) as an hour long project.  If people
+enjoy it, and want new functionality, lemme know, and I will see
+what I can do.
+
+- Rob <capveg@myleft.net> (cira 2001)
+.

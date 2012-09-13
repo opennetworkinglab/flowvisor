@@ -1,0 +1,661 @@
+#!/usr/bin/env python
+#from cmd2 import Cmd, make_option, options
+from cmd import Cmd
+import xmlrpclib
+import pprint
+import sys
+import getpass
+import re
+import json
+import os.path
+import os
+from optparse import OptionParser
+import socket
+import exceptions
+from jsonrpc import ServiceProxy, JSONParam
+from math import pow
+
+def parse_quoted_slice_name (arglist):
+  cmd_str = " ".join(arglist)
+  last_quote = cmd_str.index('"', 1)
+  slname = cmd_str[1:last_quote]
+  last_arg = cmd_str[last_quote+1:].strip()
+
+  return (slname, last_arg)
+
+class SubinterpreterExit(Exception):
+  def __init__ (self):
+    return
+
+class FlowSpaceRule(object):
+  def __init__ (self, key, val):
+    self.key = key
+    self.val = val
+
+  def __str__ (self):
+    return "%s:%s" % (self.key, self.val)
+
+class FlowSpaceAction(object):
+  def __init__ (self, typ, key, val):
+    self.type = typ
+    self.key = key
+    self.val = val
+
+  def __str__ (self):
+    if self.type == "Slice":
+      return "%s(%s)" % (self.key, self.val)
+    else:
+      return "%s:%s(%s)" % (self.type, self.key, self.val)
+
+class FlowSpaceEntry(object):
+  def __init__ (self, fsdict = None, show_slices = False, show_ids = False):
+    self.show_slices = show_slices 
+    self.show_ids = show_ids
+    self.dpid = None
+    self.priority = None
+    self.id = None
+    self.rules = None
+    self.actions = None
+    self.slices = set()
+    if fsdict is not None:
+      self.parse_fsdict(fsdict)
+
+  def parse_fsdict(self, fsdict):
+    self.dpid = fsdict['dpid'] 
+    self.priority = fsdict['priority']
+
+    self.id = fsdict['id']
+    self.rules = []
+    # Parse out the prepending OFMatch[ and the postpending ]
+    match = fsdict['ruleMatch']
+    #[8:len(fsdict['ruleMatch'])-1]
+    #for rule in match.split(","):
+    #  comps = rule.split("=")
+    #  if len(comps) == 2:
+    for mattr, mval in match.iteritems():
+        self.rules.append(FlowSpaceRule(mattr, mval))
+    actions = fsdict['actionsList']
+    self.actions = []
+    for action in actions:
+      typ = "?"
+      if action['vendor'] == (1 - pow(2, 31)):
+        # This is a Slice Action
+        typ = "Slice"
+      self.actions.append(FlowSpaceAction(typ, action['sliceName'], action['slicePerms']))
+      if typ == "Slice":
+        self.slices.add(action['sliceName'])
+
+  def in_slice (self, name):
+    if name in self.slices:
+      return True
+    return False
+
+  def __str__ (self):
+    fsid = ""
+    if self.show_ids:
+      fsid = "[%d] " % (self.id)
+
+    if not self.show_slices:
+      if self.rules:
+        return "%s DPID (%s), Prio: %d, Match: %s" % (fsid, self.dpid, self.priority,
+          ",".join(str(x) for x in self.rules))
+      else:
+        return "%s DPID (%s), Prio: %d, Match: Any" % (fsid, self.dpid, self.priority)
+    else:
+      if self.rules:
+        return "%s DPID (%s), Prio: %d, Match: %s, Slices: %s" % (fsid, self.dpid, self.priority,
+          ",".join(str(x) for x in self.rules), ",".join(str(x) for x in self.actions))
+      else:
+        return "%s DPID (%s), Prio: %d, Match: Any, Slices: %s" % (fsid, self.dpid, self.priority,
+          ",".join(str(x) for x in self.actions))
+
+
+class FlowSpaceChangeRequest(object):
+  def __init__ (self, flowentry, changetype):
+    self.entry = flowentry
+    self.changetype = changetype
+
+  def getEntry(self):
+    return self.entry
+
+  def getChangeType(self):
+    return self.changetype
+
+class CmdRegex(object):
+  def __init__ (self, regex):
+    self.pattern = regex
+    self._re = re.compile(self.pattern)
+
+  def __str__ (self):
+    return "(regex) %s" % (self.pattern)
+
+class Commands(object):
+  def __init__ (self, cmd_dict):
+    self.cmd_dict = cmd_dict
+    self.populate_subtype_dicts()
+
+  def populate_subtype_dicts (self):
+    self.str_dict = {}
+    self.re_dict = {}
+
+    for k,v in self.cmd_dict.iteritems():
+      if isinstance(k, str):
+        self.str_dict[k] = v
+      elif isinstance(k, CmdRegex):
+        self.re_dict[k] = v
+
+  def list (self):
+    s = self.str_dict.keys()
+    s.sort()
+    s.extend([str(x) for x in self.re_dict.keys()])
+    return s
+
+  def match (self, element):
+    try:
+      return self.str_dict[element]
+    except IndexError, e:
+      for regex, cmd in self.re_dict.iteritems():
+        if regex.match(element):
+          return cmd
+
+class JSONParamEncoder(json.JSONEncoder):
+    def default(self, obj):
+      if isinstance(obj, JSONParam):
+        return obj.getValueAsJson()
+      elif isinstance(obj, FlowSpaceChangeRequest):
+        return {'entry': obj.getEntry(), 'changeType': obj.getChangeType()}
+      elif isinstance(obj, FlowSpaceEntry):
+        ruleMatchStr = "OFMatch["
+        for rule in obj.rules:
+          ruleMatchStr = "%s%s=%s," % (ruleMatchStr, rule.key, rule.val)
+        ruleMatchStr = ruleMatchStr[0:len(ruleMatchStr)-1] + "]"
+        actionsList = []
+        for action in obj.actions:
+          actionDict = {}
+          actionsList.append(actionDict)
+          if action.type == 'Slice':
+            actionDict['vendor'] = (1 - pow(2, 31))
+          actionDict['type'] = "VENDOR"
+          actionDict['length'] = 8
+          actionDict['sliceName'] = action.key
+          actionDict['slicePerms'] = action.val
+        return {'id':obj.id, 'ruleMatch':ruleMatchStr, 'actionsList':actionsList, 'dpid':obj.dpid, 'priority':obj.priority}
+      else:
+        return json.JSONEncoder.default(self, obj)
+
+class Connection(object):
+  def __init__ (self, user, passwd, host, port, json_port):
+    self.nocache = False
+    self.user = user
+    self.host = host
+    self.port = int(port)
+    self.conn = xmlrpclib.ServerProxy("https://%s:%s@%s:%d/xmlrpc" % (user, passwd, host, self.port))
+    self.jsonconn = ServiceProxy("https://%s:%s@%s:%d" % (user, passwd, host, json_port), JSONParamEncoder)
+    self.infopath = os.path.expanduser("~/.fvcli/%s.info" % (self.host))
+    if not os.path.exists(os.path.split(self.infopath)[0]):
+      os.makedirs(os.path.split(self.infopath)[0])
+
+    self.__device_list = None
+    self.__links = None
+    self.__info = {}
+
+    self.load_config()
+
+  def __str__ (self):
+    return "[%s@%s:%d]" % (self.user, self.host, self.port)
+
+  def load_config (self):
+    if os.path.exists(self.infopath):
+      self.__info = json.load(open(self.infopath, "r"))
+
+  def write_config (self):
+    json.dump(self.__info, open(self.infopath, "w+"))
+
+  def get_local_device_info (self, dpid):
+    try:
+      return self.__info['devices'][dpid]
+    except:
+      return {}
+
+  def __listDevices (self):
+    if (self.nocache):
+      self.listDevices = self.__populate_devicecache
+    return self.__device_list
+
+  def __populate_devicecache (self):
+    self.__device_list = self.conn.api.listDevices()
+    self.listDevices = self.__listDevices
+    return self.listDevices()
+
+  def reset_devicecache (self):
+    self.listDevices = self.__populate_devicecache
+
+  listDevices = __populate_devicecache
+
+  def __populate_linkcache (self):
+    self.__links = self.conn.api.getLinks()
+    self.listLinks = self.__listLinks
+    return self.listLinks()
+
+  def __listLinks (self):
+    return self.__links
+
+  def reset_linkcache (self):
+    self.listLinks = self.__populate_linkcache
+
+  listLinks = __populate_linkcache
+
+  def getDeviceInfo (self, dpid):
+    return self.conn.api.getDeviceInfo(dpid)
+
+  def listSlices (self):
+    return self.conn.api.listSlices()
+
+  def getSliceInfo (self, name):
+    return self.conn.api.getSliceInfo(name)
+
+  def getSliceStats (self, name):
+    #return self.conn.api.getSliceStats(name)
+    return self.jsonconn.getSliceStats(name)
+
+  def getFlowspace (self):
+    #return self.conn.api.listFlowSpace()
+    return self.jsonconn.listFlowSpace()
+
+  def createSlice (self, name, passwd, controller_url, email):
+    return self.conn.api.createSlice(name, passwd, controller_url, email)
+
+  def changeSlice (self, name, key, value):
+    return self.conn.api.changeSlice(name, key, value)
+
+  def deleteSlice (self, name):
+    return self.conn.api.deleteSlice(name)
+
+  def getDeviceStats (self, dpid):
+    return self.conn.api.getSwitchStats(dpid)
+
+class FlowspaceCtl(Cmd):
+  prompt = ""
+
+  def __init__ (self, slname, conn):
+    Cmd.__init__(self)
+    self.conn = conn
+    self.name = slname
+    FlowspaceCtl.prompt = "[Flowspace: %s] " % (slname)
+    self.uncommitted_deletes = set()
+    self.uncommitted_adds = []
+
+  def do_exit (self, arglist):
+    raise SubinterpreterExit()
+
+  def do_list (self, arg):
+    fs = self.print_flowspace()
+    for i,entry in enumerate(self.uncommitted_adds):
+      print "(%3d) %s" % (i, str(entry))
+
+  def do_commit (self, arg):
+    self.commit_flowspace()
+
+  def get_flowspace (self, live = True, deleted = True):
+    fs = self.conn.jsonconn.listFlowSpace()
+    fslist = json.loads(fs['valueAsJson'])
+    pfs = []
+    for x in fslist:
+      e = FlowSpaceEntry(x, show_ids = True)
+      pfs.append(e)
+    return pfs
+
+  def commit_flowspace (self):
+    return
+
+  def do_add (self, arg):
+    try:
+      dpid = raw_input("DPID(s): ")
+      priority = raw_input("Priority: ")
+      match = raw_input("Match: ")
+      fe = FlowSpaceEntry()
+      fe.dpid = "all_dpids"
+      fe.priority = 32000
+      match = FlowSpaceRule("in_port", 0)
+      fe.rules = [match]
+      action = FlowSpaceAction("Slice", "alice", 4)
+      fe.actions = [action]
+      fsr = FlowSpaceChangeRequest(fe, "ADD")
+      print self.conn.jsonconn.changeFlowSpace([fsr])
+    except KeyboardInterrupt:
+      return
+
+  def print_flowspace (self, live = True, deleted = True):
+    fs = self.get_flowspace()
+    for e in fs:
+      if e.in_slice(self.name):
+        if e.id in self.uncommitted_deletes:
+          print "(-) %s" % (str(e))
+        else:
+          print "%s" % (str(e))
+    return fs
+
+  def delete_entry (self, fsid):
+    self.uncommitted_deletes.add(fsid)
+
+  def clear_flowspace (self, fs):
+    for e in fs:
+      self.uncommitted_deletes.add(e.id)
+    self.uncommitted_adds = []
+
+  def do_delete (self, arg):
+    arglist = arg.split()
+    if len(arglist) == 0:
+      fs = self.print_flowspace()
+      fsid = raw_input("ID: ")
+      if fsid.lower() == "all":
+        self.clear_flowspace(fs)
+      else:
+        self.delete_entry(int(fsid))
+    else:
+      fs = self.get_flowspace()
+      if arglist[0].lower() == "all":
+        self.clear_flowspace(fs)
+      else:
+        self.delete_entry(int(arglist[0]))
+
+  def do_undelete (self, arg):
+    arglist = arg.split()
+    if len(arglist) == 0:
+      fs = self.print_flowspace(live = False)
+      fsid = raw_input("ID: ")
+      if fsid.lower() == "all":
+        self.uncommitted_deletes = set()
+      else:
+        self.uncommitted_deletes.remove(int(fsid))
+    else:
+      if arglist[0].lower() == "all":
+        self.uncommitted_deletes = set()
+      else:
+        self.uncommitted_deletes.remove(int(arglist[0]))
+
+class FVCtl(Cmd):
+  prompt = "(FVCtl) "
+
+  def __init__ (self, host, user, port, json_port, passwd):
+    Cmd.__init__(self)
+    self.connections = []
+    self.__ac = None
+    self.__connect(host, user, port, json_port, passwd)
+    FVCtl.prompt = "[%s@%s] " % (user, host)
+
+    self.setup_show_cmds()
+
+  def cmdloop (self):
+    while True:
+      try:
+        Cmd.cmdloop(self)
+      except exceptions.SystemExit, e:
+        sys.exit()
+      except:
+        (self.__exc_t, self.__exc_v, self.__exc_tb) = sys.exc_info()
+        print self.__exc_t
+        continue
+
+  def __connect (self, host, user, port, json_port, passwd):
+    conn = Connection(user, passwd, host, port, json_port)
+    self.connections.append(conn)
+    self.__ac = conn
+
+  def change_slice (self, name):
+    if name[0] == '"':
+      name = name[1:-1]
+    info = self.__ac.getSliceInfo(name)
+    email = raw_input("Email [%s]: " % (info['contact_email']))
+    hostname = raw_input("Controller [%s]: " % (info['controller_hostname']))
+    port = raw_input("Port [%s]: " % (info['controller_port']))
+
+    if email != "":
+      self.__ac.changeSlice(name, "contact_email", email)
+    if hostname != "":
+      self.__ac.changeSlice(name, "controller_hostname", hostname)
+    if port != "":
+      self.__ac.changeSlice(name, "controller_port", port)
+
+  def delete_slice (self, name):
+    if name[0] == '"':
+      name = name[1:-1]
+    self.__ac.deleteSlice(name)
+
+  def change_slice_flowspace (self, name):
+    ctl = FlowspaceCtl(name, self.__ac)
+    try:
+      ctl.cmdloop()
+    except SubinterpreterExit:
+      return
+
+  def add_slice (self):
+    sname = raw_input("Slice Name: ")
+    passwd = getpass.getpass("Password: ")
+    email = raw_input("Admin Email: ")
+    controller = raw_input("Controller Hostname: ")
+    port = raw_input("Controller Port [6633]: ")
+
+    if port == "":
+      port = "6633"
+
+    url = "tcp:%s:%s" % (controller, port)
+    self.__ac.createSlice(sname, passwd, url, email)
+
+  def do_connections (self, arg):
+    for x,c in enumerate(self.connections):
+      if self.__ac == c:
+        print "* [%d] %s" % (x,c)
+      else:
+        print "[%d] %s" % (x,c)
+
+  def do_no (self, arg):
+    arglist = arg.split()
+    if arglist[0] == "cache":
+      self.__ac.nocache = True
+
+  def do_add (self, arg):
+    arglist = arg.split()
+    if arglist[0] == "slice":
+      self.add_slice()
+      return
+    elif arglist[0] == "flowspace":
+      return
+
+  def do_change (self, arg):
+    arglist = arg.split()
+    if arglist[0] == "slice":
+      if arglist[1].count('"') > 0:
+        (slname, lastarg) = parse_quoted_slice_name(arglist[1:])
+        if lastarg == "": 
+          self.change_slice(slname)
+          return
+        if lastarg == "flowspace":
+          self.change_slice_flowspace(slname)
+          return
+
+  def do_delete (self, arg):
+    arglist = arg.split()
+    if arglist[0] == "slice":
+      if arglist[1].count('"') > 0:
+        (slname, lastarg) = parse_quoted_slice_name(arglist[1:])
+        self.delete_slice(slname)
+
+  def do_reset (self, arg):
+    # {'linkcache' : reset_linkcache,
+    #  'devicecache' : reset_devicecache} 
+    arglist = arg.split()
+    if arglist[0] == "linkcache":
+      self.__ac.reset_linkcache()
+    elif arglist[0] == "devicecache":
+      self.__ac.reset_devicecache()
+    else:
+      print "Unknown command: reset %s" % (" ".join(arglist))
+
+  def setup_show_cmds (self):
+    device_cmds = Commands({
+      "list" : (self.show_device_list, "Help String", None),
+      CmdRegex('([:]{0,1}[0-9a-f][09a-f][0-9a-f]){1,8}') :  (self.show_device_dpid, "Help String", None)
+      })
+    link_cmds = Commands({
+      "list" : (self.show_link_list, "Help String", None)
+      })
+    slice_cmds = Commands({
+      "list" : (self.show_slice_list, "Help String", None)
+      })
+    self.cmd_show = Commands({
+      "device" : (None, "Device Information", device_cmds),
+      "link" : (None, "Link Information", link_cmds),
+      "slice" : (None, "Slice Information", slice_cmds)
+      })
+
+  def set_device_info (self, dpid):
+    fvinfo = self.__ac.getDeviceInfo(dpid)
+    lclinfo = self.__ac.get_local_device_info(dpid)
+
+  def show_device_list (self):
+    dl = self.__ac.listDevices()
+    dl.sort()
+    [sys.stdout.write("%s\n" % x) for x in dl]
+    print "Devices: %d" % (len(dl))
+
+  def show_device_list_detail (self):
+    dl = self.__ac.listDevices()
+    dl.sort()
+    for dpid in dl:
+      info = self.__ac.getDeviceInfo(dpid)
+      sys.stdout.write("[%s] (%s)\n" % (dpid, info['remote']))
+    print "Devices: %d" % (len(dl))
+
+  def show_device_dpid (self, dpid):
+    pprint.pprint(self.__ac.getDeviceInfo(dpid))
+
+  def show_device_stats (self, dpid):
+    print self.__ac.getDeviceStats(dpid)
+
+  def show_link_list (self):
+    pprint.pprint(self.__ac.listLinks())
+
+  def show_slice_list (self):
+    pprint.pprint(self.__ac.listSlices())
+
+  def show_slice_info (self, slname):
+    pprint.pprint(self.__ac.getSliceInfo(slname))
+
+  def show_slice_stats (self, slname):
+    pprint.pprint(self.__ac.getSliceStats(slname))
+
+  def show_slice_flowspace (self, slname):
+    fs = self.__ac.getFlowspace()
+    fslist = json.loads(fs['valueAsJson'])
+    for fs in fslist:
+      for action in fs['actionsList']:
+        if action['sliceName'] == slname:
+          sys.stdout.write(str(FlowSpaceEntry(fs)) + "\n")
+          break;
+
+  def show_flowspace (self):
+    fs = self.__ac.getFlowspace()
+    fslist = json.loads(fs['valueAsJson'])
+    print fslist
+    xfs = [FlowSpaceEntry(x, True) for x in fslist]
+    [sys.stdout.write(str(x)+"\n") for x in xfs]
+
+  def complete_show (self, text, line, begidx, endidx):
+    # text is the characters in the last entry
+    # line is the actual line
+    # begidx is where the last entry starts
+    # endidx is where it ends
+    elements = line[:begidx].split()
+    cmds = self.cmd_show
+    # (strip off the first element, it's "show", whose commands we already have)
+    for element in elements[1:]:
+      cmds = cmds.match(element)[2]
+    if cmds is not None:
+      return cmds.list()
+    return []
+
+  def do_show (self, arg):
+    # {'device' : (None, None,  
+    #   { 'list' : (do_list, "Help String", None)
+    #     Regex('([:]{0,1}[0-9a-f][0-9a-f]){1,8}') : (do_dpid, "<DPID>",
+    #       { 'links' : (dpid_links, "Show links attached to this DPID", None) })
+    #     }),
+    # {'link' : (None, None, 
+    #   { 'list' : (link_list, "Global link list", None)}
+    #  )}
+    #}
+    # device list
+    # device <dpid>
+    # device <dpid> links
+    # link list 
+    # slice list
+    arglist = arg.split()
+    if arglist[0] == "device":
+      if arglist[1] == "list":
+        if len(arglist) == 2:
+          self.show_device_list()
+          return
+        elif len(arglist) == 3:
+          if arglist[2] == "detail":
+            self.show_device_list_detail()
+            return
+      elif arglist[1].count(":") > 0:
+        if len(arglist) == 2:
+          self.show_device_dpid(arglist[1])
+          return
+        elif len(arglist) == 3:
+          if arglist[2] == "stats":
+            self.show_device_stats(arglist[1])
+            return
+    elif arglist[0] == "flowspace":
+      self.show_flowspace()
+      return
+    elif arglist[0] == "link":
+      if arglist[1] == "list":
+        self.show_link_list()
+        return
+    elif arglist[0] == "slice":
+      if arglist[1] == "list":
+        self.show_slice_list()
+        return
+      elif arglist[1].count('"') > 0:
+        (slname, lastarg) = parse_quoted_slice_name(arglist[1:])
+        if lastarg == "detail":
+          self.show_slice_info(slname)
+          return
+        elif lastarg == "stats":
+          self.show_slice_stats(slname)
+          return
+        elif lastarg  == "flowspace":
+          self.show_slice_flowspace(slname)
+          return
+    print "Unknown command: show %s" % (" ".join(arglist))
+
+  def do_quit (self, arg):
+    for conn in self.connections:
+      conn.write_config()
+    sys.exit()
+
+  def do_exit (self, arg):
+    self.do_quit(arg)
+
+
+def parse_args (args):
+  parser = OptionParser()
+  parser.add_option("-p", "--port", dest="rpcport", type="int", default="8080")
+  parser.add_option("-q", "--jetty_port", dest="jettyport", type="int", default="8081")
+  parser.add_option("-u", "--user", dest="user", default="fvadmin")
+  parser.add_option("-n", "--name", dest="host", default="localhost")
+
+  (options, args) = parser.parse_args()
+  return options
+
+if __name__ == '__main__':
+  options = parse_args(sys.argv)
+  passwd = getpass.getpass("Password: ")
+
+  options.host = socket.gethostbyname(options.host)
+
+  app = FVCtl(options.host, options.user, options.rpcport, options.jettyport, passwd)
+  app.cmdloop()

@@ -1,0 +1,90 @@
+.ds PN fvconfig
+
+.TH fvconfig 1 "May 2012" "FlowVisor" "FlowVisor Manual"
+
+.SH NAME
+fvconfig \- commandline tool to administer FlowVisor
+
+.SH AUTHOR
+
+Rob Sherwood <rob.sherwood@stanford.edu>
+ 
+Ali Al-Shabibi <ali.al-shabibi@stanford.edu>
+
+.SH SYNOPSIS
+.B fvconfig match config.json \fIdpid\fR \fImatch\fR
+
+.B fvconfig load config.json
+
+.B fvconfig chpasswd config.json \fIslicename\fR
+
+.B fvconfig convert config.json
+
+.B fvconfig query config.json \fIdpid\fR \fI[slicename]\fR
+
+.B fvconfig generateCert \fI[hostname]\fR
+
+.B fvconfig generate newconfig.json \fI[hostname]\fR \fI[admin_passwd]\fR \fI[of_port]\fR \fI[api_port]\fR
+
+.SH DESCRIPTION
+The
+.B fvconfig
+program is a command line tool for manipulating the flowvisor's configuration
+directly, as opposed to through a running flowvisor instance (SEE fvctl(1)).
+As such, fvconfig relies on standard file permissions instead of flowvisor
+user permissions.  Also, fvconfig should 
+.B NOT
+be used to modify the configuration of a running flowvisor as your changes will be overwritten.  To modify
+the configuration with fvconfig, you must kill the flowvisor first, and the changes will take effect
+once the flowvisor is restarted.
+
+.SH COMMANDS
+
+.TP
+\fBmatch\fR
+    Used for debugging, asks the flowvisor to list which rules match the given match 
+    structure.  The format of the match is as described in fvctl(1). 
+
+.TP
+\fBload\fR
+    Can be used to prepopulate the configuration from the given file. Note that
+    the configuration in the database, if any, will be overwritten. 
+
+.TP
+\fBchpasswd\fR \fIslicename\fR
+    Changes the password for a slice.  Useful for resetting the admin password
+    if it is forgotten.  This command does modify the configuration, so should
+        not be used on a running flowvisor.
+
+.TP
+\fBquery\fR \fIdpid\fR \fI[slicename]\fR
+    Two useful debugging commands.  If the slice name is not specified, this command will
+    list the slices that have the specified DPID in their slice.  If the slice name is 
+    specified, it will list the ports of the DPID that are used by this slice.
+
+.TP
+\fBconvert\fR
+    Converts old json configuration file to a json file. The output filename is the same but the extension is changed to .json.
+
+.TP
+\fBgenerateCert\fR \fI[hostname]\fR
+    This command generates a new SSL Key store (mySSLKeyStore) with \fIhostname\fR as the
+    SSL common name.  If no hostname is specified, the output from /bin/hostname is used.
+.TP
+\fBgenerate\fR  newconfig.json \fI[hostname]\fR \fI[admin_passwd]\fR \fI[of_port]\fR \fI[api_port]\fR
+    Generate a new config.  This command also generates a new
+    configuration file, complete with example slices Alice and Bob.
+    FVconfig will prompt for a password for the initial admin account
+    if one is not specified on the command-line.  The config listens on
+    port \fIof_port\fR (default: 6633) for OpenFlow switches and port
+    \fIapi_port\fR for the jsonRPC server (default: 8080).  Likely, if
+    this config file is actually to be used, the first thing to do would
+    be to delete the Alice and Bob slices, and then populate it with
+    your own slices.  This command also generates a new SSL Key store
+    (mySSLKeyStore) with hostname as the SSL common name (i.e., same as
+    'generateCert').
+
+.SH "SEE ALSO"
+
+.BR flowvisor (8),
+.BR fvctl (1)

@@ -1,0 +1,87 @@
+package org.flowvisor.config;
+
+import org.flowvisor.flows.FlowEntry;
+import org.flowvisor.flows.FlowMap;
+
+/**
+ * A proxy interface for the flowspace db table. 
+ * It handles all the logistics to get flow rules 
+ * in and out of the data repository.
+ * 
+ * @author ash
+ *
+ */
+public interface FlowSpace extends FVAppConfig {
+	
+	//COLUMN NAMES
+	public static String DPID = "dpid";
+	public static String PRIO = "priority";
+	public static String INPORT = "in_port";
+	public static String VLAN = "dl_vlan";
+	public static String VPCP = "dl_vpcp";
+	public static String DLSRC = "dl_src";
+	public static String DLDST = "dl_dst";
+	public static String DLTYPE = "dl_type";
+	public static String NWSRC = "nw_src";
+	public static String NWDST = "nw_dst";
+	public static String NWPROTO = "nw_proto";
+	public static String NWTOS = "nw_tos";
+	public static String TPSRC = "tp_src";
+	public static String TPDST = "tp_dst";
+	public static String WILDCARDS = "wildcards";
+	public static String ACTION = "slice_action";
+	
+	//Table name
+	public static String FS = "FlowSpaceRule";
+	
+	/**
+	 * Reads the flowspace from the data repository
+	 * and returns it
+	 * 
+	 * @return a flowmap
+	 * @throws ConfigError an error occurred while 
+	 * reading the data repository.
+	 */
+	public FlowMap getFlowMap() throws ConfigError;
+	
+	
+	/**
+	 * Writes the flowmap to the data repository.
+	 * 
+	 * Notifies the flowspace change!
+	 * 
+	 * @param map the flowmap to be written
+	 * 
+	 * @throws ConfigError an error occurred 
+	 * during the write process.
+	 * 
+	 */
+	public void setFlowMap(FlowMap map) throws ConfigError;
+	
+	
+	/**
+	 * Removes a single FlowSpaceRule
+	 * 
+	 * Does not Notify of the flowspace change!
+	 * 
+	 * @param id the id of the rule to remove
+	 * 
+	 * @throws ConfigError if this rule is not found.
+	 */
+	public void removeRule(int id) throws ConfigError;
+
+
+	/**
+	 * Add the rule to the FlowSpace
+	 * 
+	 * Does not Notify of the flowspace change!
+	 * 
+	 * @param entry the rule to add
+	 * @return id of the rule
+	 */
+	public int addRule(FlowEntry fe) throws ConfigError;
+
+
+	public void notifyChange(FlowMap map);
+	
+}

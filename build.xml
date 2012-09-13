@@ -1,0 +1,159 @@
+<project name="flowvisor" default="dist" basedir=".">
+
+    <description>
+        simple example build file
+    </description>
+
+    <!-- set global properties for this build -->
+
+    <property name="build" location="build"/>
+    <property name="dist"  location="dist"/>
+    <property name="docs"  location="javadoc"/>
+    <property name="of_jar" location="lib/openflow.jar"/>
+    <property name="xml-ver" value="3.1.3"/>
+    <property name="jetty-jar" value="-7.0.2.v20100331.jar"/>
+    <property name="gson-jar" value="-2.0.jar"/>
+    <property name="fv_classpath" location="${of_jar}:lib/xmlrpc-client-${xml-ver}.jar:lib/xmlrpc-server-${xml-ver}.jar:lib/xmlrpc-common-${xml-ver}.jar:lib/jsse.jar:lib/jetty-continuation${jetty-jar}:lib/jetty-http${jetty-jar}:lib/jetty-io${jetty-jar}:lib/jetty-server${jetty-jar}:lib/jetty-servlet${jetty-jar}:lib/servlet-api-2.5.jar:lib/jetty-security${jetty-jar}:lib/jetty-util${jetty-jar}:lib/commons-codec-1.4.jar:lib/cglib-2.2.jar:lib/junit-4.8.1.jar:lib/gson${gson-jar}:lib/asm-3.0.jar:lib/jna.jar:lib/syslog4j-0.9.46-bin.jar:lib/log4j-1.2.16.jar:lib/commons-dbcp-1.4.jar:lib/commons-collections-3.2.1.jar:lib/commons-logging-1.1.jar:lib/commons-pool-1.5.6.jar:lib/derby.jar:lib/derbytools.jar"/>
+    <property name="fv_src" location="src"/>
+    <property name="fv_tests" location="src.tests"/>
+    <property name="fv_build" location="build/"/>
+    <property name="fv_test_build" location="build.tests/"/>
+    <property name="fv_main" location="org.flowvisor.Flowvisor"/>
+    <property name="fv_jar" location="${dist}/flowvisor.jar"/>
+
+<!--    <property name="coverage.dir" value="coverage" />
+    <property name="emma.dir" value="lib/emma" />-->
+    <property name="src.dir" value="${fv_src}"/>
+    <property name="class.dir" value="${fv_build}"/>
+<!--    <property name="instrumented.dir" value="inst"/>-->
+
+    
+<!--    <path id="emma.lib">
+       <fileset dir="${emma.dir}">
+          <include name="*.jar"/>
+       </fileset>
+    </path>
+
+    
+    <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+
+    
+    <target name="instrument" depends="compile">
+        <emma enabled="true">
+            <instr instrpath="${class.dir}" destdir="${instrumented.dir}" metadatafile="${coverage.dir}/metadata.emma" merge="true">
+                 <filter excludes="au.com.jenisys.view.*"/>
+            </instr>
+        </emma>
+    </target>-->
+
+    <target name="init">
+        <!-- Create the time stamp -->
+        <tstamp/>
+        <!-- Create the build directory structure used by compile -->
+        <mkdir dir="${fv_build}"/>
+        <mkdir dir="${fv_test_build}"/>
+    </target>
+
+    <target name="compile" depends="init"
+        description="compile the source " >
+        <!-- Compile the java code from ${src} into ${build} -->
+        <javac debug="true" srcdir="${fv_src}" classpath="${fv_classpath}" destdir="${fv_build}"/>
+    </target>
+
+    <target name="compile-tests" depends="compile"
+        description="compile the tests " >
+        <!-- Compile the java code from ${tv_tests} into ${test_build} -->
+        <javac debug="true" srcdir="${fv_tests}" classpath="${fv_build}:${fv_classpath}" destdir="${fv_test_build}"/>
+    </target>
+
+    <target name="dist" depends="compile"
+        description="generate the distribution" >
+        <!-- Create the distribution directory -->
+        <mkdir dir="${dist}"/>
+        <!-- Put everything in ${fv_build} into the ${fv_jar} file -->
+        <jar destfile="${fv_jar}" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="org.flowvisor.FlowVisor"/>
+                <attribute name="Class-Path" value="${fv_classpath}"/>
+            </manifest>
+            <fileset dir="${fv_build}"/>
+        </jar>
+
+    </target>
+
+    <target name="clean"
+        description="clean up" >
+        <!-- Delete the ${build} and ${dist} directory trees -->
+        <delete dir="${fv_build}"/>
+        <delete dir="${fv_test_build}"/>
+        <delete dir="${fv_dist}"/>
+        <delete dir="${build}"/>
+        <delete dir="${dist}"/>
+        <delete dir="${docs}"/>
+    </target>
+
+
+    <target name="run" depends="dist">
+        <java fork="true" jar="${fv_jar}">
+            <jvmarg value="-server"/>
+            <jvmarg value="-Xms512M"/>
+            <jvmarg value="-Xmx512M"/>
+            <arg line="${args}"/>
+            <classpath>
+                <pathelement location="${fv_jar}"/>
+                <pathelement location="${fv_classpath}"/>
+            </classpath>
+        </java>
+    </target>
+
+    <target name="javadoc">
+        <javadoc access="protected"
+        author="true"
+        classpath="${fv_jar}:${fv_classpath}"
+        destdir="${docs}"
+        doctitle="FlowVisor"
+        nodeprecated="false"
+        nodeprecatedlist="false"
+        noindex="false"
+        nonavbar="false"
+        notree="false"
+        source="1.6"
+        sourcepath="${fv_src}"
+        splitindex="true"
+        use="true"
+        version="true"/>
+    </target>
+
+    <target name="tests" depends="test">
+    </target>
+    <target name="test" depends="compile-tests"> <!--, instrument">-->
+         <mkdir dir="test-reports"/>
+        <junit printsummary="yes" failureproperty="junit.failure" fork="yes">
+       <!--     <classpath path="${instrumented.dir}:${fv_build}:${fv_classpath}:${fv_test_build}">
+                <path refid="emma.lib"/>
+            </classpath>
+            <jvmarg value="-Demma.coverage.out.file=${coverage.dir}/coverage.emma" />  
+            <jvmarg value="-Demma.coverage.out.merge=true" /> -->
+            <batchtest todir="test-reports">
+                <formatter type="xml" usefile="true"/>
+                <fileset dir="${fv_tests}"/>
+            </batchtest>
+        </junit>
+
+        <fail if="junit.failure" message="Unit test(s) failed.  See reports!"/>
+    </target>
+
+<!--    <target name="emma-report" depends="tests" >
+        <emma enabled="true" >
+         <report sourcepath="${src.dir}" >
+             <fileset dir="${coverage.dir}" >
+                 <include name="*.emma" />
+             </fileset>
+             <xml outfile="${coverage.dir}/coverage.xml" depth="method"/>
+         </report>
+        </emma>
+
+    </target>-->
+
+</project>
+
