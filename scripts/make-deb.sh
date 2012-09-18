@@ -1,7 +1,7 @@
 #!/bin/sh
 
-if [ $# -ne 1 ] ; then
-    echo "Usage: $0 version-string" >&2
+if [ $# -ne 2 ] ; then
+    echo "Usage: $0 version-string build-type" >&2
     exit 1
 fi
 if [ ! -f Makefile ] ; then 
@@ -123,4 +123,4 @@ tgtfile="${pkgname}_${version}_${arch}.deb"
 dpkg -b root $tgtfile
 cp $tgtfile $base/scripts/DEB/$dir
 cd  $base/scripts/DEB
-make
+make type=$type
