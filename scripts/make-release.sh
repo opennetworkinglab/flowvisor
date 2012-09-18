@@ -9,7 +9,7 @@ fi
 
 release=$1
 sed -i "s/FLOWVISOR_VERSION = [^ ]\+/FLOWVISOR_VERSION = \"$release\";/" $fv_main
-hg diff $fv_main
+git diff $fv_main
 
 read -p "Are these changes what you wanted? 'y' to continue, anything else to abort " res
 if [ "X$res" != "Xy" ] ; then

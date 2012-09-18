@@ -5,20 +5,9 @@
 
 prefix_default=/usr/local
 root_default=""
-binuser_default=$USER
-bingroup_default=`groups | cut -f1 -d\ `
+binuser=flowvisr
+bingroup=flowvisr
  
-# if root is installing, then assume they don't want to run fv as root
-if [ "X$USER" = "Xroot" ] ; then
-	fvuser_default=flowvisor
-	fvgroup_default=flowvisor
-    sudo=""
-else
-	fvuser_default=$binuser_default
-	fvgroup_default=$bingroup_default
-    sudo=sudo
-fi
-
 install="$sudo install"
 base=`dirname $0`/..
 scriptd=$base/scripts
@@ -66,54 +55,6 @@ esac
 done
 
 echo "Using source dir: $base"
-
-test -z "$prefix" && read -p "Installation prefix ($prefix_default): " prefix
-if [ "X$prefix" = "X" ] ; then
-    prefix=$prefix_default
-fi
-
-test -z "$fvuser" && read -p "FlowVisor User (needs to already exist) ($fvuser_default): " fvuser
-if [ "X$fvuser" = "X" ] ; then
-    fvuser=$fvuser_default
-fi
-id $fvuser 2>/dev/null 1>/dev/null
-
-while [ "$?" -ne "0" ] ; do
-    read -p "FlowVisor User (needs to already exist, '$fvuser' does not exist) ($fvuser_default): " fvuser
-    if [ "X$fvuser" = "X" ] ; then
-    	fvuser=$fvuser_default
-    fi
-    id $fvuser 2>/dev/null 1>/dev/null
-done
-
-test -z "$fvgroup" && read -p "FlowVisor Group (needs to already exist) ($fvgroup_default): " fvgroup
-if [ "X$fvgroup" = "X" ] ; then
-    fvgroup=$fvgroup_default
-fi
-id -g $fvgroup 2>/dev/null 1>/dev/null
-
-while [ "$?" -ne "0" ] ; do
-    read -p "FlowVisor Group (needs to already exist, '$fvgroup' does not exist) ($fvgroup_default): " fvgroup
-    if [ "X$fvgroup" = "X" ] ; then
-        fvgroup=$fvgroup_default
-    fi
-    id -g $fvgroup 2>/dev/null 1>/dev/null
-done
-
-
-if [ "X$binuser" = "X" ] ; then
-    binuser=$binuser_default
-fi
-
-if [ "X$bingroup" = "X" ] ; then
-    bingroup=$bingroup_default
-fi
-
-test -z "$root" && read -p "Install to different root directory ($root_default) " root
-if [ "X$root" = "X" ] ; then
-    root=$root_default
-fi
-
 
 echo Installing FlowVisor into $root$prefix with prefix=$prefix as user/group ${fvuser}:${fvgroup}
 
@@ -206,11 +147,6 @@ sed -i -e "s,PREFIX,$prefix," fv-startup
 $install $verbose --owner=$binuser --group=$bingroup --mode=755 fv-startup  $root/etc/init.d/flowvisor
 
 
-#echo Installing JNI libraries
-#cd $owd
-#cd $jni
-#make install DSTDIR=$root$prefix/libexec/flowvisor
-
 echo Installing jars
 cd $owd
 cd $libs
@@ -261,7 +197,7 @@ $install $verbose --owner=$binuser --group=$bingroup --mode=644 $DOCS $root$pref
 
 if [ ! -f $root/etc/flowvisor/config.json ] ; then 
     echo Generating a default config FlowVisor config
-    install_root=$root $root$prefix/sbin/fvconfig generate $root/etc/flowvisor/config.json
+    install_root=$root $root$prefix/sbin/fvconfig generate $root/etc/flowvisor/config.json localhost flowvisor 6633 8080 
     $CHOWN -R $fvuser:$fvgroup $root$prefix/share/db/flowvisor
     $CHOWN -R $fvuser:$fvgroup $root/etc/flowvisor/config.json
 else

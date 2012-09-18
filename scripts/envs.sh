@@ -17,7 +17,7 @@ if [ -z $configbase ] ; then
 else
     install_dir=$install_root$configbase/libexec/flowvisor
     jars=$install_dir
-    config_dir=$install_root$configbase/etc/flowvisor
+    config_dir=$install_root/etc/flowvisor
     SSL_KEYSTORE=$config_dir/mySSLKeyStore
     dbhome=$install_root$configbase/share/db/flowvisor
     logfile=$config_dir

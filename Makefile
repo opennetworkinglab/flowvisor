@@ -12,9 +12,9 @@ docs:
 doc:
 	ant javadoc
 
-test: tests
+stest: tests
 
-tests: all unit-tests regression-tests 
+stests: all unit-tests regression-tests 
 
 unit-tests:
 	ant tests
@@ -26,7 +26,11 @@ count:
 	@find src -name \*.java | xargs wc -l | sort -n
 
 install: all
-	./scripts/install-script.sh
+	./scripts/install-script.sh 
+
+pkg-install: all
+	./scripts/install-package.sh 
+
 
 whitespace:
 	./scripts/fix_trailing_whitespace.pl -fix `find src -name \*.java`

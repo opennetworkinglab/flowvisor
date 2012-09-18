@@ -129,8 +129,8 @@
     <target name="test" depends="compile-tests"> <!--, instrument">-->
          <mkdir dir="test-reports"/>
         <junit printsummary="yes" failureproperty="junit.failure" fork="yes">
-       <!--     <classpath path="${instrumented.dir}:${fv_build}:${fv_classpath}:${fv_test_build}">
-                <path refid="emma.lib"/>
+            <classpath path="${instrumented.dir}:${fv_build}:${fv_classpath}:${fv_test_build}" />
+              <!--  <path refid="emma.lib"/>
             </classpath>
             <jvmarg value="-Demma.coverage.out.file=${coverage.dir}/coverage.emma" />  
             <jvmarg value="-Demma.coverage.out.merge=true" /> -->

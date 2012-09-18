@@ -549,7 +549,7 @@ public class FVConfig {
 		
 		LoadConfig.defaultConfig(passwd);
 		
-		
+		FVConfigurationController.init(new ConfDBHandler());
 		// set the listen port, if requested
 		if (args.length > 2)
 			FVConfig.setListenPort(Integer.valueOf(args[2]));

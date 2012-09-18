@@ -5,7 +5,7 @@
 if [ -z $base ] ; then
     envs=`dirname $0`/../scripts/envs.sh
 else
-    envs=$base/etc/flowvisor/envs.sh
+    envs=/etc/flowvisor/envs.sh
 fi
 
 if [ -f $envs ] ; then

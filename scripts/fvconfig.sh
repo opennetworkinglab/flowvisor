@@ -19,7 +19,7 @@ EOF
 if [ -z $base ] ; then
     envs=`dirname $0`/../scripts/envs.sh
 else 
-    envs=$install_root$base/etc/flowvisor/envs.sh
+    envs=$install_root/etc/flowvisor/envs.sh
 fi
 
 if [ -f $envs ] ; then

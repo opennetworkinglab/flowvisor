@@ -14,11 +14,12 @@ if [ `id -u` != 0 ]; then
 fi
 
 version=$1
-ARCH=`dpkg --print-architecture`
+type=$2
+ARCH="all"
 
 base=`pwd`
  rm -rf $base/pkgbuild/root
-make prefix=/usr root=$base/pkgbuild/root fvuser=flowvisor fvgroup=flowvisor install
+make prefix=/usr root=$base/pkgbuild/root fvuser=flowvisr fvgroup=flowvisr pkg-install
 
  mkdir -p $base/pkgbuild/root/etc/init.d
 # cp ./scripts/fv-startup.sh $base/pkgbuild/root/etc/init.d/flowvisor
@@ -37,6 +38,72 @@ Description: The OpenFlow FlowVisor
 Depends: openjdk-6-jre
 EOF
 
+cat > preinst << EOF
+#!/bin/bash -e
+#
+# summary of how this script can be called:
+#        * <new-preinst> install
+#        * <new-preinst> install <old-version>
+#        * <new-preinst> upgrade <old-version>
+#        * <old-preinst> abort-upgrade <new-version>
+#
+
+. /usr/share/debconf/confmodule
+
+if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
+${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
+
+# creating flowvisr group if he isn't already there
+if ! getent group flowvisr >/dev/null; then
+    # Adding system group: flowvisr.
+    echo "Creating FlowVisor (flowvisr) group."
+    addgroup --system flowvisr >/dev/null
+fi
+
+# creating flowvisr user if he isn't already there
+if ! getent passwd flowvisr >/dev/null; then
+    # Adding system user: flowvisr.
+    echo "Creating FlowVisor (flowvisr) user."
+    adduser \
+      --system \
+          --disabled-login \
+      --ingroup flowvisr \
+      --no-create-home \
+      --home /nonexistent \
+      --gecos "FlowVisor Hypervisor" \
+      --shell /bin/false \
+      flowvisr  >/dev/null
+fi
+EOF
+
+cat > postrm << EOF
+#!/bin/bash -e
+#
+# summary of how this script can be called:
+#        * <new-preinst> install
+#        * <new-preinst> install <old-version>
+#        * <new-preinst> upgrade <old-version>
+#        * <old-preinst> abort-upgrade <new-version>
+#
+
+. /usr/share/debconf/confmodule
+
+if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
+${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
+
+# deleting flowvisr user/group
+if getent passwd flowvisr > /dev/null; then
+    echo "Removing FlowVisor user and group"
+    deluser flowvisr > /dev/null
+fi
+if getent group flowvisr > /dev/null; then
+    delgroup --only-if-empty flowvisr > /dev/null
+fi
+EOF
+
+chmod 775 preinst
+chmod 775 postrm
+
 cd ..
 # chown -Rh root .
 # chgrp -Rh root .
@@ -47,7 +114,7 @@ cd ..
 # chmod u+w DEBIAN
 
 cd ..
-dir=unstable/binary-${ARCH}
+dir=$type/binary-${ARCH}
 mkdir -p $base/scripts/DEB/$dir
 ctlfile="root/DEBIAN/control"
 pkgname=$(grep "^Package:" ${ctlfile} | awk '{print $2}')
