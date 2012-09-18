@@ -130,6 +130,7 @@
          <mkdir dir="test-reports"/>
         <junit printsummary="yes" failureproperty="junit.failure" fork="yes">
             <classpath path="${instrumented.dir}:${fv_build}:${fv_classpath}:${fv_test_build}" />
+            <jvmarg value="-Dderby.system.home=."/>
               <!--  <path refid="emma.lib"/>
             </classpath>
             <jvmarg value="-Demma.coverage.out.file=${coverage.dir}/coverage.emma" />  

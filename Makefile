@@ -12,9 +12,15 @@ docs:
 doc:
 	ant javadoc
 
-stest: tests
+test: tests
 
-stests: all unit-tests regression-tests 
+tests: all setup-db unit-tests rmdb
+
+setup-db:
+	./scripts/derby-interact.sh ./scripts/FlowVisorDB.sql > /dev/null
+
+rmdb:
+	rm -rf FlowVisorDB
 
 unit-tests:
 	ant tests
