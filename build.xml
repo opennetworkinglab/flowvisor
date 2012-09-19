@@ -145,13 +145,13 @@
     </target>
 
     <target name="emma-report" depends="tests" >
-        <emma enabled="true" >
+        <emma enabled="true">
          <report sourcepath="${src.dir}" >
              <fileset dir="${coverage.dir}" >
                  <include name="*.emma" />
              </fileset>
              <xml outfile="${coverage.dir}/coverage.xml" depth="method"/>
-             <html outfile="${coverage.dir}/coverage.html" depth="method"/>
+             <html outfile="${coverage.dir}/coverage.html" depth="method" encoding="UTF-8"/>
          </report>
         </emma>
 
