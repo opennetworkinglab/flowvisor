@@ -21,14 +21,14 @@
     <property name="fv_main" location="org.flowvisor.Flowvisor"/>
     <property name="fv_jar" location="${dist}/flowvisor.jar"/>
 
-<!--    <property name="coverage.dir" value="coverage" />
-    <property name="emma.dir" value="lib/emma" />-->
+    <property name="coverage.dir" value="coverage" />
+    <property name="emma.dir" value="lib/emma" />
     <property name="src.dir" value="${fv_src}"/>
     <property name="class.dir" value="${fv_build}"/>
-<!--    <property name="instrumented.dir" value="inst"/>-->
+    <property name="instrumented.dir" value="inst"/>
 
     
-<!--    <path id="emma.lib">
+    <path id="emma.lib">
        <fileset dir="${emma.dir}">
           <include name="*.jar"/>
        </fileset>
@@ -44,7 +44,7 @@
                  <filter excludes="au.com.jenisys.view.*"/>
             </instr>
         </emma>
-    </target>-->
+    </target>
 
     <target name="init">
         <!-- Create the time stamp -->
@@ -126,15 +126,15 @@
 
     <target name="tests" depends="test">
     </target>
-    <target name="test" depends="compile-tests"> <!--, instrument">-->
+    <target name="test" depends="compile-tests,instrument">
          <mkdir dir="test-reports"/>
         <junit printsummary="yes" failureproperty="junit.failure" fork="yes">
-            <classpath path="${instrumented.dir}:${fv_build}:${fv_classpath}:${fv_test_build}" />
-            <jvmarg value="-Dderby.system.home=."/>
-              <!--  <path refid="emma.lib"/>
+            <classpath path="${instrumented.dir}:${fv_build}:${fv_classpath}:${fv_test_build}">
+                <path refid="emma.lib"/>
             </classpath>
+            <jvmarg value="-Dderby.system.home=."/>
             <jvmarg value="-Demma.coverage.out.file=${coverage.dir}/coverage.emma" />  
-            <jvmarg value="-Demma.coverage.out.merge=true" /> -->
+            <jvmarg value="-Demma.coverage.out.merge=true" /> 
             <batchtest todir="test-reports">
                 <formatter type="xml" usefile="true"/>
                 <fileset dir="${fv_tests}"/>
@@ -144,7 +144,7 @@
         <fail if="junit.failure" message="Unit test(s) failed.  See reports!"/>
     </target>
 
-<!--    <target name="emma-report" depends="tests" >
+    <target name="emma-report" depends="tests" >
         <emma enabled="true" >
          <report sourcepath="${src.dir}" >
              <fileset dir="${coverage.dir}" >
@@ -154,7 +154,7 @@
          </report>
         </emma>
 
-    </target>-->
+    </target>
 
 </project>
 

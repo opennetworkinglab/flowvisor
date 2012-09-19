@@ -25,8 +25,10 @@ rmdb:
 unit-tests:
 	ant tests
 
-regression-tests:
-	make -C regress tests
+emma:
+	ant emma-report
+
+emma-report: setup-db emma rmdb
 
 count: 
 	@find src -name \*.java | xargs wc -l | sort -n
