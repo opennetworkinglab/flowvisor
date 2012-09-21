@@ -56,7 +56,7 @@ $jars/syslog4j-0.9.46-bin.jar:\
 $jars/log4j-1.2.16.jar:\
 $install_dir/flowvisor.jar
 
-emmajar=$jars/emma.jar
+emmajar=$jars/emma/emma.jar
 
 # ssl options for the jvm
 

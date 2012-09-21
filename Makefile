@@ -30,6 +30,11 @@ emma:
 
 emma-report: setup-db emma rmdb
 
+regress:
+	./scripts/run-tests.sh $(REV)
+
+regression: setup-db regress rmdb regressclean
+
 count: 
 	@find src -name \*.java | xargs wc -l | sort -n
 
@@ -42,6 +47,9 @@ pkg-install: all
 
 whitespace:
 	./scripts/fix_trailing_whitespace.pl -fix `find src -name \*.java`
+
+regressclean:
+	rm -rf flowvisor-test
 
 clean:
 	ant clean
