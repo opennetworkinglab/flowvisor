@@ -11,4 +11,4 @@ git checkout $REV
 
 cd tests
 
-./fvt --fv-cmd=../../scripts/flowvisor-emma.sh
+./fvt --verbose --fv-cmd=../../scripts/flowvisor-emma.sh
