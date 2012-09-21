@@ -2,7 +2,7 @@
 
 
 REV=$1
-REPO=git@github.com:OPENNETWORKINGLAB/flowvisor-test.git
+REPO=git://github.com/OPENNETWORKINGLAB/flowvisor-test.git
 
 git clone $REPO
 cd flowvisor-test
