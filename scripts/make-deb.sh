@@ -55,26 +55,26 @@ cat > preinst << EOF
 if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
 ${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
 
-# creating flowvisr group if he isn't already there
-if ! getent group flowvisr >/dev/null; then
-    # Adding system group: flowvisr.
-    echo "Creating FlowVisor (flowvisr) group."
-    addgroup --system flowvisr >/dev/null
+# creating flowvisor group if he isn't already there
+if ! getent group flowvisor >/dev/null; then
+    # Adding system group: flowvisor.
+    echo "Creating FlowVisor (flowvisor) group."
+    addgroup --system flowvisor >/dev/null
 fi
 
-# creating flowvisr user if he isn't already there
-if ! getent passwd flowvisr >/dev/null; then
-    # Adding system user: flowvisr.
-    echo "Creating FlowVisor (flowvisr) user."
+# creating flowvisor user if he isn't already there
+if ! getent passwd flowvisor >/dev/null; then
+    # Adding system user: flowvisor.
+    echo "Creating FlowVisor (flowvisor) user."
     adduser \
       --system \
           --disabled-login \
-      --ingroup flowvisr \
+      --ingroup flowvisor \
       --no-create-home \
       --home /nonexistent \
       --gecos "FlowVisor Hypervisor" \
       --shell /bin/false \
-      flowvisr  >/dev/null
+      flowvisor  >/dev/null
 fi
 EOF
 
@@ -93,13 +93,13 @@ cat > postrm << EOF
 if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
 ${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
 
-# deleting flowvisr user/group
-if getent passwd flowvisr > /dev/null; then
+# deleting flowvisor user/group
+if getent passwd flowvisor > /dev/null; then
     echo "Removing FlowVisor user and group"
-    deluser flowvisr > /dev/null
+    deluser flowvisor > /dev/null
 fi
-if getent group flowvisr > /dev/null; then
-    delgroup --only-if-empty flowvisr > /dev/null
+if getent group flowvisor > /dev/null; then
+    delgroup --only-if-empty flowvisor > /dev/null
 fi
 EOF
 
