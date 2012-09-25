@@ -859,9 +859,9 @@ public class FlowvisorImpl implements Flowvisor {
 				row.put(LOGFACILITY, "LOG_LOCAL7");
 			ps.setString(10, (String) row.get(LOGFACILITY));
 			
-			if (row.get(VERSION) == null)
-				row.put(VERSION, FlowVisor.FLOWVISOR_VERSION);
-			ps.setString(11, (String) row.get(VERSION));
+			//if (row.get(VERSION) == null)
+			row.put(VERSION, FlowVisor.FLOWVISOR_VERSION);
+			//ps.setString(11, (String) row.get(VERSION));
 			
 			if (row.get(HOST) == null)
 				row.put(HOST, "localhost");

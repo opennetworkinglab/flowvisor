@@ -16,10 +16,12 @@ fi
 version=$1
 type=$2
 ARCH="all"
+USER="flowvisor"
+GROUP="flowvisor"
 
 base=`pwd`
  rm -rf $base/pkgbuild/root
-make prefix=/usr root=$base/pkgbuild/root fvuser=flowvisr fvgroup=flowvisr pkg-install
+make prefix=/usr root=$base/pkgbuild/root fvuser=$USER fvgroup=$GROUP pkg-install
 
  mkdir -p $base/pkgbuild/root/etc/init.d
 # cp ./scripts/fv-startup.sh $base/pkgbuild/root/etc/init.d/flowvisor

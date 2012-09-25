@@ -2,6 +2,14 @@
 
 #base=PREFIX
 
+if [ -z "$FV_RUN_AS_ROOT" -o "x$FV_RUN_AS_ROOT" != "xyes" ]; then
+    if [ `id -u` -eq 0 ]; then
+        echo "FlowVisor should not be run as root"
+        exit 1
+    fi
+fi
+ 
+
 if [ -z $base ] ; then
     envs=`dirname $0`/../scripts/envs.sh
     DEBUG=yes
