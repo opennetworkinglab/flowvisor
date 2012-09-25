@@ -41,7 +41,7 @@
     <target name="instrument" depends="compile">
         <emma enabled="true">
             <instr instrpath="${class.dir}" destdir="${instrumented.dir}" metadatafile="${coverage.dir}/metadata.emma" merge="true">
-                 <filter excludes="au.com.jenisys.view.*"/>
+                 <filter excludes="au.com.jenisys.view.*, org.flowvisor.config.convertor.*"/>
             </instr>
         </emma>
     </target>
