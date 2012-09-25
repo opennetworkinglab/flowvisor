@@ -14,4 +14,4 @@ release=`sed -n '/FLOWVISOR_VERSION = [^ ]\+/p' $fv_main | awk {' print $7 '} | 
 echo "Making debian package (using sudo)" >&2
 version=`echo $release | sed -e 's/^flowvisor-//'`
 sudo ./scripts/make-deb.sh $version $rtype
-
+sudo make clean
