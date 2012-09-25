@@ -13,7 +13,7 @@ cd tests
 
 ./fvt --verbose --fv-cmd=../../scripts/flowvisor-emma.sh
 
-if [ $? -gt "0"]; then
+if [ $? -gt "0" ]; then
     exit 1
 else
     exit 0
