@@ -5,8 +5,8 @@
 
 prefix_default=/usr/local
 root_default=""
-binuser=flowvisr
-bingroup=flowvisr
+binuser=flowvisor
+bingroup=flowvisor
  
 install="$sudo install"
 base=`dirname $0`/..
