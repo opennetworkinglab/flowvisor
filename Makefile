@@ -54,3 +54,7 @@ regressclean:
 clean:
 	ant clean
 	rm -rf pkgbuild
+
+emmaclean:
+	rm -rf inst
+	rm -rf coverage
