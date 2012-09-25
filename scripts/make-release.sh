@@ -15,3 +15,4 @@ echo "Making debian package (using sudo)" >&2
 version=`echo $release | sed -e 's/^flowvisor-//'`
 sudo ./scripts/make-deb.sh $version $rtype
 sudo make clean
+chown -R jenkins:nogroup ./scripts/DEB
