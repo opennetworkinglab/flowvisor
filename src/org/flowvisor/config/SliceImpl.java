@@ -49,7 +49,7 @@ public class SliceImpl implements Slice {
 			" passwd_salt, controller_hostname, controller_port, contact_email, drop_policy, lldp_spam) " +
 			"VALUES(?,?,?,?,?,?,?,?,?,?,?)";
 	private static String DELETESLICE = "DELETE FROM Slice WHERE " + SLICE + " = ?";
-	private static String SCRYPT = "UPDATE Slice SET " + CRYPT + " = ? AND " + SALT +
+	private static String SCRYPT = "UPDATE Slice SET " + CRYPT + " = ?, " + SALT +
 			" = ? WHERE " + SLICE + " = ?";
 	
 	private static String FLOWVISOR = "SELECT id from " + Flowvisor.FLOWVISOR + " WHERE " + Flowvisor.CONFIG + " = ?"; 

@@ -1,3 +1,15 @@
+Flowvisor 0.8.6 : September 30 2012
+    * FLOWVISOR-43   FlowVisor 0.6.x package improvements
+    * FLOWVISOR-90   Nightly build packages in unstable apt repo
+    * FLOWVISOR-125  /etc/init.d/flowvisor variable instantiation (?) problems in 0.8.1
+    * FLOWVISOR-136  Path and naming mismatches between FlowVisor package and documentation
+    * FLOWVISOR-137  Missing instructions for package install
+    * FLOWVISOR-140  Add /etc/init.d/flowvisor status
+    * FLOWVISOR-149  Create package installation user if it doesn't exist
+    * FLOWVISOR-30   make "port alread bound" fatal error clearer to the user
+    * FLOWVISOR-34   new passwd prompt gets NPE if non-terminal
+    * FLOWVISOR-181  "fvctl changePasswd" doesn't change password
+
 Flowvisor 0.8.5 : July 11 2012
     * FLOWVISOR-177: fvctl dumpConfig should output the config file in fvctl's working directory
     * FLOWVISOR-178: Slice creation renders flowvisor unresponsive in some cases

@@ -319,14 +319,14 @@ public class FlowvisorImpl implements Flowvisor {
 			else
 				throw new ConfigError("logging not found");
 		} catch (SQLException e) {
-			FVLog.log(LogLevel.WARN, null, e.getMessage());
+			System.err.println(e.getMessage());
+			throw new ConfigError(e.getMessage());
 		} finally {
 			close(set);
 			close(ps);
 			close(conn);
 			
 		}
-		return null;
 	}
 	
 	@Override
@@ -519,8 +519,8 @@ public class FlowvisorImpl implements Flowvisor {
 			ps.setInt(2, id);
 			if (ps.executeUpdate() == 0)
 				FVLog.log(LogLevel.WARN, null, "Track flows update had no effect.");
-			} catch (SQLException e) {
-			FVLog.log(LogLevel.WARN, null, e.getMessage());
+		} catch (SQLException e) {
+			System.err.println(e.getMessage());
 		} finally {
 			close(set);
 			close(ps);

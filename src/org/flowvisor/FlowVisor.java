@@ -36,7 +36,7 @@ public class FlowVisor {
 	public final static int FLOWVISOR_VENDOR_EXTENSION = 0x80000001;
 
 	// VERSION
-	public final static String FLOWVISOR_VERSION = "flowvisor-0.8.5";
+	public final static String FLOWVISOR_VERSION = "flowvisor-0.8.6";
 
 	// Max slicename len ; used in LLDP for now; needs to be 1 byte
 	public final static int MAX_SLICENAME_LEN = 255;
@@ -214,7 +214,10 @@ public class FlowVisor {
 					// Set temp file for config checkpointing.
 					fv.configFile = "/tmp/flowisor";
 				
-				fv.run();
+				fv.run(); 
+			} catch (NullPointerException e) {
+				System.err.println("Errors occurred. Please make sure that the database exists and/or no other FlowVisor is running.");
+				System.exit(0);
 			} catch (Throwable e) {
 				e.printStackTrace();
 				FVLog.log(LogLevel.CRIT, null, "MAIN THREAD DIED!!!");
@@ -236,7 +239,7 @@ public class FlowVisor {
 				fv = null;
 				System.gc(); // give the system a bit to clean up after itself
 				Thread.sleep(1000);
-			}
+			} 
 		}
 	}
 

@@ -59,6 +59,15 @@ stop)
   pkill -f "org.flowvisor.FlowVisor"
   ;;
 
+status)
+  PID=`pgrep -f "org.flowvisor.FlowVisor"`
+  if [ -z $PID ]; then
+        echo "FlowVisor is not runnning"
+  else
+        echo "FlowVisor is running as PID $PID"
+  fi
+  ;;
+
 restart)
   $0 stop
   echo Sleeping a bit to let FlowVisor shutdown
