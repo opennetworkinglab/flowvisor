@@ -1,0 +1,29 @@
+REQUIREMENTS:
+    - ant           (no version requirements?)
+    - java 1.6	    (currently works with both Sun's JDK; 
+                     and OpenJDK)
+
+BUILD:
+    - run `make` (or `ant` : Makefile is just a wrapper)
+
+INSTALL:
+    - make install
+
+    This puts scripts and jars into a specified $prefix
+
+CONFIG:
+    Build a default configuration with:
+    fvconfig generate config.json
+
+    Load the contents of the config.json in to database:
+    fvconfig load config.json
+
+    Dump the running config to a file:
+    fvctl dumpConfig <filename>
+
+    The config file is editable manually. Once editted, you may
+    load the file using the above command (recommended) or start
+    flowvisor with the config file as a parameter.
+
+    You can still configure flowvisor during runtime using fvctl.
+        `man 1 fvctl` or `man ./doc/fvctl.1` for details

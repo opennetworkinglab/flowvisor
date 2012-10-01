@@ -1,0 +1,85 @@
+.ds PN flowvisor
+
+.TH flowvisor 8 "May 2008" "FlowVisor" "FlowVisor Manual"
+
+.SH NAME
+flowvisor \- OpenFlow network slicing daemon
+
+.SH AUTHOR
+
+Rob Sherwood <rob.sherwood@stanford.edu>
+
+Ali Al-Shabibi <ali.al-shabibi@stanford.edu>
+
+.SH SYNOPSIS
+.B flowvisor
+[-d \fIdebug\fR] [-h] [-l] [-p \fIport\fR] [\fIconfig.json\fR] 
+
+.SH DESCRIPTION
+The
+.B flowvisor
+program is a daemon that logically slices an OpenFlow-enabled switch into multiple, logical switches each controlled by a different OpenFlow controller. 
+
+For more details, see:
+
+"Can the Production Network Be the Test-bed?" 
+Rob Sherwood, Glen Gibb, Kok-Kiong Yap, Guido Appenzeller, Martin Casado, Nick McKeown, Guru Parulkar.
+Symposium for Operating Systems Design and Implementation, 2010
+
+.SH OPTIONS
+
+.TP
+-d \fIdebug\fR
+Overrides debugging threshold in config.json and sets it to \fIdebug\fR.  Does not modify config.json.
+Mostly used for manual debugging.  The string \fIdebug\fR must be one of MOBUG, DEBUG, NOTE, INFO, WARN, ALERT, CRIT,
+and FATAL (in order of increasing priority/verbosity) similar to syslog(3).
+
+.TP
+-h
+Prints the version number and usage information and exits.
+
+
+.TP
+-l
+Logs to stderr instead of to syslog()
+
+.TP
+-p \fIport\fR
+Overrides listenning port from config.json and sets it to \fIport\fR.  Does not modify config.json.
+Mostly used for manual debugging.
+
+.TP
+\fIconfig.json\fR
+Supplying the input config file will cause Flowvisor to overwrite the config in its embedded database with whatever is in the config file. 
+
+.SH ENVIRONMENT
+
+.TP 
+FV_JVM_ARGS
+
+The override the default arguments to the JVM with those in $FV_JVM_ARGS.
+May be useful for increasing memory efficiency or playing with special
+JVM optimizations, like fancy garbage collectors.
+
+.TP
+FV_DEBUG_PORT
+
+Turns on remote debugging support for the JVM and sets the JVM to
+listen on port $FV_DEBUG_PORT.  This is useful for attaching a
+remote debugger, e.g., `jdb -attach fvserver.foo.com:$FV_DEBUG_PORT`.
+\fINOTE\fR: there is no security in the JVM debugging protocol, so
+by enabling this option you potentially open your running FlowVisor
+to remote control/manipulation.  FV_DEBUG_PORT is specified as
+\fI[local_address:]port\fR, where \fIlocal_address\fR defaults to "all
+interfaces", so if you are interested in binding to a specific
+interface, e.g., the loopback interface on port 12345, can set
+FV_DEBUG_PORT=localhost:12345 .  See
+\fIhttp://download.oracle.com/javase/6/docs/technotes/guides/jpda/conninv.html#Invocation\fR
+for more information.
+
+
+
+.SH "SEE ALSO"
+
+.BR fvctl (1)
+.BR fvconfig (1)

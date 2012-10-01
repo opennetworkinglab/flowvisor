@@ -1,0 +1,358 @@
+.ds PN fvctl
+
+.TH fvctl 1 "May 2012" "FlowVisor" "FlowVisor Manual"
+
+.SH NAME
+fvctl \- commandline tool to administer FlowVisor
+
+.SH AUTHOR
+
+Rob Sherwood <rob.sherwood@stanford.edu>
+
+Ali Al-Shabibi <ali.al-shabibi@stanford.edu>
+
+.SH SYNOPSIS
+.B fvctl
+[\fIoptions\fR] \fIcommand [\fIargs\fR...]
+
+.SH DESCRIPTION
+The
+.B fvctl
+program is a command line tool for configuring, debugging, monitoring, and
+administering running FlowVisor instances.  It is able to show the
+current state of a FlowVisor, including features, configuration, and
+flowspace entries.
+
+Every FlowVisor instance runs an XMLRPC server and accepts API calls
+as documented in org.flowvisor.api.FVUserAPI.java.  The tool \fBfvctl\fR
+is just a command-line client that invokes these calls.  The expectation
+is that more user friendly (read: graphical) interfaces will evolve and
+eventually replace \fBfvctl\fR.
+
+.SH OPTIONS
+
+
+.TP 
+\fB--url\fR=\fIURL\fR
+Specifes the URL where the FlowVisor's XMLRPC server is listenning.  Default is:
+\fIhttps://localhost:8080\fR
+
+.TP 
+\fB--user\fR=\fIUSER\fR
+Specifes the FlowVisor user name to use when connecting to the XMLRPC server.  Default is: 
+\fIroot\fR
+
+.TP
+\fB--debug\fR=\fItrue\fR
+Turns on additional debugging.  Specifically, print the full stack frame on exception.  Default is: 
+\fIfalse\fR
+
+.TP
+\fB--jetty\fR=\fItrue\fR
+Indicates that the JSON interface is running. Must be used in conjunction with \fIurl\fR parameter
+to specify the url of the JSON http server.
+  Default is: \fIfalse\fR
+
+
+.TP
+\fB--passwd-file\fR=\fIfile\fR
+Instead of prompting for the password, read it from \fIfile\fR.  Default is to prompt for the password.
+
+.SH COMMANDS
+
+With the \fBfvctl\fR program, the expectation is the FlowVisor is up and running, with its XMLRPC
+server listenning at \fIURL\fR.  Currently \fBfvctl\fR requires that the commands be camel-cased, 
+e.g., \fIlistFlowSpace\fR, not \fIlistflowspace\fR or \fIlIstFlowSPACE\fR.  To be fixed soon.
+
+
+.PP
+These commands are for creating/managing/deleting slices.  Permissions on
+modifying a slice are hierarchical: a user can modify their
+own slice, as can the user who created the slice, transitively up the
+chain to the root slice.
+
+.TP
+\fBlistSlices\fR
+    Displays the currently configured slices.
+
+.TP
+\fBgetSliceInfo\fR \fIslicename\fR
+    Displays the \fIslicename\fR's controller URL, contact information, and who created this slice.
+
+.TP
+\fBcreateSlice\fR \fIslicename\fR \fIcontroller_url\fR \fIemail\fR
+    Creates a new slice.  Note that the \fIslicename\fR cannot contain
+    any of the following characters: !:=[] or new lines.  The controller
+    URL is of the form tcp:hostname[:port] so "tcp:controller.myco.com"
+    or "tcp:127.0.0.1:12345", with the default port being 6633.  The email
+    is used as the administrive contact point if there is a problem with
+    the slice.
+
+.TP
+\fBchangeSlice\fR \fIslicename\fR \fIkey\fR \fIvalue\fR
+    Allow a slice user to change values associated with their slice.
+    Currently only "contact_email", "controller_host" and "controller_port"
+    are changable.
+
+.TP
+\fBdeleteSlice\fR \fIslicename\fR
+    Deletes a slice and removed all of the flowspace corresponding to the
+    slice.  
+
+.TP
+\fBchangePasswd\fR \fIslicename\fR
+    Change the password for slice \fIslicename\fR.
+
+.TP
+\fBdumpConfig\fR \fIfilename\fR
+    Dump the config currently stored in the database.
+
+.PP
+The following commands manipulate the FlowVisor's flowspace.
+Each flowspace entry consists of a DPID, a FLOW_MATCH rule, a list
+of SLICEACTIONS, an ID, and a PRIORITY.  The format of the DPID and
+FLOW_MATCH parameters are specified bellow in the DPID and FLOW_MATCH
+sections.  A single flow entry makes the statement "The flowspace
+described by FLOW_MATCH on switch DPID is controlled by the slices in
+the list SLICEACTIONS".  Flow entries are sorted by PRIORITY (high number
+is higher priority) and only the highest priority matched is considered.  Priorities are 
+any positive integer in the range [0:2^31].  Additionally, each
+flow entry is associated with a unique, rule-position-independent ID, that names
+that specific rule.  While the XMLRPC API supports batching of add/remove/changing
+flowspace rules for transactional changes, \fBfvctl\fR does not.
+
+.TP
+\fBlistFlowSpace\fR
+    Lists the FlowVisor's flow-based slice policy rules, i.e., the flowspace.  
+
+.TP
+\fBremoveFlowSpace\fR \fIID\fR
+    Removes rule with id=\fIID\fR.  
+    
+.TP
+\fBaddFlowSpace\fR \fIDPID\fR \fIPRIORITY\fR \fIFLOW_MATCH\fR \fISLICEACTIONS\fR
+    Creates a new rule and returns the new rule's ID.  See below for the format of DPID, FLOW_MATCH, and SLICEACTIONS.
+.TP
+\fBchangeFlowSpace\fR \fIID\fR \fIDPID\fR \fIPRIORITY\fR \fIFLOW_MATCH\fR \fISLICEACTIONS\fR
+    Replaces rule ID with a new rule with the specificed parameters.  See below for the format of DPID, FLOW_MATCH, and SLICEACTIONS.
+.PP
+The following commands provide information on the devices connected to the FlowVisor (e.g., switches)
+and the topology that connects them.
+
+.TP
+\fBlistDevices\fR
+    Displays the devices (e.g., switches) currently connected to the FlowVisor, by DPID.
+
+.TP
+\fBgetDeviceInfo\fR \fIdpid\fR
+    Displays information about a connected device, including available ports and remote connection.
+
+.TP
+\fBgetLinks\fR
+    Displays the links between the devices, as inferred by FlowVisor's topology discovery mechanism.
+
+.TP 
+\fBregisterCallback\fR \fIURL\fR \fIcookie\fR
+Register a XMLRPC callback for the flowvisor to call when there is
+a change in the topology.  Once registered, with each topology change
+(with some dampenning), FlowVisor will connect to the server listed in
+URL, and make the XMLRPC call to the path of \fIURL\fR with \fIcookie\fR
+as a parameter.
+
+.TP 
+\fBunregisterCallback\fR 
+UnRegisters a previously registered XMLRPC callback.
+
+.PP
+The following commands relay how many OpenFlow messages have been
+sent/recv/drop'd by switches and slices.  They are currently returned in a
+single block string format, which is suboptimal, but will likely go away
+if we get rid of XMLRPC.  Any message type not listed implicitly has a
+count of zero (never appeared).  The current output looks something like:
+
+.PP
+Switch 00:00:00:00:00:00:00:01's STATS:
+.br
+---Sent---
+.br
+classifier-dpid=00:00:00:00:00:00:00:01 :: FEATURES_REPLY=3,HELLO=1
+.br
+Total :: FEATURES_REPLY=3,HELLO=1
+.br
+---Recv---
+.br
+slicer_bob_dpid=00:00:00:00:00:00:00:01 :: FEATURES_REQUEST=1
+.br
+slicer_alice_dpid=00:00:00:00:00:00:00:01 :: FEATURES_REQUEST=1,PACKET_OUT=1
+.br
+Total :: FEATURES_REQUEST=2,PACKET_OUT=1
+.br
+---Drop---
+.br
+Total ::
+.br
+
+
+.TP
+\fBgetSliceStats\fR \fIsliceName\fR
+    Returns statistics for \fIsliceName\fR in terms of messages sent, received, and dropped, subdivided by message type.
+
+.TP
+\fBgetSwitchStats\fR \fIdpid\fR
+    Returns statistics for the switch with dpid \fIdpid\fR in terms of messages sent, received, and dropped, subdivided by message type.
+
+.TP
+\fBgetSwitchFlowDB\fR \fIdpid\fR
+    Dump's the FlowVisor's view of \fIdpid\fR's flow table.  The FlowVisor
+    tracks the sum of the flow_mods and flow_removed messages, so this
+    DB should be up to date baring race conditions and switch bugs.
+    For hardware switches, this is likely much cheaper to ask the FlowVisor
+    for its cached copy than to ask the switch itself. Note that track_flows must
+    be enabled for this feature to work, else this command will return an empty list.
+    Flow tracking can be enabled with:
+        \fBfvctl\fR \fIsetConfig\fR \fB!flowvisor!track_flows\fR \fItrue\fR
+
+.TP
+\fBgetSliceRewriteDB\fR \fIsliceName\fR \fIdpid\fR
+    Dump how the flowvisor has rewritten the slices flowentries.  This command
+    outputs how the original flowMod \fIfm_original\fR was rewritten to a 
+    sequence of flowMods: \fIfm_rewrite1,fm_rewrite2\fR.  Similar to getSwitchFlowDB,
+    this command returns an empty list if track_flows is disabled.
+
+.PP 
+The following commands are used for debugging the XMLRPC server
+.TP
+\fBping\fR \fImsg\fR
+    Simply echo's \fImsg\fR back, verifying that the XMLRPC server is up, functioning, and the authentication is working.
+    Also includes the version of the current running flowvisor (only to authenticated users), for example:
+    
+    % fvctl ping "Hello"
+    Enter fvadmin's passwd: 
+    Got reply:
+    PONG(fvadmin): FV version=flowvisor-0.7.2::Hello
+
+
+
+.SH "FLOW SYNTAX"
+
+Some \fBfvctl\fR commands accept an argument that describes a flow or
+flows.  Such flow descriptions comprise a series
+\fIfield\fB=\fIvalue\fR assignments, separated by commas.
+
+The following field assignments describe how a flow matches a packet.
+If any of these assignments is omitted from the flow syntax, the field
+is treated as a wildcard; thus, if all of them are omitted, the
+resulting flow matches all packets.  The string \fBall\fR or \fBany\fR
+is used to specify a flow that matches all packets.
+
+.IP \fBin_port=\fIport_no\fR
+Matches physical port \fIport_no\fR.  Switch ports are numbered as
+displayed by \fBfvctl\fR getDeviceInfo \fIDPID\fR.
+
+.IP \fBdl_vlan=\fIvlan\fR
+Matches IEEE 802.1q virtual LAN tag \fIvlan\fR.  Specify \fB0xffff\fR
+as \fIvlan\fR to match packets that are not tagged with a virtual LAN;
+otherwise, specify a number between 0 and 4095, inclusive, as the
+12-bit VLAN ID to match.
+
+.IP \fBdl_src=\fImac\fR
+Matches Ethernet source address \fImac\fR, which should be specified
+as 6 pairs of hexadecimal digits delimited by colons,
+e.g. \fB00:0A:E4:25:6B:B0\fR.
+
+.IP \fBdl_dst=\fImac\fR
+Matches Ethernet destination address \fImac\fR.
+
+.IP \fBdl_type=\fIethertype\fR
+Matches Ethernet protocol type \fIethertype\fR, which should be
+specified as a integer between 0 and 65535, inclusive, either in
+decimal or as a hexadecimal number prefixed by \fB0x\fR,
+e.g. \fB0x0806\fR to match ARP packets.
+
+.IP \fBnw_src=\fIip\fR[\fB/\fInetmask\fR]
+Matches IPv4 source address \fIip\fR, which should be specified as an
+IP address, e.g. \fB192.168.1.1\fR.  The optional \fInetmask\fR allows matching
+only on an IPv4 address prefix.  The netmask is specificed "CIDR-style", i.e., 
+\fB192.168.1.0/24\fR.
+
+.IP \fBnw_dst=\fIip\fR[\fB/\fInetmask\fR]
+Matches IPv4 destination address \fIip\fR.
+
+.IP \fBnw_proto=\fIproto\fR
+Matches IP protocol type \fIproto\fR, which should be specified as a
+decimal number between 0 and 255, inclusive, e.g. 6 to match TCP
+packets.
+
+.IP \fBnw_tos=\fItos/dscp\fR
+Matches ToS/DSCP (only 6-bits, not modify reserved 2-bits for future
+use) field of IPv4 header \fItos/dscp\fR, which should be specified as
+a decimal number between 0 and 255, inclusive.
+
+.IP \fBtp_src=\fIport\fR
+Matches transport-layer (e.g., TCP, UDP, ICMP) source port \fIport\fR,
+which should be specified as a decimal number between 0 and 65535 (in
+the case of TCP or UDP) or between 0 and 255 (in the case of ICMP),
+inclusive, e.g. 80 to match packets originating from a HTTP server.
+
+.IP \fBtp_dst=\fIport\fR
+Matches transport-layer destination port \fIport\fR.
+
+
+.PP
+For example:
+
+
+.TP 
+Match on all traffic that has ether_type of IP and IP->protocol of ICMP: 
+.B \fBdl_type=0x0800,nw_proto=1\fR.
+
+.TP
+A more complicated FLOW MATCH:
+.B \fBdl_src=00:23:10:ff:a4:b1,dl_type=0x0800,nw_proto=6,tp_dst=80\fR
+
+.SH DPID
+The datapath identifier (DPID) is a unique ID to name and identify
+OpenFlow devices.  With fvctl, DPIDs are 8 bytes and can be specified as a decimal
+number or as 8 hex octets, e.g., 00:00:00:23:10:35:ce:a5.  The DPID
+ff:ff:ff:ff:ff:ff:ff is a "wildcard" DPID that matches all DPIDs.
+It can be specified using any of the following short cuts: \fBall\fR, \fBany\fR,
+or \fBALL_DPIDS\fR.
+
+.SH SLICEACTIONS
+Slice actions is a comma separated list of slices that have control
+over a specific FlowSpace.
+Slice actions are of the form "Slice:\fIslicename1\fR=\fIperm\fR[\fISlice:slicename2\fR=\fIperm\fR[...]]".
+Each slice can have three types of permissions over a flowspace: \fBDELEGATE\fR, \fBREAD\fR, and \fBWRITE\fR.  
+Permissions are \fIcurrently\fR a bitmask specified as an integer, with DELEGATE=1, READ=2, WRITE=4.  So,
+"Slice:alice=5,bob=2" would give Alice's slice DELEGATE and WRITE permissions (1+4=5), but Bob only READ permissions.
+Improving this interface is on the TODO list.  For example, 
+
+ \fIfvctl addFlowSpace all 2 any Slice:slice1=4,Slice:slice2=2\fR
+
+.TP 
+.B DELEGATE
+A slice can delegate control of this flowspace to another slice.  It also has permissions to un-delegate/reclaim
+the flowspace.
+
+.TP 
+.B READ
+A slice receives packet_in's matching this flow entry, can send LLDP messages and stats to switches in this flow entry, 
+but cannot write to or change the switch's flow table.  This is useful for implementing a monitoring slice.
+
+.TP 
+.B WRITE
+A slice has all of the permissions of READ but can also write to the
+flow table if the flow_mod matches this flow entry.  FlowVisor will
+try to rewrite a flow_mod (if necessary) as the logical intersection
+of a slice's flow_mod and the union of its FlowSpace.
+
+.SH EXAMPLES
+
+
+.B TODO
+
+.fi
+.SH "SEE ALSO"
+
+.BR flowvisor (8),
+.BR fvconfig (1),

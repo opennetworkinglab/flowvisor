@@ -1,0 +1,15 @@
+GENI APT REPOSITORY:
+
+add
+
+deb http://updates/flowvisor.org/openflow/downloads/GENI/DEB unstable/binary-$(ARCH)/
+
+to your /etc/sources.list
+
+And then run `sudo apt-get install flowvisor`
+
+
+
+--- NOTE TO SELF ---
+BUILT on openflow5 (or any machine with dpkg) and
+copied to yuba, because yuba is centos
