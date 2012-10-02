@@ -43,6 +43,7 @@ import org.flowvisor.flows.SliceAction;
 import org.openflow.protocol.action.OFAction;
 
 
+
 /**
  * Client side stand alone command-line tool for invoking the FVUserAPI
  *
@@ -63,6 +64,11 @@ public class FVCtl {
 		new APICmd("deleteSlice", 1, "<slicename>"),
 		new APICmd("changePasswd", 1, "<slicename>"),
 		new APICmd("getSliceInfo", 1, "<slicename>"),
+		
+		new APICmd("setMaximumFlowMods", 3,"<slice> <dpid> <maximum_flow_mods>"),
+		new APICmd("getMaximumFlowMods", 2, "<slice> <dpid>"),
+		
+		new APICmd("getCurrentFlowMods", 2, "<slice> <dpid>"),
 		
 		new APICmd("getSliceStats", 1, "<slicename>"),
 		new APICmd("getSwitchStats", 1, "<dpid>"),
@@ -777,6 +783,49 @@ public class FVCtl {
 				System.err.println("failed!");	
 	}
 	
+	public void run_setMaximumFlowMods(String sliceName, String dpidStr,
+						String strMaxFlowMods) throws IOException, XmlRpcException, 
+						MalformedURLException {
+		Boolean reply = (Boolean) this.client.execute(
+				"api.setMaximumFlowMods", new Object[] {sliceName,
+						dpidStr, strMaxFlowMods});
+		if (reply == null) {
+			System.err.println("Got 'null' for reply :-(");
+			System.exit(-1);
+		}
+		if (reply)
+			System.out.println("success!");
+		else
+			System.err.println("failed!");	
+	}
+	
+	public void run_getMaximumFlowMods(String sliceName, String dpidStr) 
+			throws IOException, XmlRpcException, 
+			MalformedURLException {
+		Integer reply = (Integer) this.client.execute(
+				"api.getMaximumFlowMods", new Object[] {sliceName,
+				dpidStr});
+		if (reply == null) {
+			System.err.println("Got 'null' for reply :-(");
+			System.exit(-1);
+		}
+		System.out.println("The maximum limit for slice " + sliceName + " on " 
+							+ dpidStr + " : " + reply);
+	}
+	
+	public void run_getCurrentFlowMods(String sliceName, String dpidStr)
+			throws IOException, XmlRpcException, 
+			MalformedURLException {
+		Integer reply = (Integer) this.client.execute(
+				"api.getCurrentFlowMods", new Object[] {sliceName,
+				dpidStr});
+		if (reply == null) {
+			System.err.println("Got 'null' for reply :-(");
+			System.exit(-1);
+		}
+		System.out.println("The current limit for slice " + sliceName + " on " 
+							+ dpidStr + " : " + reply);
+	}
 	
 	private static void usage(String string) {
 		usage(string, true);

@@ -82,7 +82,7 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 		// set new length as a function of old length and old actions length
 		this.setLength((short) (getLength() - oldALen + FVMessageUtil
 				.countActionsLen(actionsList)));
-
+		
 		for (FlowIntersect intersect : intersections) {
 			try {
 				if (intersect.getFlowEntry().hasPermissions(
@@ -98,7 +98,29 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 							fvClassifier.getDPID(), fvSlicer.getSliceName());
 					// actually send msg
 					/*if (fvClassifier.isFlowTracking() && !((this.flags & 1) != 0))
-						this.flags = (short) (this.flags & 1);*/
+						*/
+					/*
+					 * THIS HAS TO BE VIRTUALIZED!!!!!!!
+					 */
+					newFlowMod.flags = (short) (newFlowMod.flags & 1);
+					if(this.command == OFFlowMod.OFPFC_DELETE || this.command == OFFlowMod.OFPFC_DELETE_STRICT){
+						fvSlicer.decrementFlowRules();
+					}else if(this.command == OFFlowMod.OFPFC_ADD){
+						FVLog.log(LogLevel.WARN,fvSlicer,"Verifying Slice is not over its flow rule limit");
+						if (!fvSlicer.permitFlowMod()){
+							FVLog.log(LogLevel.WARN,fvSlicer,"Slice is already at flow rule limit");
+							fvSlicer.sendMsg(FVMessageUtil.makeErrorMsg(OFFlowModFailedCode.OFPFMFC_EPERM, this), fvSlicer);
+							return;
+						}
+						//increment the flow rule
+						fvSlicer.incrementFlowRules();
+					}else if(this.command == OFFlowMod.OFPFC_MODIFY_STRICT || this.command == OFFlowMod.OFPFC_MODIFY_STRICT){
+						//do nothing
+						//this is modifying existing flows not adding/subtracting
+					}
+							
+
+					
 					fvClassifier.sendMsg(newFlowMod, fvSlicer);
 				}
 			} catch (CloneNotSupportedException e) {

@@ -5,16 +5,15 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 
 import org.flowvisor.FlowVisor;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 
-import com.google.gson.stream.JsonReader;
-
-import com.google.gson.stream.JsonWriter;
 
 public class FlowvisorImpl implements Flowvisor {
 
@@ -711,103 +710,52 @@ public class FlowvisorImpl implements Flowvisor {
 		FVConfigurationController.instance().removeChangeListener(ChangedListener.FLOWVISOR, l);
 	}
 	
-	public void toJson(JsonWriter writer) throws IOException {
+	public  HashMap<String, Object> toJson(HashMap<String, Object> output) {
 		Connection conn = null;
 		PreparedStatement ps = null;
 		ResultSet set = null;
+		HashMap<String, Object> fv = new HashMap<String, Object>();
+		LinkedList<Object> list = new LinkedList<Object>();
 		try {
 			conn = settings.getConnection();
 			ps = conn.prepareStatement(GALL);
 			set = ps.executeQuery();
-			//writer.beginObject();
-			writer.name(FLOWVISOR);
-			writer.beginArray();
-			while (set.next()) {
-				writer.beginObject();
-				writer.name(APIPORT).value(set.getInt(APIPORT));
-				writer.name(JETTYPORT).value(set.getInt(JETTYPORT));
-				writer.name(CHECKPOINT).value(set.getBoolean(CHECKPOINT));
-				writer.name(LISTEN).value(set.getInt(LISTEN));
-				writer.name(TRACK).value(set.getBoolean(TRACK));
-				writer.name(STATS).value(set.getBoolean(STATS));
-				writer.name(TOPO).value(set.getBoolean(TOPO));
-				writer.name(LOGGING).value(set.getString(LOGGING));
-				writer.name(LOGIDENT).value(set.getString(LOGIDENT));
-				writer.name(LOGFACILITY).value(set.getString(LOGFACILITY));
-				writer.name(VERSION).value(set.getString(VERSION));
-				writer.name(HOST).value(set.getString(HOST));
-				writer.name(FLOODPERM).value(set.getString(FLOODPERM));
-				writer.name(CONFIG).value(set.getString(CONFIG));
-				writer.endObject();
+			while (set.next()) {		
+				fv.put(APIPORT, set.getInt(APIPORT));
+				fv.put(JETTYPORT, set.getInt(JETTYPORT));
+				fv.put(CHECKPOINT, set.getBoolean(CHECKPOINT));
+				fv.put(LISTEN, set.getInt(LISTEN));
+				fv.put(TRACK, set.getBoolean(TRACK));
+				fv.put(STATS, set.getBoolean(STATS));
+				fv.put(TOPO, set.getBoolean(TOPO));
+				fv.put(LOGGING, set.getString(LOGGING));
+				fv.put(LOGIDENT, set.getString(LOGIDENT));
+				fv.put(LOGFACILITY, set.getString(LOGFACILITY));
+				fv.put(VERSION, set.getString(VERSION));
+				fv.put(HOST, set.getString(HOST));
+				fv.put(FLOODPERM, set.getString(FLOODPERM));
+				fv.put(CONFIG, set.getString(CONFIG));
+				list.add(fv.clone());
+				fv.clear();
 			}
-			writer.endArray();
-			//writer.endObject();
+			output.put(FLOWVISOR, list);
 				
 		} catch (SQLException e) {
-			FVLog.log(LogLevel.WARN, null, e.getMessage());
+			FVLog.log(LogLevel.WARN, null, "Failed to write Flowvisor base config : " + e.getMessage());
 		} finally {
 			close(set);
 			close(ps);
 			close(conn);
 			
 		}
+		return output;
 	}
 
 	@Override
-	public void fromJson(JsonReader reader) throws IOException {
-		HashMap<String, Object> row = new HashMap<String , Object>();
-		String key = null;
-		Object value = null;
+	public void fromJson(ArrayList<HashMap<String, Object>> list) throws IOException {
 		reset();
-		while (true) {
-			switch (reader.peek()) {
-				case BEGIN_ARRAY:
-					reader.beginArray();
-					break;
-				case BEGIN_OBJECT:
-					reader.beginObject();
-					break;
-				case BOOLEAN:
-					value = reader.nextBoolean();
-					break;
-				case END_DOCUMENT:
-					throw new IOException("Unexpected EOF while parsing config file.");
-				case END_OBJECT:
-					reader.endObject();
-					insert(row);
-					row.clear();
-					key = null;
-					value = null;
-					break;
-				case END_ARRAY:
-					reader.endArray();
-					return;
-				case NAME:
-					key = reader.nextName();
-					break;
-				case NULL:
-					reader.nextNull();
-					if (key != null) {
-						row.put(key, value);
-						key = null;
-					}
-					break;
-				case NUMBER:
-					value = reader.nextLong();
-					break;
-				case STRING:
-					value = reader.nextString();
-					break;
-				default:
-					reader.skipValue();
-			}
-			if (key != null && value != null) {
-				row.put(key, value);
-				key = null;
-				value = null;
-			}
-		}
-		
+		for (HashMap<String, Object> row : list)
+			insert(row);
 	}
 
 	private void insert(HashMap<String, Object> row) {
@@ -820,20 +768,20 @@ public class FlowvisorImpl implements Flowvisor {
 			ps.execute();
 			ps = conn.prepareStatement(INSERT);
 			if (row.get(APIPORT) == null)
-				row.put(APIPORT, new Long(8080));
-			ps.setInt(1, ((Long) row.get(APIPORT)).intValue());
+				row.put(APIPORT, new Double(8080));
+			ps.setInt(1, ((Double) row.get(APIPORT)).intValue());
 			
 			if (row.get(JETTYPORT) == null)
-				row.put(JETTYPORT, new Long(-1));
-			ps.setInt(2, ((Long) row.get(JETTYPORT)).intValue());
+				row.put(JETTYPORT, new Double(-1));
+			ps.setInt(2, ((Double) row.get(JETTYPORT)).intValue());
 			
 			if (row.get(CHECKPOINT) == null)
 				row.put(CHECKPOINT, false);
 			ps.setBoolean(3, (Boolean) row.get(CHECKPOINT));
 			
 			if (row.get(LISTEN) == null)
-				row.put(LISTEN, new Long(6633));
-			ps.setInt(4, ((Long) row.get(LISTEN)).intValue());
+				row.put(LISTEN, new Double(6633));
+			ps.setInt(4, ((Double) row.get(LISTEN)).intValue());
 			
 			if (row.get(TRACK) == null)
 				row.put(TRACK, false);

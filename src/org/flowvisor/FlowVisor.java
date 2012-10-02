@@ -26,6 +26,7 @@ import org.flowvisor.log.ThreadLogger;
 import org.flowvisor.message.FVMessageFactory;
 import org.flowvisor.ofswitch.OFSwitchAcceptor;
 import org.flowvisor.ofswitch.TopologyController;
+import org.flowvisor.resources.SlicerLimits;
 import org.openflow.example.cli.Option;
 import org.openflow.example.cli.Options;
 import org.openflow.example.cli.ParseException;
@@ -50,6 +51,7 @@ public class FlowVisor {
 
 	private WebServer apiServer;
 	static FlowVisor instance;
+	private SlicerLimits sliceLimits;
 
 	FVMessageFactory factory;
 
@@ -147,7 +149,8 @@ public class FlowVisor {
 				// init polling loop
 		FVLog.log(LogLevel.INFO, null, "initializing poll loop");
 		FVEventLoop pollLoop = new FVEventLoop();
-
+		sliceLimits = new SlicerLimits();
+		
 		JettyServer.spawnJettyServer(FVConfig.getJettyPort());//jettyPort);
 		
 		if (port == 0)
@@ -159,6 +162,7 @@ public class FlowVisor {
 
 		// init switchAcceptor
 		OFSwitchAcceptor acceptor = new OFSwitchAcceptor(pollLoop, port, 16);
+		acceptor.setSlicerLimits(sliceLimits);
 		handlers.add(acceptor);
 		// start XMLRPC UserAPI server; FIXME not async!
 		try {

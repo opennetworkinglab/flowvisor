@@ -2,7 +2,11 @@ package org.flowvisor.config;
 
 import java.io.IOException;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 
+import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
@@ -18,7 +22,7 @@ public interface FVAppConfig {
 	public void close(Object o);
 	public void close(Connection conn);
 	public void notify(Object key, String method, Object newValue);
-	public void toJson(JsonWriter writer) throws IOException;
-	public void fromJson(JsonReader reader) throws IOException;
+	public HashMap<String, Object> toJson(HashMap<String,Object> output);
+	public void fromJson(ArrayList<HashMap<String, Object>> input) throws IOException;
 	
 }

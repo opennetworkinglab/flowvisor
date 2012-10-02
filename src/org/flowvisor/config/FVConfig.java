@@ -4,23 +4,24 @@
 package org.flowvisor.config;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.Console;
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Scanner;
 
 import org.flowvisor.api.APIAuth;
 import org.flowvisor.exceptions.DuplicateControllerException;
 import org.flowvisor.flows.FlowMap;
 
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 /**
  * Central collection of all configuration and policy information, e.g., slice
@@ -91,65 +92,34 @@ public class FVConfig {
 	 *            fully qualified or relative pathname
 	 */
 	public static synchronized void readFromFile(String filename)
-			throws FileNotFoundException {
+			throws FileNotFoundException, ConfigError {
+		Gson gson = new GsonBuilder().create();
+		File file = new File(filename);
+		String json = new Scanner(file).useDelimiter("\\Z").next();
+		HashMap<String, ArrayList<HashMap<String, Object>>> config = gson.fromJson(json, new TypeToken<HashMap<String, Object>>(){}.getType());
 		
-		JsonReader reader = new JsonReader(new BufferedReader(new InputStreamReader(new FileInputStream(filename))));
-		reader.setLenient(true);
+		
 		try {
 			
-			String nextName = null;
-			while (reader.hasNext()) {
-				if (reader.peek() == JsonToken.END_DOCUMENT) 
-					break;
-				else if (reader.peek() == JsonToken.BEGIN_OBJECT)
-					reader.beginObject();
-				else if (reader.peek() == JsonToken.END_OBJECT) {
-					
-					reader.endObject();
-				} else if (reader.peek() == JsonToken.NAME)
-					 nextName = reader.nextName();
-				
-				if (nextName == null)
-					continue;
-				
-				if (nextName.equalsIgnoreCase(Flowvisor.FLOWVISOR)) 
-					FlowvisorImpl.getProxy().fromJson(reader);
-				else if (nextName.equalsIgnoreCase(Slice.TSLICE)) 
-					SliceImpl.getProxy().fromJson(reader);					
-				else if (nextName.equalsIgnoreCase(FlowSpace.FS)) {
-					reader.beginArray();
-					FlowSpaceImpl.getProxy().fromJson(reader);
-				} else if (nextName.equalsIgnoreCase(Switch.SWITCH)) {
-					reader.beginArray();
-					while (true) {
-						reader.beginObject();
-						String dpid = reader.nextName();
-						if (dpid.equalsIgnoreCase("default")) {
-							FlowvisorImpl.getProxy().setFloodPerm(reader.nextString());
-						} else
-							//FIXME currently does nothing!
-							SwitchImpl.getProxy().fromJson(reader);
-						reader.endObject();
-						if (reader.peek() == JsonToken.END_ARRAY) 
-							break;
-					}
-					reader.endArray();		
-						
-				} else
-					throw new RuntimeException("What the hell is a " + nextName
-							+ "?!? Stop screwing with the config file!");
-			}
+			if (config.containsKey(Flowvisor.FLOWVISOR))
+				FlowvisorImpl.getProxy().fromJson(config.get(Flowvisor.FLOWVISOR));
+			else
+				throw new ConfigError("Missing configuration for flowvisor base parameters");
 			
+			if (config.containsKey(Slice.TSLICE))
+				SliceImpl.getProxy().fromJson(config.get(Slice.TSLICE));
+			
+			if (config.containsKey(FlowSpace.FS))
+				FlowSpaceImpl.getProxy().fromJson(config.get(FlowSpace.FS));
+			
+			if (config.containsKey(Switch.SWITCH))
+				SwitchImpl.getProxy().fromJson(config.get(Switch.SWITCH));
+				
+					
 			
 		} catch (IOException e) {
 			System.err.println("Error while parsing config file " + e.getMessage());
-		} finally {
-			try {
-				reader.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+		} 
 		
 		
 	}
@@ -164,20 +134,21 @@ public class FVConfig {
 	 * @throws IOException 
 	 */
 	public static synchronized void writeToFile(String filename) throws FileNotFoundException  {
-		
-		JsonWriter writer = new JsonWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(filename))));
-		writer.setIndent("   ");
+		FileWriter foutput = null;
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		HashMap<String, Object> output = new HashMap<String, Object>();
 		try {
-			writer.beginObject();
-			FlowvisorImpl.getProxy().toJson(writer);
-			SliceImpl.getProxy().toJson(writer);
-			FlowSpaceImpl.getProxy().toJson(writer);
-			writer.endObject();
+			FlowvisorImpl.getProxy().toJson(output);
+			SliceImpl.getProxy().toJson(output);
+			FlowSpaceImpl.getProxy().toJson(output);
+			SwitchImpl.getProxy().toJson(output);
+			foutput = new FileWriter(filename);
+			foutput.write(gson.toJson(output));
 		} catch (IOException e) {
 			System.err.println("Error whie writing config file " + e.getMessage());
 		} finally {
 			try {
-				writer.close();
+				foutput.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

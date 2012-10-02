@@ -7,7 +7,8 @@ SSL_KEYPASSWD=CHANGEME_PASSWD
 #install_root is for installing to a new directory, e.g., for chroot()
 
 if [ -z $configbase ] ; then
-    configbase=`pwd`/`dirname $0`/..
+    configbase=`dirname $0`/..
+    #configbase=`pwd`/`dirname $0`/..
     install_dir=$configbase/dist
     jars=$configbase/lib
     config_dir=$configbase

@@ -14,7 +14,7 @@ CREATE TABLE Flowvisor (
   logging VARCHAR(45)  DEFAULT 'NOTE' ,
   log_ident VARCHAR(45)  DEFAULT 'flowvisor' ,
   log_facility VARCHAR(45)  DEFAULT 'LOG_LOCAL7' ,
-  version VARCHAR(45)  DEFAULT 'flowvisor-0.9' ,
+  version VARCHAR(45)  DEFAULT 'flowvisor-0.8.5' ,
   host VARCHAR(45)  DEFAULT 'localhost' ,
   default_flood_perm VARCHAR(45) DEFAULT 'fvadmin',
   config_name VARCHAR(100) UNIQUE DEFAULT 'default',
@@ -33,6 +33,7 @@ CREATE TABLE Slice (
   contact_email VARCHAR(150) NOT NULL ,
   drop_policy VARCHAR(10) DEFAULT 'exact' ,
   lldp_spam BOOLEAN  DEFAULT true,
+  max_flow_rules INT NOT NULL DEFAULT -1,
   PRIMARY KEY (id));
 
 CREATE INDEX flowvisor_index ON Slice (flowvisor_id ASC);
@@ -42,6 +43,7 @@ ALTER TABLE Slice
 		flowvisor_id)
 	REFERENCES
 		FlowVisor (id) ON DELETE CASCADE;
+
 
 CREATE TABLE jFSRSlice (
 	id INT GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
@@ -94,6 +96,25 @@ CREATE TABLE Switch (
   dp_desc VARCHAR(256) ,
   capabilities INT,
   PRIMARY KEY (id) );
+
+
+CREATE TABLE jSliceSwitchLimits (
+    id INT GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
+    slice_id INT NOT NULL,
+    switch_id INT NOT NULL,
+    maximum_flow_mods INT NOT NULL DEFAULT -1,
+    PRIMARY KEY (id));
+
+CREATE INDEX slice_limit_index ON jSliceSwitchLimits (slice_id ASC);
+CREATE INDEX switch_limit_index ON jSliceSwitchLimits (switch_id ASC);
+
+ALTER TABLE JSliceSwitchLimits
+    ADD CONSTRAINT limit_to_switch_fk FOREIGN KEY (switch_id)
+    REFERENCES Switch (id) ON DELETE CASCADE;
+
+ALTER TABLE jSliceSwitchLimits
+    ADD CONSTRAINT limit_to_slice_fk FOREIGN KEY (slice_id)
+    REFERENCES Slice (id) ON DELETE CASCADE;
 
 CREATE TABLE jFSRSwitch (
 	id INT GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),

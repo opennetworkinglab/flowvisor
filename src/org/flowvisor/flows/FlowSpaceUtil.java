@@ -304,6 +304,19 @@ public class FlowSpaceUtil {
 			return FlowEntry.ALL_DPIDS_STR;
 		return HexString.toHexString(dpid);
 	}
+	
+	public static String macToString(long mac) {
+		if (mac == FlowSpaceRuleStore.ANY_MAC)
+			return "any";
+		return HexString.toHexString(mac).replaceFirst("00:00:", "");
+	}
+	
+	public static long parseMac(String macStr) {
+		if (macStr.equalsIgnoreCase("any") || macStr.equalsIgnoreCase("all"))
+			return FlowSpaceRuleStore.ANY_MAC;
+		return HexString.toLong(macStr);
+	}
+	
 
 	public static FVMatch fvMatchFromString(String ofMatchStr) throws MalformedFlowChange{
 		FVMatch tmp = new FVMatch();
