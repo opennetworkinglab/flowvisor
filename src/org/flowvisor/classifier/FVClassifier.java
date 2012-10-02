@@ -21,6 +21,7 @@ import org.flowvisor.config.FlowMapChangedListener;
 import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.config.FlowvisorChangedListener;
 import org.flowvisor.config.FlowvisorImpl;
+import org.flowvisor.config.Slice;
 import org.flowvisor.config.SwitchChangedListener;
 import org.flowvisor.config.SwitchImpl;
 
@@ -48,6 +49,7 @@ import org.flowvisor.message.Classifiable;
 import org.flowvisor.message.FVError;
 import org.flowvisor.message.FVMessageFactory;
 import org.flowvisor.message.SanityCheckable;
+import org.flowvisor.resources.SlicerLimits;
 import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFEchoReply;
 import org.openflow.protocol.OFFeaturesReply;
@@ -94,6 +96,11 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	private boolean wantStatsDescHack;
 	String floodPermsSlice; // the slice that has permission to use native
 	private Boolean flowTracking = false;
+
+	
+	private HashMap<String, Integer> fmlimits = new HashMap<String, Integer>();
+	private HashMap<String, Integer> currfmlimits = new HashMap<String, Integer>();
+	private SlicerLimits slicerLimits;
 
 	// OFPP_FLOOD
 
@@ -286,8 +293,10 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			dpid = this.getDPID();
 		try {
 			/*String entry = FVConfig.SWITCHES + FVConfig.FS + dpid + FVConfig.FS
-					+ FVConfig.FLOOD_PERM;*/
-			this.floodPermsSlice = FVConfig.getFloodPerm(dpid);
+				+ FVConfig.FLOOD_PERM;*/
+			String perm = FVConfig.getFloodPerm(dpid);
+			if (!perm.equals(""))
+				this.floodPermsSlice = perm;
 			FVLog.log(LogLevel.DEBUG, this, "giving flood perms to slice: "
 					+ this.floodPermsSlice);
 			// note: watch() is smart and won't double enter this
@@ -777,6 +786,58 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	public void setFloodPerm(String in) {
 		this.floodPermsSlice = in;
 		
+	}
+
+	@Override
+	public void setFlowModLimit(HashMap<String, Object> in) {
+		fmlimits.put((String) in.get(Slice.SLICE), (Integer) in.get("LIMIT")); 
+	}
+	
+	public void incrementFlowMod(String sliceName) {
+		Integer curr = currfmlimits.get(sliceName);
+		if (curr == null)
+			curr = 0;
+		currfmlimits.put(sliceName, ++curr);
+	}
+	
+	public void decrementFlowMod(String sliceName) {
+		Integer curr = currfmlimits.get(sliceName);
+		if (curr == null || curr <= 0)
+			curr = 1;
+		currfmlimits.put(sliceName, --curr);
+	}
+	
+	public boolean permitFlowMod(String sliceName) {
+		Integer limit = fmlimits.get(sliceName);
+		Integer curr = currfmlimits.get(sliceName);
+		if (curr == null)
+			curr = 0;
+		currfmlimits.put(sliceName, curr);
+		if (limit == -1)
+			return true;
+		return curr < limit;
+	}
+
+	public void loadLimit(String sliceName) {
+		int limit = -1;
+		try {
+			limit = SwitchImpl.getProxy().getMaxFlowMods(sliceName, this.getDPID());
+		} catch (ConfigError e) {
+			FVLog.log(LogLevel.WARN, this, "Disabling dpid limits because I can't load it from the db.");
+		}
+		fmlimits.put(sliceName, limit);
+	}
+
+	public Integer getCurrentFlowModCounter(String sliceName) {
+		return currfmlimits.get(sliceName);
+	}
+
+	public void setSlicerLimits(SlicerLimits slicerLimits) {
+		this.slicerLimits = slicerLimits;
+	}
+	
+	public SlicerLimits getSlicerLimits() {
+		return this.slicerLimits;
 	}
 
 }

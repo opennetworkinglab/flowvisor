@@ -88,7 +88,8 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 														// buffer-IDs
 	// that this slice can address
 	final private int MAX_ALLOWED_BUFFER_IDS = 256; // max cache size
-
+	
+	private Integer fmlimit = -1;
 
 	protected FVSlicer() {}
 	// get OFPP_FLOOD'd
@@ -155,6 +156,13 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 		this.reconnect();
 		this.keepAlive = new OFKeepAlive(this, this, loop);
 		this.keepAlive.scheduleNextCheck();
+		fvClassifier.loadLimit(sliceName);
+		try {
+			this.fmlimit = SliceImpl.getProxy().getMaxFlowMods(sliceName);
+		} catch (ConfigError e) {
+			FVLog.log(LogLevel.WARN, this, "Global slice flow mod limit unreadle; disabling.");
+			this.fmlimit = -1;
+		}
 	}
 
 	private FlowMap getLocalFlowSpace() {
@@ -535,7 +543,8 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 		} catch (Exception e2) {
 			e2.printStackTrace();
 			FVLog.log(LogLevel.ALERT, this,
-					"got unknown error; tearing down and reconnecting: ", e2);
+					"got unknown error; tearing down and reconnecting: " , e2);
+			
 			reconnect();
 		}
 		// no need to setup for next select; done in eventloop
@@ -734,7 +743,29 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 	@Override
 	public void setDropPolicy(String in) {}
 
+	@Override                                      
+	public void setFlowModLimit(Integer in) {
+		this.fmlimit = in;
+		
+	}
+
+	public void incrementFlowRules(){
+		fvClassifier.incrementFlowMod(sliceName);
+		fvClassifier.getSlicerLimits().incrementSliceFMCounter(sliceName);
+	}
+		
+	public void decrementFlowRules(){
+		fvClassifier.decrementFlowMod(sliceName);
+		fvClassifier.getSlicerLimits().decrementSliceFMCounter(sliceName);
+	}
 	
-	
+	public boolean permitFlowMod() {
+		if (fmlimit == -1)
+			return true && fvClassifier.permitFlowMod(sliceName);
+		int currlimit = fvClassifier.getSlicerLimits().getSliceFMLimit(sliceName);
+		return ((currlimit < fmlimit) && (fvClassifier.permitFlowMod(sliceName)));
+	}
+
+
 
 }

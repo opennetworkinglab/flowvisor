@@ -214,7 +214,7 @@ public class FVPacketIn extends OFPacketIn implements Classifiable, Slicable,
 		}
 	}
 
-	public static void main(String args[]) throws FileNotFoundException {
+	public static void main(String args[]) throws FileNotFoundException, ConfigError {
 		if (args.length < 3) {
 			System.err.println("Usage: <config.xml> <dpid> <ofmatch>");
 			System.exit(1);

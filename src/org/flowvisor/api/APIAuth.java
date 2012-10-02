@@ -175,7 +175,7 @@ public class APIAuth implements AuthenticationHandler {
 	 */
 
 	public static void main(String args[]) throws FileNotFoundException,
-			IOException {
+			IOException, ConfigError {
 		if (args.length != 2) {
 			System.err.println("Usage: APIAuth config.xml sliceName");
 			System.err.println("      change the passwd for a given slice");

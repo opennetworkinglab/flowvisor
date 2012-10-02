@@ -128,7 +128,7 @@ public class LoadConfig {
 	 * @throws SQLException 
 	 */
 
-	public static void main(String args[]) throws FileNotFoundException {
+	public static void main(String args[]) throws FileNotFoundException, ConfigError {
 		if (args.length > 0) {
 			FVConfigurationController.init(new ConfDBHandler());
 			FVConfig.readFromFile(args[0]);
