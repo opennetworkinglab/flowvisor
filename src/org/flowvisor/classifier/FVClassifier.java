@@ -790,6 +790,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 
 	@Override
 	public void setFlowModLimit(HashMap<String, Object> in) {
+		FVLog.log(LogLevel.DEBUG, null, "Setting limit to " + in.get("LIMIT"));
 		fmlimits.put((String) in.get(Slice.SLICE), (Integer) in.get("LIMIT")); 
 	}
 	
