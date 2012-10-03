@@ -551,6 +551,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			FVLog.log(LogLevel.INFO, this, "identified switch as " + switchName
 					+ " on " + this.sock);
 			FlowSpaceImpl.addListener(this); // register for FS updates
+			SwitchImpl.addListener(this.getDPID(), this);
 			this.connectToControllers(null); // connect to controllers
 			// TODO create switch entry in db.
 			doneID = true;
