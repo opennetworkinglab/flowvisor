@@ -22,8 +22,14 @@ public class FVError extends org.openflow.protocol.OFError implements
 	 */
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
-		FVMessageUtil.untranslateXidAndSend(this, fvClassifier);
-	}
+		//FVMessageUtil.untranslateXidAndSend(this, fvClassifier);
+		FVSlicer slicer = FVMessageUtil.untranslateXid(this, fvClassifier);
+		if (this.errorType == (short) OFErrorType.OFPET_BAD_ACTION.ordinal() 
+				|| this.errorType == (short) OFErrorType.OFPET_FLOW_MOD_FAILED.ordinal()) {
+			slicer.decrementFlowRules();
+		}
+		slicer.sendMsg(this, fvClassifier);
+	};
 
 	/*
 	 * (non-Javadoc)
