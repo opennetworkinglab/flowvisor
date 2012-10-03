@@ -810,6 +810,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	public boolean permitFlowMod(String sliceName) {
 		Integer limit = fmlimits.get(sliceName);
 		Integer curr = currfmlimits.get(sliceName);
+		FVLog.log(LogLevel.DEBUG,null, "Overall limit is " + limit + " current value is " + curr);
 		if (curr == null)
 			curr = 0;
 		currfmlimits.put(sliceName, curr);
