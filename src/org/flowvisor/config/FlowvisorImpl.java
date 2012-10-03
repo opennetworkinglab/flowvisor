@@ -14,7 +14,6 @@ import org.flowvisor.FlowVisor;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 
-import com.sun.org.apache.bcel.internal.generic.SWITCH;
 
 
 public class FlowvisorImpl implements Flowvisor {
