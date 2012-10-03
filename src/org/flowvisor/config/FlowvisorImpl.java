@@ -15,6 +15,7 @@ import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 
 
+
 public class FlowvisorImpl implements Flowvisor {
 
 	private static FlowvisorImpl instance = null;
@@ -61,7 +62,10 @@ public class FlowvisorImpl implements Flowvisor {
 					"?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	
 	private static String DELETE = "DELETE FROM " + FLOWVISOR;
+	private static String DELSWITCH = "DELETE FROM " + Switch.TSWITCH;
 	private static String RESETFLOWVISOR = "ALTER TABLE Flowvisor ALTER COLUMN id RESTART WITH 1";
+	private static String RESETSWITCH = "ALTER TABLE Switch ALTER COLUMN id RESTART WITH 1";
+	
 	
 	private FlowvisorImpl() {}
 	
@@ -753,9 +757,27 @@ public class FlowvisorImpl implements Flowvisor {
 
 	@Override
 	public void fromJson(ArrayList<HashMap<String, Object>> list) throws IOException {
+		deleteAll();
 		reset();
 		for (HashMap<String, Object> row : list)
 			insert(row);
+	}
+	
+	private void deleteAll() {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(DELETE);
+			ps.execute();
+			ps = conn.prepareStatement(DELSWITCH);
+			ps.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			close(ps);
+			close(conn);
+		}
 	}
 
 	private void insert(HashMap<String, Object> row) {
@@ -840,6 +862,8 @@ public class FlowvisorImpl implements Flowvisor {
 		try {
 			conn = settings.getConnection();
 			ps = conn.prepareStatement(RESETFLOWVISOR);
+			ps.execute();
+			ps = conn.prepareStatement(RESETSWITCH);
 			ps.execute();
 		} catch (SQLException e) {
 			System.err.println("Reseting index on table flowvisor failed : " + e.getMessage());

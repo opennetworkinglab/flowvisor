@@ -109,7 +109,7 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 						FVLog.log(LogLevel.WARN,fvSlicer,"Verifying Slice is not over its flow rule limit");
 						if (!fvSlicer.permitFlowMod()){
 							FVLog.log(LogLevel.WARN,fvSlicer,"Slice is already at flow rule limit");
-							fvSlicer.sendMsg(FVMessageUtil.makeErrorMsg(OFFlowModFailedCode.OFPFMFC_EPERM, this), fvSlicer);
+							fvSlicer.sendMsg(FVMessageUtil.makeErrorMsg(OFFlowModFailedCode.OFPFMFC_EPERM, this), fvClassifier);
 							return;
 						}
 						//increment the flow rule

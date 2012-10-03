@@ -26,6 +26,17 @@ public class LoadConfig {
 	
 	private static int WILDCARDS = OFMatch.OFPFW_ALL & ~(OFMatch.OFPFW_DL_SRC | OFMatch.OFPFW_IN_PORT);
 	
+	private static String CLEAR = "DELETE FROM jFSRSlice;\n" +
+			"ALTER TABLE jFSRSlice ALTER COLUMN id RESTART WITH 1;\n" +
+			"DELETE FROM Slice;\n" +
+			"ALTER TABLE Slice ALTER COLUMN id RESTART WITH 1;\n" +
+			"DELETE FROM FlowSpaceRule;\n" +
+			"ALTER TABLE FlowSpaceRule ALTER COLUMN id RESTART WITH 1;\n" +
+			"DELETE FROM Flowvisor;\n" +
+			"ALTER TABLE Flowvisor ALTER COLUMN id RESTART WITH 1;\n" +
+			"DELETE FROM Switch; \n" +
+			"ALTER TABLE Switch ALTER COLUMN id RESTART WITH 1;\n";
+			
 	private static String  defaultconfig = "DELETE FROM jFSRSlice;\n" +
 			"ALTER TABLE jFSRSlice ALTER COLUMN id RESTART WITH 1;\n" +
 			"DELETE FROM Slice;\n" +
@@ -34,6 +45,8 @@ public class LoadConfig {
 			"ALTER TABLE FlowSpaceRule ALTER COLUMN id RESTART WITH 1;\n" +
 			"DELETE FROM Flowvisor;\n" +
 			"ALTER TABLE Flowvisor ALTER COLUMN id RESTART WITH 1;\n" +
+			"DELETE FROM Switch; \n" +
+			"ALTER TABLE Switch ALTER COLUMN id RESTART WITH 1;\n" +
 			"INSERT INTO Flowvisor(config_name,run_topology_server) VALUES('default', true);\n" +
 			"INSERT INTO Slice(flowvisor_id, flowmap_type, name, creator, passwd_crypt, passwd_salt, controller_hostname, controller_port, contact_email) VALUES(1, 1, 'fvadmin', 'fvadmin', 'CHANGEME', 'sillysalt', 'none', 0, 'fvadmin@localhost');\n" +
 			"INSERT INTO Slice(flowvisor_id, flowmap_type, name, creator, passwd_crypt, passwd_salt, controller_hostname, controller_port, contact_email) VALUES(1, 1, 'alice', 'fvadmin', 'alicePass', 'sillysalt', 'localhost', 54321, 'alice@foo.com');\n" +
@@ -78,6 +91,7 @@ public class LoadConfig {
 	public static void loadConfig(String filename) {
 		ConfDBHandler db = new ConfDBHandler();
 		try {
+			clearDB(db);
 			importSQL(db.getConnection(), new FileInputStream(filename));
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -88,6 +102,18 @@ public class LoadConfig {
 		}
 	}
 	
+	private static void clearDB(ConfDBHandler db) {
+		try {
+			importSQL(db.getConnection(), new StringBufferInputStream(CLEAR));
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		
+	}
+
+
+
 	private static void importSQL(Connection conn, InputStream in) throws SQLException
 	{
 	        Scanner s = new Scanner(in);
