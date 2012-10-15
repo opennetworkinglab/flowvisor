@@ -9,9 +9,7 @@ High-level:
     * Thread logic
 
     A higher-level view of the code is described at:
-        https://openflow.stanford.edu/display/flowvisor/Internals+and+Dev+Docs
-
-
+        https://github.com/OPENNETWORKINGLAB/flowvisor/wiki
 
 
 ====================================

@@ -13,7 +13,7 @@ Documentation
     without installing them using `man ./doc/fvctl.1`
 
     For developers, check out README.dev and the architecture diagrams:
-        https://github.com/OPENNETWORKINGLAB/flowvisor/wiki
+        https://github.com/OPENNETWORKINGLAB/flowvisor/wiki under the developement section
     Also, `make docs` produces the source code documentation and
     there are manpages under ./doc
 
