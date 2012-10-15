@@ -791,7 +791,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 
 	@Override
 	public void setFlowModLimit(HashMap<String, Object> in) {
-		FVLog.log(LogLevel.DEBUG, null, "Setting limit to " + in.get("LIMIT"));
+		FVLog.log(LogLevel.DEBUG, this, "Setting limit to " + in.get("LIMIT"));
 		fmlimits.put((String) in.get(Slice.SLICE), (Integer) in.get("LIMIT")); 
 	}
 	
@@ -812,7 +812,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	public boolean permitFlowMod(String sliceName) {
 		Integer limit = fmlimits.get(sliceName);
 		Integer curr = currfmlimits.get(sliceName);
-		FVLog.log(LogLevel.DEBUG,null, "Overall limit is " + limit + " current value is " + curr);
+		FVLog.log(LogLevel.DEBUG,this, "Overall limit is " + limit + " current value is " + curr);
 		if (curr == null)
 			curr = 0;
 		currfmlimits.put(sliceName, curr);

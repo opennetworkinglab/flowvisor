@@ -173,7 +173,7 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 		case FEDERATED:
 			return fm;
 		}
-		FVLog.log(LogLevel.FATAL, null,
+		FVLog.log(LogLevel.FATAL, this,
 				"Something is fatally wrong with the flowmap. Cannot determine its type.");
 		return null;
 	}
