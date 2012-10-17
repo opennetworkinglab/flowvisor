@@ -34,7 +34,7 @@ public class LoadConfig {
 			"ALTER TABLE FlowSpaceRule ALTER COLUMN id RESTART WITH 1;\n" +
 			"DELETE FROM Flowvisor;\n" +
 			"ALTER TABLE Flowvisor ALTER COLUMN id RESTART WITH 1;\n" +
-			"INSERT INTO Flowvisor(config_name,run_topology_server) VALUES('default', true);\n" +
+			"INSERT INTO Flowvisor(config_name,run_topology_server) VALUES('default', false);\n" +
 			"INSERT INTO Slice(flowvisor_id, flowmap_type, name, creator, passwd_crypt, passwd_salt, controller_hostname, controller_port, contact_email) VALUES(1, 1, 'fvadmin', 'fvadmin', 'CHANGEME', 'sillysalt', 'none', 0, 'fvadmin@localhost');\n" +
 			"INSERT INTO Slice(flowvisor_id, flowmap_type, name, creator, passwd_crypt, passwd_salt, controller_hostname, controller_port, contact_email) VALUES(1, 1, 'alice', 'fvadmin', 'alicePass', 'sillysalt', 'localhost', 54321, 'alice@foo.com');\n" +
 			"INSERT INTO Slice(flowvisor_id, flowmap_type, name, creator, passwd_crypt, passwd_salt, controller_hostname, controller_port, contact_email) VALUES(1, 1, 'bob', 'fvadmin', 'bobPass', 'sillysalt', 'localhost', 54322, 'bob@foo.com');\n" +
