@@ -144,7 +144,7 @@
         <fail if="junit.failure" message="Unit test(s) failed.  See reports!"/>
     </target>
 
-    <target name="emma-report" depends="tests" >
+    <target name="emma-report"> <!-- depends="tests" >-->
         <emma enabled="true">
          <report sourcepath="${src.dir}" >
              <fileset dir="${coverage.dir}" >
