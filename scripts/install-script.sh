@@ -171,7 +171,7 @@ done
 
 echo Creating directories
 
-for d in bin sbin libexec/flowvisor etc share/man/man1 share/man/man8 share/doc/flowvisor share/db/flowvisor ; do 
+for d in bin sbin libexec/flowvisor share/man/man1 share/man/man8 share/doc/flowvisor share/db/flowvisor ; do 
     echo Creating $prefix/$d
     $install $verbose --owner=$binuser --group=$bingroup --mode=755 -d $root$prefix/$d
 done
