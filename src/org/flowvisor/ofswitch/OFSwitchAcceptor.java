@@ -1,6 +1,7 @@
 package org.flowvisor.ofswitch;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
@@ -47,13 +48,16 @@ public class OFSwitchAcceptor implements FVEventHandler {
 				ssc.socket().bind(
 						new InetSocketAddress(port),
 						backlog);
+			} catch (BindException be) {
+				FVLog.log(LogLevel.FATAL, this, "Unable to listen on port " + port + " on localhost");
+				System.exit(1);
 			} catch (java.net.SocketException se) {
 				FVLog.log(LogLevel.NOTE, this, "failed to bind IPv4 address; Quitting");
 				FVLog.log(LogLevel.NOTE, this, "OF Control address already in use.");
 				e.printStackTrace();
 				System.exit(1);
-			}
-		}
+			} 
+		} 
 		ssc.configureBlocking(false);
 		this.listenPort = ssc.socket().getLocalPort();
 
