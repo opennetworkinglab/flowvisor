@@ -89,6 +89,12 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 						fvSlicer.getSliceName(), SliceAction.WRITE)) {
 					expansions++;
 					FVFlowMod newFlowMod = (FVFlowMod) this.clone();
+					/*
+					 * Only first expansion gets a bufferid, others will 
+					 * be set to none.
+					 */
+					if (expansions > 1)
+						newFlowMod.setBufferId(-1);
 					// replace match with the intersection
 					newFlowMod.setMatch(intersect.getMatch());
 					// update flowDBs
