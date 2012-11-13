@@ -58,6 +58,8 @@ import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.util.LRULinkedHashMap;
 
+import com.vladium.logging.Logger;
+
 /**
  * @author capveg
  * 
@@ -238,6 +240,7 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 		portStatus.setDesc(phyPort);
 		portStatus.setReason(added ? (byte) OFPortReason.OFPPR_ADD.ordinal() : 
 			(byte) OFPortReason.OFPPR_DELETE.ordinal());
+		FVLog.log(LogLevel.INFO, this, (added ? "added " : "removed ") + "port " + phyPort.getPortNumber());
 		sendMsg(portStatus, this);
 	}
 
