@@ -58,7 +58,6 @@ import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.util.LRULinkedHashMap;
 
-import com.vladium.logging.Logger;
 
 /**
  * @author capveg
