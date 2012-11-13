@@ -660,7 +660,6 @@ public class FlowSpaceRuleStore {
 			}
 
 		} catch (NoMatch e) {
-			FVLog.log(LogLevel.WARN, null, getRules());
 			FVLog.log(LogLevel.WARN, null, "No match for: ", match);
 			return flowrules;
 		}
