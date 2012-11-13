@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -46,14 +47,15 @@ import org.flowvisor.log.SendRecvDropStats;
 import org.flowvisor.log.SendRecvDropStats.FVStatsType;
 import org.flowvisor.message.FVMessageFactory;
 import org.flowvisor.message.FVPacketOut;
+import org.flowvisor.message.FVPortStatus;
 import org.flowvisor.message.SanityCheckable;
 import org.flowvisor.message.Slicable;
-import org.flowvisor.ofswitch.TopologyConnection;
 import org.flowvisor.ofswitch.TopologyController;
 import org.openflow.protocol.OFHello;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
+import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.util.LRULinkedHashMap;
 
 /**
@@ -179,6 +181,8 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 	}
 
 	private void updatePortList() {
+		ArrayList<Short> addedPorts = new ArrayList<Short>();
+		ArrayList<Short> removedPorts = new ArrayList<Short>();
 		synchronized (FVConfig.class) {
 			// update our local copy
 			this.localFlowSpace = getLocalFlowSpace();
@@ -199,6 +203,7 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 			if (!allowedPorts.keySet().contains(port)) {
 				FVLog.log(LogLevel.DEBUG, this, "adding access to port ", port);
 				allowedPorts.put(port, Boolean.TRUE);
+				addedPorts.add(port);
 			}
 		}
 		for (Iterator<Short> it = allowedPorts.keySet().iterator(); it
@@ -208,10 +213,42 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 				FVLog.log(LogLevel.DEBUG, this, "removing access to port ",
 						port);
 				it.remove();
+				removedPorts.add(port);
 			}
+		}
+		updatePortStatus(addedPorts, removedPorts);
+	}
+
+	private void updatePortStatus(ArrayList<Short> addedPorts,
+			ArrayList<Short> removedPorts) {
+		for (Short port : addedPorts) {
+			OFPhysicalPort phyPort = findPhyPort(port);
+			if (phyPort != null)
+				sendPortStatusUpdate(phyPort, true);
+		}
+		for (Short port : removedPorts) {
+			OFPhysicalPort phyPort = findPhyPort(port);
+			if (phyPort != null)
+				sendPortStatusUpdate(phyPort, false);
 		}
 	}
 
+	private void sendPortStatusUpdate(OFPhysicalPort phyPort, boolean added) {
+		FVPortStatus portStatus = new FVPortStatus();
+		portStatus.setDesc(phyPort);
+		portStatus.setReason(added ? (byte) OFPortReason.OFPPR_ADD.ordinal() : 
+			(byte) OFPortReason.OFPPR_DELETE.ordinal());
+		sendMsg(portStatus, this);
+	}
+
+	private OFPhysicalPort findPhyPort(Short port) {
+		for (OFPhysicalPort phyPort : this.fvClassifier.getSwitchInfo()
+				.getPorts()) {
+			if (phyPort.getPortNumber() == port)
+				return phyPort;
+		}
+		return null;
+	}
 	/**
 	 * Return the list of ports in this slice on this switch
 	 * 
