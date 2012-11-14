@@ -68,7 +68,7 @@ case "X$cmd" in
         makeSSL $1
     ;;
     Xgenerate)
-        sh derby-interact.sh $logfile/FlowVisorDB.sql > /dev/null
+        java $fv_defines -cp $classpath org.apache.derby.tools.ij $logfile/FlowVisorDB.sql > /dev/null
         makeSSL $2
         exec java -cp $classpath $fv_defines org.flowvisor.config.FVConfig $1 $3 $4 $5
     ;;
