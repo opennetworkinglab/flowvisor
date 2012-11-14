@@ -35,7 +35,12 @@ public class AnyLogger extends Syslog4jAppenderSkeleton implements FVLogInterfac
 		if (level == LogLevel.MOBUG)
 			return;
 		
-		logger.log(level.getPriority(), msg);
+		 String srcString = null;
+	     if (source != null)
+	    	 srcString = source.getName();
+	     else
+	         srcString = "none";
+	     logger.log(level.getPriority(), srcString + " : " + msg);
 
 	}
 	
