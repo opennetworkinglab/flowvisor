@@ -181,6 +181,7 @@ $install $verbose --owner=$binuser --group=$bingroup --mode=644 flowvisor.8  $ro
 #    echo "Could not find $envs: dying..." >&2
 #    exit 1
 #fi
+cd $owd
 echo Installing DB files
 $install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/derby.properties $root/etc/flowvisor/derby.properties
 $install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/FlowVisorDB.sql $root/etc/flowvisor/FlowVisorDB.sql
