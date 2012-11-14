@@ -181,10 +181,6 @@ $install $verbose --owner=$binuser --group=$bingroup --mode=644 flowvisor.8  $ro
 #    echo "Could not find $envs: dying..." >&2
 #    exit 1
 #fi
-cd $owd
-echo Installing DB files
-$install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/derby.properties $root/etc/flowvisor/derby.properties
-$install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/FlowVisorDB.sql $root/etc/flowvisor/FlowVisorDB.sql
 #JAVA=`which java`
 #CHOWN=`which chown`
 #$JAVA -Dderby.system.home=$root$prefix/share/db/flowvisor -cp $classpath org.apache.derby.tools.ij $flowvisor_db > /dev/null
@@ -192,6 +188,9 @@ $install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/FlowVisor
 
 echo Installing configs
 cd $owd
+$install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/derby.properties $root/etc/flowvisor/derby.properties
+$install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/FlowVisorDB.sql $root/etc/flowvisor/FlowVisorDB.sql
+
 $install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/envs $root/etc/flowvisor/envs.sh
 $install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/fvlog.config $root/etc/flowvisor/fvlog.config
 
