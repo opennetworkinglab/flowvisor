@@ -65,6 +65,7 @@ bin_SCRIPTS="\
 sbin_SCRIPTS="\
     fvconfig \
     flowvisor \
+    derby-interact.sh
     "
 
 LIBS="\
@@ -97,9 +98,9 @@ LIBS="\
     "
 
 DOCS="\
-    README
-    README.dev
-    INSTALL
+    README \
+    README.dev \
+    INSTALL \
     "
 
 owd=`pwd`
@@ -166,25 +167,27 @@ $install $verbose --owner=$binuser --group=$bingroup --mode=644 flowvisor.8  $ro
 # do we need to run makewhatis manually here? I think it's a cronjob on most systems
 
 
-echo Installing FlowVisorDB
-cd $owd
-envs=$base/scripts/envs.sh
-flowvisor_db=`dirname $0`/../scripts/FlowVisorDB.sql
-if [ -z $flowvisor_db ]; then
-    echo "Could not find database script file; your release is probably corrupt..." >&2
-    exit 
-fi
-if [ -f $envs ] ; then
-    . $envs
-else
-    echo "Could not find $envs: dying..." >&2
-    exit 1
-fi
+#echo Installing FlowVisorDB
+#cd $owd
+#envs=$base/scripts/envs.sh
+#flowvisor_db=`dirname $0`/../scripts/FlowVisorDB.sql
+#if [ -z $flowvisor_db ]; then
+#    echo "Could not find database script file; your release is probably corrupt..." >&2
+#    exit 
+#fi
+#if [ -f $envs ] ; then
+#    . $envs
+#else
+#    echo "Could not find $envs: dying..." >&2
+#    exit 1
+#fi
+echo Installing DB files
 $install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/derby.properties $root/etc/flowvisor/derby.properties
-JAVA=`which java`
-CHOWN=`which chown`
-$JAVA -Dderby.system.home=$root$prefix/share/db/flowvisor -cp $classpath org.apache.derby.tools.ij $flowvisor_db > /dev/null
-$CHOWN -R $fvuser:$fvgroup $root$prefix/share/db/flowvisor
+$install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/FlowVisorDB.sql $root/etc/flowvisor/FlowVisorDB.sql
+#JAVA=`which java`
+#CHOWN=`which chown`
+#$JAVA -Dderby.system.home=$root$prefix/share/db/flowvisor -cp $classpath org.apache.derby.tools.ij $flowvisor_db > /dev/null
+#$CHOWN -R $fvuser:$fvgroup $root$prefix/share/db/flowvisor
 
 echo Installing configs
 cd $owd
@@ -194,7 +197,7 @@ $install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/fvlog.con
 echo Installing documentation
 cd $owd
 $install $verbose --owner=$binuser --group=$bingroup --mode=644 $DOCS $root$prefix/share/doc/flowvisor
-$CHOWN -R $fvuser:$fvgroup $root$prefix/share/db/flowvisor
+$CHOWN -R $fvuser:$fvgroup $root$prefix/share/doc/flowvisor
 #if [ ! -f $root/etc/flowvisor/config.json ] ; then 
 #    echo Generating a default config FlowVisor config
 #    install_root=$root $root$prefix/sbin/fvconfig generate $root/etc/flowvisor/config.json localhost flowvisor 6633 8080 
