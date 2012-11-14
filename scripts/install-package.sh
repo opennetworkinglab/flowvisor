@@ -197,7 +197,7 @@ $install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/fvlog.con
 echo Installing documentation
 cd $owd
 $install $verbose --owner=$binuser --group=$bingroup --mode=644 $DOCS $root$prefix/share/doc/flowvisor
-$CHOWN $fvuser:$fvgroup $root$prefix/share/doc/flowvisor
+#$CHOWN $fvuser:$fvgroup $root$prefix/share/doc/flowvisor
 #if [ ! -f $root/etc/flowvisor/config.json ] ; then 
 #    echo Generating a default config FlowVisor config
 #    install_root=$root $root$prefix/sbin/fvconfig generate $root/etc/flowvisor/config.json localhost flowvisor 6633 8080 
