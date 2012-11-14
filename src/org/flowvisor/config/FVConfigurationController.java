@@ -33,9 +33,7 @@ public class FVConfigurationController {
 			list = listeners.get(key);
 		else 
 			list = Collections.synchronizedSet(new HashSet<ChangedListener>());
-		synchronized (FVConfigurationController.class) {
-			list.add(listener);
-		}
+		list.add(listener);	
 		listeners.put(key, list);
 	}
 	
@@ -43,9 +41,7 @@ public class FVConfigurationController {
 			FlowvisorChangedListener l) {
 		Set<ChangedListener> list = listeners.get(key);
 		if (list != null && list.contains(l)) {
-			synchronized (FVConfigurationController.class) {
-				list.remove(l);
-			}
+			list.remove(l);
 			listeners.put(key, list);
 		}
 	}
@@ -53,8 +49,9 @@ public class FVConfigurationController {
 	public void fireChange(Object key, String method, Object value) {
 		if (!listeners.containsKey(key))
 			return;
-		synchronized (FVConfigurationController.class) {
-			for (ChangedListener l : listeners.get(key)) 
+		Set<ChangedListener> set = listeners.get(key);
+		synchronized (set) {
+			for (ChangedListener l : set) 
 				l.processChange(new ConfigurationEvent(method, l, value));
 		}
 			
