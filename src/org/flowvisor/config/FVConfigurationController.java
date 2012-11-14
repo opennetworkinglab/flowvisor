@@ -42,12 +42,12 @@ public class FVConfigurationController {
 	public void removeChangeListener(Object key,
 			FlowvisorChangedListener l) {
 		Set<ChangedListener> list = listeners.get(key);
-		synchronized (list) {
 			if (list != null && list.contains(l)) {
-				list.remove(l);
-				listeners.put(key, list);
+				synchronized (list) {
+					list.remove(l);
+					listeners.put(key, list);
+				}
 			}
-		}
 	}
 	
 	public void fireChange(Object key, String method, Object value) {
