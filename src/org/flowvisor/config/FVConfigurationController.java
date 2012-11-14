@@ -33,7 +33,7 @@ public class FVConfigurationController {
 			list = listeners.get(key);
 		else 
 			list = Collections.synchronizedSet(new HashSet<ChangedListener>());
-		list.add(listener);
+		list.add(listener);	
 		listeners.put(key, list);
 	}
 	
@@ -49,9 +49,11 @@ public class FVConfigurationController {
 	public void fireChange(Object key, String method, Object value) {
 		if (!listeners.containsKey(key))
 			return;
-		for (ChangedListener l : listeners.get(key)) 
-			l.processChange(new ConfigurationEvent(method, l, value));
-		
+		Set<ChangedListener> set = listeners.get(key);
+		synchronized (set) {
+			for (ChangedListener l : set) 
+				l.processChange(new ConfigurationEvent(method, l, value));
+		}
 			
 	}
 	
