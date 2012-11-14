@@ -78,7 +78,7 @@ if ! getent passwd flowvisor >/dev/null; then
 fi
 EOF
 
-cat > postrm << EOF
+cat > postinst << EOF
 #!/bin/bash -e
 #
 # summary of how this script can be called:
@@ -93,18 +93,15 @@ cat > postrm << EOF
 if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
 ${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
 
-# deleting flowvisor user/group
-if getent passwd flowvisor > /dev/null; then
-    echo "Removing FlowVisor user and group"
-    deluser flowvisor > /dev/null
-fi
-if getent group flowvisor > /dev/null; then
-    delgroup --only-if-empty flowvisor > /dev/null
+if [ -d /usr/share/db/flowvisor/FlowVisorDB/seg0 ]; then
+    echo "FlowVisorDB exists, leaving untouched."
+else
+    echo "Please run fvconfig generate to create and initialize the database"
 fi
 EOF
 
 chmod 775 preinst
-chmod 775 postrm
+chmod 775 postinst
 
 cd ..
 # chown -Rh root .
