@@ -217,6 +217,8 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 				removedPorts.add(port);
 			}
 		}
+		FVLog.log(LogLevel.INFO,this, addedPorts.toString());
+		FVLog.log(LogLevel.INFO,this, removedPorts.toString());
 		updatePortStatus(addedPorts, removedPorts);
 	}
 
