@@ -688,7 +688,9 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 	
 	public void updateFlowSpace() {
 		updatePortList();
-		FVLog.log(LogLevel.CRIT, this, "FIXME: need to flush old flow entries");
+		/*
+		 * FIXME: need to flush old flow entries
+		 */
 	}
 
 	@Override
