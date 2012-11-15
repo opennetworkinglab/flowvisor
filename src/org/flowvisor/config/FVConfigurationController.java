@@ -1,18 +1,20 @@
 package org.flowvisor.config;
 
 import java.lang.reflect.Proxy;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 public class FVConfigurationController {
 
 	private ConfDBSettings settings = null;
 	private static FVConfigurationController instance = null;
-	private HashMap<Object, HashSet<ChangedListener>> listeners = null;
+	private HashMap<Object, Set<ChangedListener>> listeners = null;
 
 	private FVConfigurationController(ConfDBSettings settings) {
 		this.settings  = settings;
-		this.listeners = new HashMap<Object, HashSet<ChangedListener>>();
+		this.listeners = new HashMap<Object, Set<ChangedListener>>();
 	}
 	
 	public static FVConfigurationController instance() {
@@ -26,18 +28,18 @@ public class FVConfigurationController {
 	}
 	
 	public void addChangeListener(Object key, ChangedListener listener) {
-		HashSet<ChangedListener> list = null;
+		Set<ChangedListener> list = null;
 		if (listeners.containsKey(key))
 			list = listeners.get(key);
 		else 
-			list = new HashSet<ChangedListener>();
+			list = Collections.synchronizedSet(new HashSet<ChangedListener>());
 		list.add(listener);
 		listeners.put(key, list);
 	}
 	
 	public void removeChangeListener(Object key,
 			FlowvisorChangedListener l) {
-		HashSet<ChangedListener> list = listeners.get(key);
+		Set<ChangedListener> list = listeners.get(key);
 		if (list != null && list.contains(l)) {
 			list.remove(l);
 			listeners.put(key, list);
