@@ -17,6 +17,11 @@ public class FVActionEnqueue extends OFActionEnqueue implements SlicableAction {
 	public void slice(List<OFAction> approvedActions, OFMatch match,
 			FVClassifier fvClassifier, FVSlicer fvSlicer)
 			throws ActionDisallowedException {
+		
+		/*
+		 * Match OFMatch, if flowentry has queue id then OK. 
+		 */
+		
 		// TODO Auto-generated method stub
 		FVLog.log(LogLevel.CRIT, fvSlicer,
 				"action slicing unimplemented for type: " + this);
