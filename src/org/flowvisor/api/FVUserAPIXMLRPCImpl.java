@@ -22,6 +22,9 @@ import org.flowvisor.log.LogLevel;
 
 public class FVUserAPIXMLRPCImpl extends FVUserAPIImpl implements FVUserAPIXML{
 
+	
+	FlowMap flowSpace = null;
+	
 	/**
 	 * Lists all the flowspace
 	 *
@@ -64,7 +67,9 @@ public class FVUserAPIXMLRPCImpl extends FVUserAPIImpl implements FVUserAPIXML{
 		synchronized (FVConfig.class) { // prevent multiple API clients from
 			// stomping
 			// on each other
-			FlowMap flowSpace = FVConfig.getFlowSpaceFlowMap();
+			if (flowSpace == null) 
+				flowSpace = FVConfig.getFlowSpaceFlowMap();
+				
 			String logMsg;
 			for (int i = 0; i < changes.size(); i++) {
 				FlowChange change = FlowChange.fromMap(changes.get(i));
