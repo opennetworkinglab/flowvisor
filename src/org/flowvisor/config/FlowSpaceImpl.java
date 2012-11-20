@@ -51,7 +51,7 @@ public class FlowSpaceImpl implements FlowSpace {
 	public static String FFLOWMAP = "flowMapChanged";
 	
 	// STATEMENTS
-	private static String GFLOWMAP = "SELECT FSR.*,S." + Slice.FMTYPE + 
+	private static String GFLOWMAP = "SELECT FSR.*,J." + QUEUE + ",S." + Slice.FMTYPE + 
 			" FROM FlowSpaceRule AS FSR, Slice AS S, JFSRSlice AS J WHERE FSR.id" +
 			"=J.flowspacerule_id AND J.slice_id=S.id";
 	private static String GSLICEID = "SELECT id FROM Slice WHERE " + Slice.SLICE + "= ?";
@@ -64,8 +64,8 @@ public class FlowSpaceImpl implements FlowSpace {
 			INPORT + "," + VLAN + "," + VPCP + "," + DLSRC + "," + DLDST + "," + DLTYPE + "," +
 			NWSRC + "," + NWDST + "," + NWPROTO + "," + NWTOS + "," + TPSRC + "," + TPDST + ","+ WILDCARDS+ ") " +
 			" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-	private static String SACTIONS = "INSERT INTO jFSRSlice(flowspacerule_id, slice_id," + ACTION + ")" +
-			" VALUES(?,?,?)";
+	private static String SACTIONS = "INSERT INTO jFSRSlice(flowspacerule_id, slice_id," + ACTION + ", " + QUEUE +")" +
+			" VALUES(?,?,?,?)";
 	
 	private static String SLICEID = "SELECT id FROM " + Slice.TSLICE + " WHERE " + Slice.SLICE + " = ?";
 	
@@ -147,6 +147,7 @@ public class FlowSpaceImpl implements FlowSpace {
 					actionsList.add(act);
 				}
 				fe = new FlowEntry(set.getLong(DPID), match, set.getInt("id"),set.getInt(PRIO) , actionsList);
+				fe.setQueueId(set.getInt(QUEUE));
 				map.addRule(fe);
 			}
 			if (map == null)
@@ -386,6 +387,7 @@ public class FlowSpaceImpl implements FlowSpace {
 				ps.setInt(1, ruleid);
 				ps.setInt(2, sliceid);
 				ps.setInt(3, ((SliceAction) act).getSlicePerms());
+				ps.setInt(4, fe.getQueueId());
 				ps.executeUpdate();
 			}
 			return ruleid;
@@ -530,8 +532,9 @@ public class FlowSpaceImpl implements FlowSpace {
   				if ((wildcards & FVMatch.OFPFW_TP_SRC) == 0)
  					fs.put(TPSRC, set.getShort(TPSRC));
   				
- 				fs.put(WILDCARDS, wildcards);
   				
+ 				fs.put(WILDCARDS, wildcards);
+  				fs.put(QUEUE, set.getInt(QUEUE));
   				actions = conn.prepareStatement(GACTIONS);
   				actions.setInt(1, set.getInt("id"));
   				actionSet = actions.executeQuery();
@@ -669,6 +672,11 @@ public class FlowSpaceImpl implements FlowSpace {
 					ps.setInt(1, ruleid);
 					ps.setInt(2, sliceid);
 					ps.setInt(3, ((Double) entry.getValue()).intValue());
+					if (row.get(QUEUE) == null) 
+						ps.setInt(4, -1);
+					else
+						ps.setInt(4, ((Double)row.get(QUEUE)).intValue());
+					
 					if (ps.executeUpdate() == 0)
 						FVLog.log(LogLevel.WARN, null, "Action insertion failed... siliently.");
 				}

@@ -30,6 +30,7 @@ public interface FlowSpace extends FVAppConfig {
 	public static String TPDST = "tp_dst";
 	public static String WILDCARDS = "wildcards";
 	public static String ACTION = "slice_action";
+	public static String QUEUE = "queue_id";
 	
 	//Table name
 	public static String FS = "FlowSpaceRule";

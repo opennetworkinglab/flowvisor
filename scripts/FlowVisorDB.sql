@@ -50,6 +50,7 @@ CREATE TABLE jFSRSlice (
 	flowspacerule_id INT,
 	slice_id INT,
 	slice_action INT,
+    queue_id INT DEFAULT -1,
 	PRIMARY KEY (id));
 
 CREATE INDEX flowspace_index ON jFSRSlice (flowspacerule_id ASC);
