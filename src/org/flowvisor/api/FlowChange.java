@@ -140,8 +140,10 @@ public class FlowChange {
 			flowChange.setActions(alist);
 			
 			String qstr = map.get(QUEUE_KEY);
-			if (qstr == null)
+			if (qstr == null) {
 				map.put(QUEUE_KEY, "-1");
+				qstr = "-1";
+			}
 			
 			int queue_id = -1;
 			try {
