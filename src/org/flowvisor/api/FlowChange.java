@@ -16,7 +16,6 @@ import org.flowvisor.openflow.protocol.FVMatch;
 import org.openflow.protocol.action.*;
 import org.openflow.util.HexString;
 
-import com.sun.activation.registries.MailcapParseException;
 
 /**
  * Object that holds a change to the flowspace
