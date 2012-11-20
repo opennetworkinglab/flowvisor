@@ -141,9 +141,7 @@ public class FlowChange {
 			
 			String qstr = map.get(QUEUE_KEY);
 			if (qstr == null)
-				throw new MalformedFlowChange("operation "
-						+ flowChange.getOperation() + "requires key '"
-						+ QUEUE_KEY + "' from " + map.toString());
+				map.put(QUEUE_KEY, "-1");
 			
 			int queue_id = -1;
 			try {
