@@ -67,15 +67,8 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 				fvClassifier.getDPID(), new FVMatch(getMatch()));
 
 		int expansions = 0;
-		OFFlowMod original = null;
-		try {
-			original = this.clone(); // keep an unmodified copy
-		} catch (CloneNotSupportedException e) {
-			// will never happen because clone in FVFlowMod
-			// doesn't throw a CloneNotSupportedException
-			// but clone()'s spec does.
-			e.printStackTrace();
-		}
+		OFFlowMod original = this.clone(); // keep an unmodified copy
+		
 		
 		int oldALen = FVMessageUtil.countActionsLen(this.getActions());
 		this.setActions(actionsList);
@@ -84,7 +77,6 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 				.countActionsLen(actionsList)));
 		
 		for (FlowIntersect intersect : intersections) {
-			try {
 				if (intersect.getFlowEntry().hasPermissions(
 						fvSlicer.getSliceName(), SliceAction.WRITE)) {
 					expansions++;
@@ -129,12 +121,6 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 					
 					fvClassifier.sendMsg(newFlowMod, fvSlicer);
 				}
-			} catch (CloneNotSupportedException e) {
-				// will never happen because clone in FVFlowMod
-				// doesn't throw a CloneNotSupportedException
-				// but clone()'s spec does.
-				e.printStackTrace();
-			}
 		}
 		
 
