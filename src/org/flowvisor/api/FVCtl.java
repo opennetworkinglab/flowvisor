@@ -78,9 +78,13 @@ public class FVCtl {
 		new APICmd("listFlowSpace", 0),
 		new APICmd("removeFlowSpace", 1, "<id>"),
 		new APICmd("addFlowSpace", 4, "<dpid> <priority> <match> <actions>"),
+		new APICmd("addFlowSpace", 5, "<dpid> <priority> <match> <actions> <queue>"),
+		
 		new APICmd("changeFlowSpace", 5,
 		"<id> <dpid> <priority> <match> <actions>"),
-		
+		new APICmd("changeFlowSpace", 6,
+				"<id> <dpid> <priority> <match> <actions> <queue>"),
+				
 		new APICmd("dumpConfig", 1, "<filename>"),
 
 		new APICmd("listDevices", 0),
@@ -604,25 +608,41 @@ public class FVCtl {
 	}
 
 	public void run_addFlowSpace(String dpid, String priority, String match,
+			String actions, String queue) throws XmlRpcException, MalformedFlowChange {
+		do_flowSpaceChange(FlowChangeOp.ADD, dpid, null, priority, match,
+				actions, queue);
+	}
+	
+	
+	public void run_addFlowSpace(String dpid, String priority, String match,
 			String actions) throws XmlRpcException, MalformedFlowChange {
 		do_flowSpaceChange(FlowChangeOp.ADD, dpid, null, priority, match,
-				actions);
+				actions, "-1");
 	}
+	
+
+
+	public void run_changeFlowSpace(String idStr, String dpid, String priority,
+			String match, String actions, String queue) throws XmlRpcException,
+			MalformedFlowChange {
+		do_flowSpaceChange(FlowChangeOp.CHANGE, dpid, idStr, priority, match,
+				actions, queue);
+	}	
 
 	public void run_changeFlowSpace(String idStr, String dpid, String priority,
 			String match, String actions) throws XmlRpcException,
 			MalformedFlowChange {
 		do_flowSpaceChange(FlowChangeOp.CHANGE, dpid, idStr, priority, match,
-				actions);
+				actions, "-1");
 	}
 
 	private void do_flowSpaceChange(FlowChangeOp op, String dpid, String idStr,
-			String priority, String match, String actions)
+			String priority, String match, String actions, String queue)
 	throws XmlRpcException {
 		if (match.equals("") || match.equals("any") || match.equals("all"))
 			match = "OFMatch[]";
 		Map<String, String> map = FlowChange.makeMap(op, dpid, idStr, priority,
-				match, actions);
+				match, actions, queue);
 
 		try {
 			FlowChange.fromMap(map);

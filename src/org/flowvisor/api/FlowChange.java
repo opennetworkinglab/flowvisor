@@ -16,6 +16,8 @@ import org.flowvisor.openflow.protocol.FVMatch;
 import org.openflow.protocol.action.*;
 import org.openflow.util.HexString;
 
+import com.sun.activation.registries.MailcapParseException;
+
 /**
  * Object that holds a change to the flowspace
  *
@@ -29,6 +31,7 @@ public class FlowChange {
 	final static public String DPID_KEY = "dpid";
 	final static public String ACTIONS_KEY = "actions";
 	final static public String MATCH_KEY = "match";
+	final static public String QUEUE_KEY = "queue";
 
 	public enum FlowChangeOp {
 		ADD, REMOVE, CHANGE;
@@ -40,6 +43,7 @@ public class FlowChange {
 	private long dpid;
 	private FVMatch match;
 	private List<OFAction> actions;
+	private int queue;
 
 	/**
 	 * Convert this Map to a FlowChange
@@ -56,6 +60,7 @@ public class FlowChange {
 			map.put(PRIORITY_KEY, String.valueOf(priority));
 			map.put(MATCH_KEY, match.toString());
 			map.put(ACTIONS_KEY, FlowSpaceUtil.toString(actions));
+			map.put(QUEUE_KEY, String.valueOf(queue));
 		}
 		return map;
 	}
@@ -134,6 +139,21 @@ public class FlowChange {
 			for (int i = 0; i < list.length; i++)
 				alist.add(SliceAction.fromString(list[i]));
 			flowChange.setActions(alist);
+			
+			String qstr = map.get(QUEUE_KEY);
+			if (qstr == null)
+				throw new MalformedFlowChange("operation "
+						+ flowChange.getOperation() + "requires key '"
+						+ QUEUE_KEY + "' from " + map.toString());
+			
+			int queue_id = -1;
+			try {
+				queue_id = Integer.parseInt(qstr);
+			} catch (NumberFormatException nfe) {
+				throw new MalformedFlowChange("Queue id " + qstr + 
+						" is not a valid queue identifier.");
+			}
+			flowChange.setQueueId(queue_id);
 		}
 		return flowChange;
 	}
@@ -150,7 +170,8 @@ public class FlowChange {
 	 * @return
 	 */
 	public static Map<String, String> makeMap(FlowChangeOp op, String dpid2,
-			String idStr, String priorityString, String match2, String actions2) {
+			String idStr, String priorityString, String match2, String actions2,
+			String queue2) {
 		Map<String, String> map = new HashMap<String, String>();
 		map.put(OP_KEY, op.toString());
 		if (idStr != null)
@@ -159,6 +180,7 @@ public class FlowChange {
 		map.put(DPID_KEY, dpid2);
 		map.put(MATCH_KEY, match2);
 		map.put(ACTIONS_KEY, actions2);
+		map.put(QUEUE_KEY, queue2);
 		return map;
 	}
 
@@ -228,6 +250,23 @@ public class FlowChange {
 	 */
 	public void setPriority(int priority) {
 		this.priority = priority;
+	}
+	
+	/**
+	 * 
+	 * @param qid
+	 * 		the queue is to set
+	 */
+	public void setQueueId(int qid) {
+		this.queue = qid;
+	}
+	
+	/**
+	 * 
+	 * @return the queue id
+	 */
+	public int getQueueId() {
+		return this.queue;
 	}
 
 	/**

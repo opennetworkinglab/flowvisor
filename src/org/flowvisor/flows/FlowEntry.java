@@ -42,6 +42,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 	private static final int DefaultPriority = 32000;
 	static int UNIQUE_FLOW_ID = -1;
 	protected FVMatch ruleMatch;
+	protected int queue_id = -1;
 	List<OFAction> actionsList;
 	long dpid;
 	int priority;
@@ -93,6 +94,12 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 	}
 
 	public FlowEntry() {
+	}
+
+	public FlowEntry(long dpid2, FVMatch match, int priority2,
+			List<OFAction> actions, int queueId) {
+		this(dpid2, match, priority2, actions);
+		this.queue_id = queueId;
 	}
 
 	public synchronized static int getUniqueId() {
@@ -206,6 +213,14 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 
 	public void setActionsList(List<OFAction> actionsList) {
 		this.actionsList = actionsList;
+	}
+	
+	public void setQueueId(int qid) {
+		this.queue_id = qid;
+	}
+	
+	public int getQueueId() {
+		return queue_id;
 	}
 
 	/**
@@ -454,6 +469,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		result = prime * result + priority;
 		result = prime * result
 				+ ((ruleMatch == null) ? 0 : ruleMatch.hashCode());
+		result = prime * result + queue_id;
 		return result;
 	}
 
@@ -481,6 +497,8 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		if (id != other.id)
 			return false;
 		if (priority != other.priority)
+			return false;
+		if (queue_id != other.queue_id)
 			return false;
 		if (ruleMatch == null) {
 			if (other.ruleMatch != null)
@@ -511,6 +529,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 				this.priority, actionsList); // fixme
 		ret.setId(this.id);
 		ret.setActionsList(new LinkedList<OFAction>(actionsList));
+		ret.setQueueId(this.queue_id);
 		return ret;
 	}
 
@@ -549,6 +568,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		map.put("actionsList", FlowSpaceUtil.toString(actionsList));
 		map.put("id", String.valueOf(this.id));
 		map.put("priority", String.valueOf(this.priority));
+		map.put("queue_id", String.valueOf(this.queue_id));
 		return map;
 	}
 
@@ -559,6 +579,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		FVMatch rule;
 		int id;
 		int priority;
+		int qid;
 		if ((map == null)
 				|| (!map.get(BracketParse.OBJECTNAME).equals("FlowEntry")))
 			throw new IllegalArgumentException(
@@ -576,7 +597,12 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		else
 			throw new IllegalArgumentException(
 					"missing expected key priority, got '" + map + "'");
-
+		if (map.containsKey("queue"))
+			qid = Integer.parseInt(map.get("queue"));
+		else
+			throw new IllegalArgumentException(
+					"missing expected key queue, got '" + map + "'");
+		
 		int i;
 		// translate dpid
 		if (map.get("dpid").equals(ALL_DPIDS_STR))
@@ -594,6 +620,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		this.setRuleMatch(rule);
 		this.setId(id);
 		this.setPriority(priority);
+		this.setQueueId(qid);
 
 		return this;
 	}

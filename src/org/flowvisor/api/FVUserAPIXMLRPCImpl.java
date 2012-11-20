@@ -34,6 +34,7 @@ public class FVUserAPIXMLRPCImpl extends FVUserAPIImpl implements FVUserAPIXML{
 	public Collection<String> listFlowSpace() throws ConfigError {
 		String[] fs;
 		synchronized (FVConfig.class) {
+			
 			Collection<FlowEntry> flowEntries = getFlowEntries();
 			fs = new String[flowEntries.size()];
 			int i = 0;
@@ -67,8 +68,7 @@ public class FVUserAPIXMLRPCImpl extends FVUserAPIImpl implements FVUserAPIXML{
 		synchronized (FVConfig.class) { // prevent multiple API clients from
 			// stomping
 			// on each other
-			if (flowSpace == null) 
-				flowSpace = FVConfig.getFlowSpaceFlowMap();
+			flowSpace = FVConfig.getFlowSpaceFlowMap();
 				
 			String logMsg;
 			for (int i = 0; i < changes.size(); i++) {
@@ -86,11 +86,12 @@ public class FVUserAPIXMLRPCImpl extends FVUserAPIImpl implements FVUserAPIXML{
 							+ FlowSpaceUtil.dpidToString(change.getDpid())
 							+ " match=" + change.getMatch() + " priority="
 							+ change.getPriority() + " actions="
-							+ FlowSpaceUtil.toString(change.getActions());
+							+ FlowSpaceUtil.toString(change.getActions())
+							+ " queue=" + change.getQueueId();
 
 					FlowEntry flowEntry = new FlowEntry(change.getDpid(),
 							change.getMatch(), change.getPriority(),
-							change.getActions());
+							change.getActions(), change.getQueueId());
 					flowEntry.setId(FlowSpaceImpl.getProxy().addRule(flowEntry));
 
 					if (operation == FlowChangeOp.ADD)
