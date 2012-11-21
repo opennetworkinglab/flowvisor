@@ -570,7 +570,8 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		map.put("actionsList", FlowSpaceUtil.toString(actionsList));
 		map.put("id", String.valueOf(this.id));
 		map.put("priority", String.valueOf(this.priority));
-		map.put("queue_id", String.valueOf(this.queue_ids.toString()));
+		if (this.queue_ids != null)
+			map.put("queue_id", String.valueOf(this.queue_ids.toString()));
 		return map;
 	}
 
