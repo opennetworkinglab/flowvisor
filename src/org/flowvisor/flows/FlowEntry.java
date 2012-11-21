@@ -470,8 +470,8 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		result = prime * result + priority;
 		result = prime * result
 				+ ((ruleMatch == null) ? 0 : ruleMatch.hashCode());
-		if (this.queue_ids != null)
-			result = prime * result + queue_ids.hashCode();
+		/*if (this.queue_ids != null)
+			result = prime * result + queue_ids.hashCode();*/
 		return result;
 	}
 
