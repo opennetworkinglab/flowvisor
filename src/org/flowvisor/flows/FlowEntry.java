@@ -500,8 +500,8 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 			return false;
 		if (priority != other.priority)
 			return false;
-		if (queue_ids.equals(other.queue_ids))
-			return false;
+		/*if (queue_ids.equals(other.queue_ids))
+			return false;*/
 		if (ruleMatch == null) {
 			if (other.ruleMatch != null)
 				return false;
