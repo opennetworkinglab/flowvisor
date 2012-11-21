@@ -1,5 +1,6 @@
 package org.flowvisor.flows;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ public class FlowDBEntry extends FlowEntry {
 		this.sliceName = sliceName;
 		this.cookie = cookie;
 		this.creationTime = System.currentTimeMillis();
+		this.setQueueId(new LinkedList<Integer>());
 	}
 
 	/**

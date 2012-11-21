@@ -43,7 +43,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 	private static final int DefaultPriority = 32000;
 	static int UNIQUE_FLOW_ID = -1;
 	protected FVMatch ruleMatch;
-	protected List<Integer> queue_ids;
+	protected List<Integer> queue_ids = new LinkedList<Integer>();
 	List<OFAction> actionsList;
 	long dpid;
 	int priority;
