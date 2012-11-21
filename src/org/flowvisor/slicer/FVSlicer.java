@@ -582,7 +582,7 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 		} catch (Exception e2) {
 			e2.printStackTrace();
 			FVLog.log(LogLevel.ALERT, this,
-					"got unknown error; tearing down and reconnecting: " , e2);
+					"got unknown error; tearing down and reconnecting: " , e2.printStackTrace());
 			
 			reconnect();
 		}
