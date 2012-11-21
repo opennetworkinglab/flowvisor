@@ -14,6 +14,7 @@ import java.util.Map;
 import org.flowvisor.config.BracketParse;
 import org.flowvisor.config.Bracketable;
 import org.flowvisor.config.FVConfig;
+import org.flowvisor.exceptions.MalformedFlowChange;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.openflow.protocol.FVMatch;
@@ -42,7 +43,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 	private static final int DefaultPriority = 32000;
 	static int UNIQUE_FLOW_ID = -1;
 	protected FVMatch ruleMatch;
-	protected int queue_id = -1;
+	protected List<Integer> queue_ids;
 	List<OFAction> actionsList;
 	long dpid;
 	int priority;
@@ -97,9 +98,9 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 	}
 
 	public FlowEntry(long dpid2, FVMatch match, int priority2,
-			List<OFAction> actions, int queueId) {
+			List<OFAction> actions, List<Integer> queueId) {
 		this(dpid2, match, priority2, actions);
-		this.queue_id = queueId;
+		this.queue_ids = queueId;
 	}
 
 	public synchronized static int getUniqueId() {
@@ -215,12 +216,12 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		this.actionsList = actionsList;
 	}
 	
-	public void setQueueId(int qid) {
-		this.queue_id = qid;
+	public void setQueueId(List<Integer> qids) {
+		this.queue_ids = qids;
 	}
 	
-	public int getQueueId() {
-		return queue_id;
+	public List<Integer> getQueueId() {
+		return queue_ids;
 	}
 
 	/**
@@ -469,7 +470,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		result = prime * result + priority;
 		result = prime * result
 				+ ((ruleMatch == null) ? 0 : ruleMatch.hashCode());
-		result = prime * result + queue_id;
+		result = prime * result + queue_ids.hashCode();
 		return result;
 	}
 
@@ -498,7 +499,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 			return false;
 		if (priority != other.priority)
 			return false;
-		if (queue_id != other.queue_id)
+		if (queue_ids.equals(other.queue_ids))
 			return false;
 		if (ruleMatch == null) {
 			if (other.ruleMatch != null)
@@ -529,7 +530,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 				this.priority, actionsList); // fixme
 		ret.setId(this.id);
 		ret.setActionsList(new LinkedList<OFAction>(actionsList));
-		ret.setQueueId(this.queue_id);
+		ret.setQueueId(new LinkedList<Integer>(this.queue_ids));
 		return ret;
 	}
 
@@ -568,7 +569,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		map.put("actionsList", FlowSpaceUtil.toString(actionsList));
 		map.put("id", String.valueOf(this.id));
 		map.put("priority", String.valueOf(this.priority));
-		map.put("queue_id", String.valueOf(this.queue_id));
+		map.put("queue_id", String.valueOf(this.queue_ids.toString()));
 		return map;
 	}
 
@@ -579,7 +580,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		FVMatch rule;
 		int id;
 		int priority;
-		int qid;
+		List<Integer> qids = new LinkedList<Integer>();
 		if ((map == null)
 				|| (!map.get(BracketParse.OBJECTNAME).equals("FlowEntry")))
 			throw new IllegalArgumentException(
@@ -598,7 +599,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 			throw new IllegalArgumentException(
 					"missing expected key priority, got '" + map + "'");
 		if (map.containsKey("queue"))
-			qid = Integer.parseInt(map.get("queue"));
+			queueList(qids, map.get("queue"));
 		else
 			throw new IllegalArgumentException(
 					"missing expected key queue, got '" + map + "'");
@@ -620,8 +621,22 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		this.setRuleMatch(rule);
 		this.setId(id);
 		this.setPriority(priority);
-		this.setQueueId(qid);
+		this.setQueueId(qids);
 
 		return this;
 	}
+	
+	private static void queueList(List<Integer> qlist, String qstr) throws IllegalArgumentException {
+		String[] tmp = qstr.split("[=,]");
+		for (int i = 1 ; i < tmp.length ; i++) {
+			try {
+				qlist.add(Integer.parseInt(tmp[i]));
+			} catch (NumberFormatException nfe) {
+				throw new IllegalArgumentException("Queue id " + tmp[i] + 
+						" is not a valid queue identifier.");
+			}
+		}
+		
+	}
+	
 }

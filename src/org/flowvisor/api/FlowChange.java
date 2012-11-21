@@ -7,10 +7,12 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.PatternSyntaxException;
 
 import org.flowvisor.exceptions.MalformedFlowChange;
 import org.flowvisor.flows.FlowSpaceUtil;
 import org.flowvisor.flows.SliceAction;
+import org.flowvisor.log.FVLog;
 import org.flowvisor.openflow.protocol.FVMatch;
 //import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.action.*;
@@ -42,7 +44,7 @@ public class FlowChange {
 	private long dpid;
 	private FVMatch match;
 	private List<OFAction> actions;
-	private int queue;
+	private List<Integer> queue;
 
 	/**
 	 * Convert this Map to a FlowChange
@@ -140,21 +142,30 @@ public class FlowChange {
 			flowChange.setActions(alist);
 			
 			String qstr = map.get(QUEUE_KEY);
+			List<Integer> qlist = new LinkedList<Integer>();
 			if (qstr == null) {
 				map.put(QUEUE_KEY, "-1");
-				qstr = "-1";
+				qlist.add(-1);
+			} else {
+				queueList(qlist, qstr);
 			}
 			
-			int queue_id = -1;
-			try {
-				queue_id = Integer.parseInt(qstr);
-			} catch (NumberFormatException nfe) {
-				throw new MalformedFlowChange("Queue id " + qstr + 
-						" is not a valid queue identifier.");
-			}
-			flowChange.setQueueId(queue_id);
+			flowChange.setQueueId(qlist);
 		}
 		return flowChange;
+	}
+
+	private static void queueList(List<Integer> qlist, String qstr) throws MalformedFlowChange {
+		String[] tmp = qstr.split("[=,]");
+		for (int i = 1 ; i < tmp.length ; i++) {
+			try {
+				qlist.add(Integer.parseInt(tmp[i]));
+			} catch (NumberFormatException nfe) {
+				throw new MalformedFlowChange("Queue id " + tmp[i] + 
+						" is not a valid queue identifier.");
+			}
+		}
+		
 	}
 
 	/**
@@ -256,15 +267,15 @@ public class FlowChange {
 	 * @param qid
 	 * 		the queue is to set
 	 */
-	public void setQueueId(int qid) {
-		this.queue = qid;
+	public void setQueueId(List<Integer> qids) {
+		this.queue = qids;
 	}
 	
 	/**
 	 * 
 	 * @return the queue id
 	 */
-	public int getQueueId() {
+	public List<Integer> getQueueId() {
 		return this.queue;
 	}
 

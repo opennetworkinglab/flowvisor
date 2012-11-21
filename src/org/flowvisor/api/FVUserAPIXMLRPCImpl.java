@@ -23,8 +23,6 @@ import org.flowvisor.log.LogLevel;
 public class FVUserAPIXMLRPCImpl extends FVUserAPIImpl implements FVUserAPIXML{
 
 	
-	FlowMap flowSpace = null;
-	
 	/**
 	 * Lists all the flowspace
 	 *
@@ -47,7 +45,7 @@ public class FVUserAPIXMLRPCImpl extends FVUserAPIImpl implements FVUserAPIXML{
 	/**
 	 * Implements {@link org.flowvisor.api.FVUserAPI#changeFlowSpace}
 	 *
-	 * Allow this change if it affectst the flowspace delagated to this slice.
+	 * Allow this change if it affects the flowspace delagated to this slice.
 	 *
 	 * @throws PermissionDeniedException
 	 *
@@ -68,7 +66,7 @@ public class FVUserAPIXMLRPCImpl extends FVUserAPIImpl implements FVUserAPIXML{
 		synchronized (FVConfig.class) { // prevent multiple API clients from
 			// stomping
 			// on each other
-			flowSpace = FVConfig.getFlowSpaceFlowMap();
+			FlowMap flowSpace = FVConfig.getFlowSpaceFlowMap();
 				
 			String logMsg;
 			for (int i = 0; i < changes.size(); i++) {

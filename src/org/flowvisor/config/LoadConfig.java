@@ -59,16 +59,16 @@ public class LoadConfig {
 			"INSERT INTO FlowSpaceRule(dpid, priority, in_port, dl_src, wildcards) VALUES(-9223372036854775808, 32000, 3, 1, "+ WILDCARDS + ");\n" +
 			"INSERT INTO FlowSpaceRule(dpid, priority, in_port, dl_src, wildcards) VALUES(-9223372036854775808, 32000, 1, 4294967297, "+ WILDCARDS + ");\n" +
 			"INSERT INTO FlowSpaceRule(dpid, priority, in_port, dl_src, wildcards) VALUES(-9223372036854775808, 32000, 3, 4294967297, "+ WILDCARDS + ");\n" +
-			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action, queue_id) VALUES(1,2,4,-1);\n" +
-			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action, queue_id) VALUES(2,2,4,-1);\n" +
-			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action, queue_id) VALUES(3,2,4,-1);\n" +
-			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action, queue_id) VALUES(4,2,4,-1);\n" +
-			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action, queue_id) VALUES(5,2,4,-1);\n" +
-			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action, queue_id) VALUES(6,2,4,-1);\n" +
-			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action, queue_id) VALUES(7,3,4,-1);\n" +
-			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action, queue_id) VALUES(8,3,4,-1);\n" +
-			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action, queue_id) VALUES(9,3,4,-1);\n" +
-			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action, queue_id) VALUES(10,3,4,-1);\n";
+			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action) VALUES(1,2,4);\n" +
+			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action) VALUES(2,2,4);\n" +
+			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action) VALUES(3,2,4);\n" +
+			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action) VALUES(4,2,4);\n" +
+			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action) VALUES(5,2,4);\n" +
+			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action) VALUES(6,2,4);\n" +
+			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action) VALUES(7,3,4);\n" +
+			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action) VALUES(8,3,4);\n" +
+			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action) VALUES(9,3,4);\n" +
+			"INSERT INTO jFSRSlice(flowspacerule_id, slice_id, slice_action) VALUES(10,3,4);\n";
 	
 
 	public static void defaultConfig(String passwd) {

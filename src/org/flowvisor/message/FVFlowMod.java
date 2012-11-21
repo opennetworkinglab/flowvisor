@@ -98,7 +98,7 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 					/*if (fvClassifier.isFlowTracking() && !((this.flags & 1) != 0))
 						*/
 					/*
-					 * THIS HAS TO BE VIRTUALIZED!!!!!!!
+					 * FIXME: THIS HAS TO BE VIRTUALIZED!!!!!!!
 					 */
 					newFlowMod.flags = (short) (newFlowMod.flags & 1);
 					if(this.command == OFFlowMod.OFPFC_DELETE || this.command == OFFlowMod.OFPFC_DELETE_STRICT){

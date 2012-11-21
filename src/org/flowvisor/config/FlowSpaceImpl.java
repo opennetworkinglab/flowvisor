@@ -51,7 +51,7 @@ public class FlowSpaceImpl implements FlowSpace {
 	public static String FFLOWMAP = "flowMapChanged";
 	
 	// STATEMENTS
-	private static String GFLOWMAP = "SELECT FSR.*,J." + QUEUE + ",S." + Slice.FMTYPE + 
+	private static String GFLOWMAP = "SELECT FSR.*,S." + Slice.FMTYPE + 
 			" FROM FlowSpaceRule AS FSR, Slice AS S, JFSRSlice AS J WHERE FSR.id" +
 			"=J.flowspacerule_id AND J.slice_id=S.id";
 	private static String GSLICEID = "SELECT id FROM Slice WHERE " + Slice.SLICE + "= ?";
@@ -60,12 +60,18 @@ public class FlowSpaceImpl implements FlowSpace {
 	
 	private static String GACTIONS = "SELECT " + ACTION + ",S." + Slice.SLICE + " FROM jFSRSlice as J," +
 			"Slice as S  WHERE flowspacerule_id=? and slice_id = S.id";
+	private static String GQUEUES = "SELECT " + QUEUE + " FROM FSRQueue AS FQ, FlowSpaceRule AS FSR where " +
+			"FSR.id = FQ.fsr_id AND FSR.id = ?";
+	
+	private static String SQUEUES = "INSERT INTO FSRQueue(fsr_id, " + QUEUE + ") VALUES(?,?)";
+	
+	
 	private static String SFLOWMAP = "INSERT INTO FlowSpaceRule(" + DPID + "," + PRIO + "," +  
 			INPORT + "," + VLAN + "," + VPCP + "," + DLSRC + "," + DLDST + "," + DLTYPE + "," +
 			NWSRC + "," + NWDST + "," + NWPROTO + "," + NWTOS + "," + TPSRC + "," + TPDST + ","+ WILDCARDS+ ") " +
 			" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-	private static String SACTIONS = "INSERT INTO jFSRSlice(flowspacerule_id, slice_id," + ACTION + ", " + QUEUE +")" +
-			" VALUES(?,?,?,?)";
+	private static String SACTIONS = "INSERT INTO jFSRSlice(flowspacerule_id, slice_id," + ACTION + ")" +
+			" VALUES(?,?,?)";
 	
 	private static String SLICEID = "SELECT id FROM " + Slice.TSLICE + " WHERE " + Slice.SLICE + " = ?";
 	
@@ -97,23 +103,29 @@ public class FlowSpaceImpl implements FlowSpace {
 		Connection conn = null;
 		PreparedStatement ps = null;
 		PreparedStatement actions = null;
+		PreparedStatement queues = null;
 		ResultSet set = null;
 		ResultSet actionSet = null;
+		ResultSet queueSet = null;
 		try {
 			conn = settings.getConnection();
 			ps = conn.prepareStatement(GFLOWMAP);
 			set = ps.executeQuery();
 			FlowMap map = null;
 			LinkedList<OFAction> actionsList = null;
+			LinkedList<Integer> queueList = null;
 			FlowEntry fe = null;
 			SliceAction act = null;
 			int wildcards = -1;
+			int fsr_id = -1;
 			while (set.next()) {
 				if (map == null)
 					map = FlowSpaceUtil.getNewFlowMap(set.getInt(Slice.FMTYPE));
 				FVMatch match = new FVMatch();
 				actionsList = new LinkedList<OFAction>();
+				queueList = new LinkedList<Integer>();
 				wildcards = set.getInt(WILDCARDS);
+				fsr_id = set.getInt("id");
 				match.setInputPort(set.getShort(INPORT));
 				if ((wildcards & FVMatch.OFPFW_DL_VLAN) == 0)
 					match.setDataLayerVirtualLan(set.getShort(VLAN));
@@ -139,15 +151,22 @@ public class FlowSpaceImpl implements FlowSpace {
 					match.setTransportDestination(set.getShort(TPDST));
 				match.setWildcards(wildcards);
 				
+				
 				actions = conn.prepareStatement(GACTIONS);
-				actions.setInt(1, set.getInt("id"));
+				actions.setInt(1, fsr_id);
 				actionSet = actions.executeQuery();
 				while (actionSet.next()) {
 					act = new SliceAction(actionSet.getString(Slice.SLICE), actionSet.getInt(ACTION));
 					actionsList.add(act);
 				}
+				queues = conn.prepareStatement(GQUEUES);
+				queues.setInt(1, fsr_id);
+				queueSet = queues.executeQuery();
+				while (queueSet.next()) {
+					queueList.add(queueSet.getInt(QUEUE));
+				}
 				fe = new FlowEntry(set.getLong(DPID), match, set.getInt("id"),set.getInt(PRIO) , actionsList);
-				fe.setQueueId(set.getInt(QUEUE));
+				fe.setQueueId(queueList);
 				map.addRule(fe);
 			}
 			if (map == null)
@@ -161,6 +180,8 @@ public class FlowSpaceImpl implements FlowSpace {
 			close(ps);
 			close(actionSet);
 			close(actions);
+			close(queueSet);
+			close(queues);
 			close(conn);	
 		}	
 	}
@@ -300,6 +321,7 @@ public class FlowSpaceImpl implements FlowSpace {
 		Connection conn = null;
 		PreparedStatement ps = null;
 		PreparedStatement slice = null;
+		PreparedStatement queues = null;
 		ResultSet set = null;
 		try {
 			conn = settings.getConnection();
@@ -373,8 +395,9 @@ public class FlowSpaceImpl implements FlowSpace {
 			set = ps.getGeneratedKeys();
 			set.next();
 			ruleid = set.getInt(1);
+			slice = conn.prepareStatement(GSLICEID);
+			ps = conn.prepareStatement(SACTIONS);
 			for (OFAction act : fe.getActionsList()) {
-				slice = conn.prepareStatement(GSLICEID);
 				slice.setString(1, ((SliceAction) act).getSliceName());
 				set = slice.executeQuery();
 				if (set.next())
@@ -383,12 +406,18 @@ public class FlowSpaceImpl implements FlowSpace {
 					FVLog.log(LogLevel.WARN, null, "Slice name " + ((SliceAction) act).getSliceName() + " does not exist... skipping.");
 					continue;
 				}
-				ps = conn.prepareStatement(SACTIONS);
+				
 				ps.setInt(1, ruleid);
 				ps.setInt(2, sliceid);
 				ps.setInt(3, ((SliceAction) act).getSlicePerms());
-				ps.setInt(4, fe.getQueueId());
+				//ps.setInt(4, fe.getQueueId());
 				ps.executeUpdate();
+			}
+			queues = conn.prepareStatement(SQUEUES);
+			queues.setInt(1, ruleid);
+			for (Integer queue_id : fe.getQueueId()) {
+				queues.setInt(2, queue_id);
+				queues.executeUpdate();
 			}
 			return ruleid;
 		} catch (SQLException e) {
@@ -398,6 +427,7 @@ public class FlowSpaceImpl implements FlowSpace {
 			close(set);
 			close(ps);
 			close(slice);
+			close(queues);
 			close(conn);	
 		}	
 	}
@@ -478,12 +508,15 @@ public class FlowSpaceImpl implements FlowSpace {
   		Connection conn = null;
   		PreparedStatement ps = null;
   		PreparedStatement actions = null;
+  		PreparedStatement queues = null;
   		ResultSet set = null;
   		ResultSet actionSet = null;
+  		ResultSet queueSet = null;
  		HashMap<String, Object> fs = new HashMap<String, Object>();
  		HashMap<String, Object> action = new HashMap<String, Object>();
  		LinkedList<Object> list = new LinkedList<Object>();
  		LinkedList<Object> actionList = new LinkedList<Object>();
+ 		LinkedList<Integer> queueList = new LinkedList<Integer>();
   		try {
   			int wildcards = -1;
   			conn = settings.getConnection();
@@ -534,7 +567,7 @@ public class FlowSpaceImpl implements FlowSpace {
   				
   				
  				fs.put(WILDCARDS, wildcards);
-  				fs.put(QUEUE, set.getInt(QUEUE));
+  				//fs.put(QUEUE, set.getInt(QUEUE));
   				actions = conn.prepareStatement(GACTIONS);
   				actions.setInt(1, set.getInt("id"));
   				actionSet = actions.executeQuery();
@@ -545,8 +578,17 @@ public class FlowSpaceImpl implements FlowSpace {
  					actionList.add(action.clone());
  					action.clear();
   				}
- 				fs.put(ACTION, actionList.clone());
- 				actionList.clear();
+  				fs.put(ACTION, actionList.clone());
+  				actionList.clear();
+  				
+  				queues = conn.prepareStatement(GQUEUES);
+  				queues.setInt(1, set.getInt("id"));
+  				queueSet = queues.executeQuery();
+ 				while (queueSet.next()) {
+ 						queueList.add(queueSet.getInt(QUEUE));
+ 				}
+ 				fs.put(QUEUE, queueList.clone());
+ 				queueList.clear();
  				list.add(fs.clone());
  				fs.clear();
   			}
@@ -559,6 +601,8 @@ public class FlowSpaceImpl implements FlowSpace {
 			close(ps);
 			close(actionSet);
 			close(actions);
+			close(queueSet);
+			close(queues);
 			close(conn);	
 		}	
 		return output;
@@ -672,16 +716,21 @@ public class FlowSpaceImpl implements FlowSpace {
 					ps.setInt(1, ruleid);
 					ps.setInt(2, sliceid);
 					ps.setInt(3, ((Double) entry.getValue()).intValue());
-					if (row.get(QUEUE) == null) 
-						ps.setInt(4, -1);
-					else
-						ps.setInt(4, ((Double)row.get(QUEUE)).intValue());
 					
 					if (ps.executeUpdate() == 0)
 						FVLog.log(LogLevel.WARN, null, "Action insertion failed... siliently.");
 				}
 			}
-			} catch (SQLException e) {
+			if (row.get(QUEUE) == null)
+				return;
+			ps = conn.prepareStatement(SQUEUES);
+			ps.setInt(1, ruleid);
+			for (Integer queue_id : (LinkedList<Integer>) row.get(QUEUE)) {
+				ps.setInt(2, queue_id);
+				if (ps.executeUpdate() == 0)
+					FVLog.log(LogLevel.WARN, null, "Queue insertion failed... siliently.");
+			}
+		} catch (SQLException e) {
 				e.printStackTrace();
 		} finally {
 			close(set);

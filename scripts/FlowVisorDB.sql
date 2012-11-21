@@ -34,6 +34,7 @@ CREATE TABLE Slice (
   drop_policy VARCHAR(10) DEFAULT 'exact' ,
   lldp_spam BOOLEAN  DEFAULT true,
   max_flow_rules INT NOT NULL DEFAULT -1,
+  force_enqueue BOOLEAN DEFAULT false,
   PRIMARY KEY (id));
 
 CREATE INDEX flowvisor_index ON Slice (flowvisor_id ASC);
@@ -50,12 +51,18 @@ CREATE TABLE jFSRSlice (
 	flowspacerule_id INT,
 	slice_id INT,
 	slice_action INT,
-    queue_id INT DEFAULT -1,
 	PRIMARY KEY (id));
 
 CREATE INDEX flowspace_index ON jFSRSlice (flowspacerule_id ASC);
 CREATE INDEX slice_index ON jFSRSlice (slice_id ASC);
 
+CREATE TABLE FSRQueue (
+  id INT GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) ,
+  fsr_id INT NOT NULL,
+  queue_id INT DEFAULT -1,
+  PRIMARY KEY (id));
+
+CREATE INDEX fsrqueue_index on FSRQueue (fsr_id ASC);
 
 CREATE TABLE FlowSpaceRule (
   id INT GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) ,
@@ -78,6 +85,10 @@ CREATE TABLE FlowSpaceRule (
 
 CREATE INDEX prio_index ON FlowSpaceRule (priority ASC);
 
+ALTER TABLE FSRQueue
+    ADD CONSTRAINT FlowSpaceRule_to_queue_fk FOREIGN KEY (fsr_id)
+    REFERENCES FlowSpaceRule (id) ON DELETE CASCADE;
+
 ALTER TABLE jFSRSlice 
 	ADD CONSTRAINT FlowSpaceRule_to_Slice_fk FOREIGN KEY (slice_id)
 	REFERENCES Slice (id) ON DELETE CASCADE;
@@ -85,6 +96,8 @@ ALTER TABLE jFSRSlice
 ALTER TABLE jFSRSlice 
 	ADD CONSTRAINT Slice_to_FlowSpaceRule_fk FOREIGN KEY (flowspacerule_id)
 	REFERENCES FlowSpaceRule (id) ON DELETE CASCADE;
+
+
 
 CREATE TABLE Switch (
   id INT GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
