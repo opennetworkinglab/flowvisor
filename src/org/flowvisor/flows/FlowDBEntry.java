@@ -32,7 +32,6 @@ public class FlowDBEntry extends FlowEntry {
 		this.sliceName = sliceName;
 		this.cookie = cookie;
 		this.creationTime = System.currentTimeMillis();
-		this.setQueueId(new LinkedList<Integer>());
 	}
 
 	/**
