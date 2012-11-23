@@ -7,12 +7,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.PatternSyntaxException;
-
 import org.flowvisor.exceptions.MalformedFlowChange;
 import org.flowvisor.flows.FlowSpaceUtil;
 import org.flowvisor.flows.SliceAction;
-import org.flowvisor.log.FVLog;
 import org.flowvisor.openflow.protocol.FVMatch;
 //import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.action.*;
@@ -32,7 +29,6 @@ public class FlowChange {
 	final static public String DPID_KEY = "dpid";
 	final static public String ACTIONS_KEY = "actions";
 	final static public String MATCH_KEY = "match";
-	final static public String QUEUE_KEY = "queue";
 
 	public enum FlowChangeOp {
 		ADD, REMOVE, CHANGE;

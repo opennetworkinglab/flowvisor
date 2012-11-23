@@ -7,12 +7,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.SortedSet;
-
 
 import org.flowvisor.flows.FederatedFlowMap;
 import org.flowvisor.flows.FlowEntry;
@@ -22,11 +22,7 @@ import org.flowvisor.flows.SliceAction;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.openflow.protocol.FVMatch;
-import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.action.OFAction;
-import org.openflow.util.HexString;
-
-import java.sql.Types;
 
 public class FlowSpaceImpl implements FlowSpace {
 
@@ -426,6 +422,7 @@ public class FlowSpaceImpl implements FlowSpace {
 				//ps.setInt(4, fe.getQueueId());
 				ps.executeUpdate();
 			}
+			
 			queues = conn.prepareStatement(SQUEUES);
 			queues.setInt(1, ruleid);
 			for (Integer queue_id : fe.getQueueId()) {

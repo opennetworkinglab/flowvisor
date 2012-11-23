@@ -696,22 +696,7 @@ public class FVUserAPIImpl extends BasicJSONRPCService implements FVUserAPI {
 		return ret;
 	}
 	
-	/**
-	 * Lookup slicer by name... this is slow.
-	 */
-	private FVSlicer lookupSlicer(String sliceName) throws SliceNotFound {
-		for (Iterator<FVEventHandler> it = FlowVisor.getInstance()
-				.getHandlersCopy().iterator(); it.hasNext();) {
-			FVEventHandler eventHandler = it.next();
-			if (eventHandler instanceof FVClassifier) {
-				FVClassifier classifier = (FVClassifier) eventHandler;
-				FVSlicer slicer = classifier.getSlicerByName(sliceName);
-				if (slicer != null)
-					return slicer;
-			}
-		} 
-		throw new SliceNotFound("Slice not found : " + sliceName);
-	}
+
 
 	/**
 	 *

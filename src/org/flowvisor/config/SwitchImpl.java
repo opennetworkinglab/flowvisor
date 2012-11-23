@@ -465,6 +465,7 @@ public class SwitchImpl implements Switch {
 			ps.setInt(8, ((Double) row.get(CAPA)).intValue());
 			if (ps.executeUpdate() == 0)
 				FVLog.log(LogLevel.WARN, null, "Insertion failed... siliently.");
+			@SuppressWarnings("unchecked")
 			HashMap<String, HashMap<String, Object>> limits = (HashMap<String, HashMap<String, Object>>) row.get(LIMITS);
 			for (Entry<String, HashMap<String, Object>> entry : limits.entrySet()) {
 				String sliceName = entry.getKey();

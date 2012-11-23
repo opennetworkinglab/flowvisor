@@ -14,7 +14,6 @@ import java.util.Map;
 import org.flowvisor.config.BracketParse;
 import org.flowvisor.config.Bracketable;
 import org.flowvisor.config.FVConfig;
-import org.flowvisor.exceptions.MalformedFlowChange;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.openflow.protocol.FVMatch;

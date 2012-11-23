@@ -5,10 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.flowvisor.classifier.FVClassifier;
-import org.flowvisor.config.ConfigError;
 import org.flowvisor.flows.FlowEntry;
-import org.flowvisor.flows.FlowMap;
-import org.flowvisor.flows.FlowSpaceUtil;
 import org.flowvisor.flows.SliceAction;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;

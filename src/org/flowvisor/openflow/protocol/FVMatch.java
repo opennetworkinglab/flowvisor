@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.flowvisor.exceptions.MalformedFlowChange;
 import org.flowvisor.flows.FlowEntry;
 import org.openflow.protocol.OFMatch;
 import org.openflow.util.HexString;
@@ -358,13 +357,7 @@ public class FVMatch extends OFMatch {
 		return new BigInteger(byteArray).longValue();
 	}
 	
-	/*private byte[] toByteArray(long value) {
-		return HexString.fromHexString(HexString.toHexString(value));
-	}*/
-	
-	private int broadcastAddr(int mask, int ip) {
-		return ip | ~mask;
-	}
+
 	
     /**
      * Implement clonable interface
