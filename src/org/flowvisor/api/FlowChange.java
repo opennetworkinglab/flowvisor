@@ -44,7 +44,6 @@ public class FlowChange {
 	private long dpid;
 	private FVMatch match;
 	private List<OFAction> actions;
-	private List<Integer> queue;
 
 	/**
 	 * Convert this Map to a FlowChange
@@ -61,7 +60,6 @@ public class FlowChange {
 			map.put(PRIORITY_KEY, String.valueOf(priority));
 			map.put(MATCH_KEY, match.toString());
 			map.put(ACTIONS_KEY, FlowSpaceUtil.toString(actions));
-			map.put(QUEUE_KEY, String.valueOf(queue));
 		}
 		return map;
 	}
@@ -141,32 +139,10 @@ public class FlowChange {
 				alist.add(SliceAction.fromString(list[i]));
 			flowChange.setActions(alist);
 			
-			String qstr = map.get(QUEUE_KEY);
-			List<Integer> qlist = new LinkedList<Integer>();
-			if (qstr == null) {
-				map.put(QUEUE_KEY, "-1");
-				qlist.add(-1);
-			} else {
-				queueList(qlist, qstr);
-			}
-			
-			flowChange.setQueueId(qlist);
 		}
 		return flowChange;
 	}
 
-	private static void queueList(List<Integer> qlist, String qstr) throws MalformedFlowChange {
-		String[] tmp = qstr.split("[=,]");
-		for (int i = 1 ; i < tmp.length ; i++) {
-			try {
-				qlist.add(Integer.parseInt(tmp[i]));
-			} catch (NumberFormatException nfe) {
-				throw new MalformedFlowChange("Queue id " + tmp[i] + 
-						" is not a valid queue identifier.");
-			}
-		}
-		
-	}
 
 	/**
 	 * Create a map from the parameters
@@ -180,8 +156,7 @@ public class FlowChange {
 	 * @return
 	 */
 	public static Map<String, String> makeMap(FlowChangeOp op, String dpid2,
-			String idStr, String priorityString, String match2, String actions2,
-			String queue2) {
+			String idStr, String priorityString, String match2, String actions2) {
 		Map<String, String> map = new HashMap<String, String>();
 		map.put(OP_KEY, op.toString());
 		if (idStr != null)
@@ -190,7 +165,6 @@ public class FlowChange {
 		map.put(DPID_KEY, dpid2);
 		map.put(MATCH_KEY, match2);
 		map.put(ACTIONS_KEY, actions2);
-		map.put(QUEUE_KEY, queue2);
 		return map;
 	}
 
@@ -262,23 +236,7 @@ public class FlowChange {
 		this.priority = priority;
 	}
 	
-	/**
-	 * 
-	 * @param qid
-	 * 		the queue is to set
-	 */
-	public void setQueueId(List<Integer> qids) {
-		this.queue = qids;
-	}
 	
-	/**
-	 * 
-	 * @return the queue id
-	 */
-	public List<Integer> getQueueId() {
-		return this.queue;
-	}
-
 	/**
 	 * @return the dpid
 	 */

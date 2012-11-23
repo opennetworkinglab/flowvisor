@@ -80,6 +80,7 @@ CREATE TABLE FlowSpaceRule (
   nw_tos SMALLINT,
   tp_src SMALLINT,
   tp_dst SMALLINT,
+  forced_queue INT DEFAULT -1,
   wildcards INT,
   PRIMARY KEY (id));
 

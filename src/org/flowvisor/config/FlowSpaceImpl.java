@@ -68,8 +68,8 @@ public class FlowSpaceImpl implements FlowSpace {
 	
 	private static String SFLOWMAP = "INSERT INTO FlowSpaceRule(" + DPID + "," + PRIO + "," +  
 			INPORT + "," + VLAN + "," + VPCP + "," + DLSRC + "," + DLDST + "," + DLTYPE + "," +
-			NWSRC + "," + NWDST + "," + NWPROTO + "," + NWTOS + "," + TPSRC + "," + TPDST + ","+ WILDCARDS+ ") " +
-			" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+			NWSRC + "," + NWDST + "," + NWPROTO + "," + NWTOS + "," + TPSRC + "," + TPDST + "," +
+			FORCED_QUEUE + "," + WILDCARDS+ ") " + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	private static String SACTIONS = "INSERT INTO jFSRSlice(flowspacerule_id, slice_id," + ACTION + ")" +
 			" VALUES(?,?,?)";
 	
@@ -149,6 +149,7 @@ public class FlowSpaceImpl implements FlowSpace {
 					match.setTransportSource(set.getShort(TPSRC));
 				if ((wildcards & FVMatch.OFPFW_TP_DST) == 0)
 					match.setTransportDestination(set.getShort(TPDST));
+				
 				match.setWildcards(wildcards);
 				
 				
@@ -167,6 +168,7 @@ public class FlowSpaceImpl implements FlowSpace {
 				}
 				fe = new FlowEntry(set.getLong(DPID), match, set.getInt("id"),set.getInt(PRIO) , actionsList);
 				fe.setQueueId(queueList);
+				fe.setForcedQueue(set.getInt(FORCED_QUEUE));
 				map.addRule(fe);
 			}
 			if (map == null)
@@ -273,8 +275,9 @@ public class FlowSpaceImpl implements FlowSpace {
 				else
 					ps.setShort(14, fe.getRuleMatch().getTransportDestination());
 				
-				ps.setInt(15, wildcards);
-				ps.setInt(16, fe.getId());
+				ps.setInt(15, (int) fe.getForcedQueue());
+				ps.setInt(16, wildcards);
+				//ps.setInt(17, fe.getId());
 				ps.executeUpdate();
 				set = ps.getGeneratedKeys();
 				set.next();
@@ -294,6 +297,15 @@ public class FlowSpaceImpl implements FlowSpace {
 					ps.setInt(2, sliceid);
 					ps.setInt(3, ((SliceAction) act).getSlicePerms());
 					ps.executeUpdate();
+				}
+				if (fe.getQueueId() == null)
+					return;
+				ps = conn.prepareStatement(SQUEUES);
+				ps.setInt(1, ruleid);
+				for (Integer queue_id : (LinkedList<Integer>) fe.getQueueId()) {
+					ps.setInt(2, queue_id);
+					if (ps.executeUpdate() == 0)
+						FVLog.log(LogLevel.WARN, null, "Queue insertion failed... siliently.");
 				}
 			}
 			notify(ChangedListener.FLOWMAP, FFLOWMAP, map);
@@ -565,7 +577,7 @@ public class FlowSpaceImpl implements FlowSpace {
   				if ((wildcards & FVMatch.OFPFW_TP_SRC) == 0)
  					fs.put(TPSRC, set.getShort(TPSRC));
   				
-  				
+  				fs.put(FORCED_QUEUE, set.getInt(FORCED_QUEUE));
  				fs.put(WILDCARDS, wildcards);
   				//fs.put(QUEUE, set.getInt(QUEUE));
   				actions = conn.prepareStatement(GACTIONS);
@@ -693,6 +705,10 @@ public class FlowSpaceImpl implements FlowSpace {
 				ps.setNull(15, Types.INTEGER);
 			else
 				ps.setInt(15, ((Double) row.get(WILDCARDS)).intValue());
+			if (row.get(FORCED_QUEUE) == null) 
+				ps.setInt(15, -1);
+			else
+				ps.setInt(15, ((Double) row.get(FORCED_QUEUE)).intValue());
 			
 			if (ps.executeUpdate() == 0)
 				FVLog.log(LogLevel.WARN, null, "Flow rule insertion failed... siliently.");

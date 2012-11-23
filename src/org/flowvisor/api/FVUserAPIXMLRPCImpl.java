@@ -84,12 +84,11 @@ public class FVUserAPIXMLRPCImpl extends FVUserAPIImpl implements FVUserAPIXML{
 							+ FlowSpaceUtil.dpidToString(change.getDpid())
 							+ " match=" + change.getMatch() + " priority="
 							+ change.getPriority() + " actions="
-							+ FlowSpaceUtil.toString(change.getActions())
-							+ " queue=" + change.getQueueId();
-
+							+ FlowSpaceUtil.toString(change.getActions());
+				
 					FlowEntry flowEntry = new FlowEntry(change.getDpid(),
 							change.getMatch(), change.getPriority(),
-							change.getActions(), change.getQueueId());
+							change.getActions());
 					flowEntry.setId(FlowSpaceImpl.getProxy().addRule(flowEntry));
 
 					if (operation == FlowChangeOp.ADD)

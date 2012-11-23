@@ -31,6 +31,7 @@ public interface FlowSpace extends FVAppConfig {
 	public static String WILDCARDS = "wildcards";
 	public static String ACTION = "slice_action";
 	public static String QUEUE = "queue_id";
+	public static String FORCED_QUEUE = "forced_queue";
 	
 	//Table name
 	public static String FS = "FlowSpaceRule";

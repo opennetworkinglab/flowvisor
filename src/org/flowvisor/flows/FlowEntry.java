@@ -217,11 +217,19 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 	}
 	
 	public void setQueueId(List<Integer> qids) {
-		this.queue_ids = qids;
+		this.ruleMatch.setQueues(qids);
 	}
 	
 	public List<Integer> getQueueId() {
-		return queue_ids;
+		return this.ruleMatch.getQueues();
+	}
+	
+	public void setForcedQueue(long qid) {
+		this.ruleMatch.setForcedQueue(qid);
+	}
+	
+	public long getForcedQueue() {
+		return this.ruleMatch.getForcedQueue();
 	}
 
 	/**

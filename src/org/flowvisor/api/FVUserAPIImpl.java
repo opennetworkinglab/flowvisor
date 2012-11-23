@@ -238,7 +238,7 @@ public class FVUserAPIImpl extends BasicJSONRPCService implements FVUserAPI {
 				//either to an exact match of the packet in or to the
 				//flow entry.
 				FVConfig.setSliceDropPolicy(sliceName, value);
-			}
+			} 
 			else
 				throw new InvalidUserInfoKey("invalid key: " + key
 						+ "-- only contact_email, drop_policy and "
