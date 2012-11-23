@@ -234,6 +234,10 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 	public long getForcedQueue() {
 		return this.ruleMatch.getForcedQueue();
 	}
+	
+	public boolean forcesEnqueue() {
+		return !(this.getForcedQueue() == -1);
+	}
 
 	/**
 	 * Describe the overlap between the passed (dpid, match) argument with this
