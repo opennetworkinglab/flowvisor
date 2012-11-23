@@ -588,7 +588,6 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		FVMatch rule;
 		int id;
 		int priority;
-		List<Integer> qids = new LinkedList<Integer>();
 		if ((map == null)
 				|| (!map.get(BracketParse.OBJECTNAME).equals("FlowEntry")))
 			throw new IllegalArgumentException(

@@ -142,7 +142,7 @@ public class FVMatch extends OFMatch {
             str += "," + STR_TP_DST + "=" + this.transportDestination;
         if ((wildcards & OFPFW_TP_SRC) == 0)
             str += "," + STR_TP_SRC + "=" + this.transportSource;
-        if (this.queues != null)
+        if (this.queues != null && this.queues.size() > 0)
         	str += "," + STR_QUEUE + " = " + this.queues;
         if (this.force_queue != -1) {
         	str += "," + STR_FORCE + " = " + this.force_queue;
@@ -290,8 +290,8 @@ public class FVMatch extends OFMatch {
     
 	private static List<Integer> queueList(String qstr) throws IllegalArgumentException {
 		List<Integer> qlist = new LinkedList<Integer>();
-		String[] tmp = qstr.split(",");
-		for (int i = 1 ; i < tmp.length ; i++) {
+		String[] tmp = qstr.split(":");
+		for (int i = 0 ; i < tmp.length ; i++) {
 			try {
 				qlist.add(Integer.parseInt(tmp[i]));
 			} catch (NumberFormatException nfe) {

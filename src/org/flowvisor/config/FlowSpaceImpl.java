@@ -402,7 +402,8 @@ public class FlowSpaceImpl implements FlowSpace {
 			else
 				ps.setShort(14, fe.getRuleMatch().getTransportDestination());
 			
-			ps.setInt(15, wildcards);
+			ps.setInt(15, (int) fe.getForcedQueue());
+			ps.setInt(16, wildcards);
 			ps.executeUpdate();
 			set = ps.getGeneratedKeys();
 			set.next();
@@ -742,8 +743,8 @@ public class FlowSpaceImpl implements FlowSpace {
 				return;
 			ps = conn.prepareStatement(SQUEUES);
 			ps.setInt(1, ruleid);
-			for (Integer queue_id : (ArrayList<Integer>) row.get(QUEUE)) {
-				ps.setInt(2, queue_id);
+			for (Double queue_id : (ArrayList<Double>) row.get(QUEUE)) {
+				ps.setInt(2, queue_id.intValue());
 				if (ps.executeUpdate() == 0)
 					FVLog.log(LogLevel.WARN, null, "Queue insertion failed... siliently.");
 			}
