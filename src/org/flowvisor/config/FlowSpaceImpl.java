@@ -277,7 +277,7 @@ public class FlowSpaceImpl implements FlowSpace {
 				
 				ps.setInt(15, (int) fe.getForcedQueue());
 				ps.setInt(16, wildcards);
-				//ps.setInt(17, fe.getId());
+				ps.setInt(17, fe.getId());
 				ps.executeUpdate();
 				set = ps.getGeneratedKeys();
 				set.next();
