@@ -1,11 +1,14 @@
 package org.flowvisor.openflow.protocol;
 
 import java.math.BigInteger;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.flowvisor.flows.FlowEntry;
 import org.openflow.protocol.OFMatch;
 import org.openflow.util.HexString;
 import org.openflow.util.U16;
+import org.openflow.util.U32;
 import org.openflow.util.U8;
 
 public class FVMatch extends OFMatch {
@@ -14,6 +17,12 @@ public class FVMatch extends OFMatch {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
+	
+	private static final String STR_QUEUE = "queues";
+	private static final String STR_FORCE = "force_enqueue";
+	
+	private List<Integer> queues = null;
+	private long force_queue = -1;
 	 
 
 	public static long ANY_DPID = FlowEntry.ALL_DPIDS;
@@ -132,6 +141,11 @@ public class FVMatch extends OFMatch {
             str += "," + STR_TP_DST + "=" + this.transportDestination;
         if ((wildcards & OFPFW_TP_SRC) == 0)
             str += "," + STR_TP_SRC + "=" + this.transportSource;
+        if (this.queues != null && this.queues.size() > 0)
+        	str += "," + STR_QUEUE + " = " + this.queues;
+        if (this.force_queue != -1) {
+        	str += "," + STR_FORCE + " = " + this.force_queue;
+        }
         if ((str.length() > 0) && (str.charAt(0) == ','))
             str = str.substring(1); // trim the leading ","
         // done
@@ -150,6 +164,7 @@ public class FVMatch extends OFMatch {
 
         return str;
     }
+   
 
     /**
      * Set this OFMatch's parameters based on a comma-separated key=value pair
@@ -261,11 +276,30 @@ public class FVMatch extends OFMatch {
             } else if (values[0].equals(STR_TP_SRC)) {
                 this.transportSource = U16.t(Integer.valueOf(values[1]));
                 this.wildcards &= ~OFPFW_TP_SRC;
+            } else if (values[0].equals(STR_QUEUE)) {
+            	this.queues = queueList(values[1]);
+            } else if (values[0].equals(STR_FORCE)) {
+            	this.force_queue = U32.t(Integer.valueOf(values[1]));  
             } else
+
                 throw new IllegalArgumentException("unknown token " + tokens[i]
                         + " parsing " + match);
         }
     }
+    
+	private static List<Integer> queueList(String qstr) throws IllegalArgumentException {
+		List<Integer> qlist = new LinkedList<Integer>();
+		String[] tmp = qstr.split(":");
+		for (int i = 0 ; i < tmp.length ; i++) {
+			try {
+				qlist.add(Integer.parseInt(tmp[i]));
+			} catch (NumberFormatException nfe) {
+				throw new IllegalArgumentException("Queue id " + tmp[i] + 
+						" is not a valid queue identifier.");
+			}
+		}
+		return qlist;
+	}
 
     /*private void clear() {
     	inputPort = ANY_IN_PORT;
@@ -317,30 +351,13 @@ public class FVMatch extends OFMatch {
         }
     }
 
-	public String insertString() {
-		String ret = inputPort + "," + dataLayerVirtualLan + ",";
-		ret += dataLayerVirtualLanPriorityCodePoint + "," + 
-			toLong(dataLayerSource) + "," + toLong(dataLayerDestination) + ",";
-		ret += dataLayerType + "," + networkSource + ",";
-		ret += broadcastAddr(getNetworkSourceMaskLen(), networkSource) + ","; 
-		ret += networkDestination + ",";
-		ret += broadcastAddr(getNetworkSourceMaskLen(), networkDestination) + ",";
-		ret += networkProtocol + "," + networkTypeOfService + ",";
-		ret += transportSource + "," + transportDestination;
-		return ret;
-	}
+
 	
 	public static long toLong(byte[] byteArray) {
 		return new BigInteger(byteArray).longValue();
 	}
 	
-	/*private byte[] toByteArray(long value) {
-		return HexString.fromHexString(HexString.toHexString(value));
-	}*/
-	
-	private int broadcastAddr(int mask, int ip) {
-		return ip | ~mask;
-	}
+
 	
     /**
      * Implement clonable interface
@@ -362,10 +379,21 @@ public class FVMatch extends OFMatch {
         this.wildcards = wildcards;
         return this;
     }
-	
-	
-	
-	public static String FIELDS="dpid, priority, inport, dl_vlan, dl_vpcp, dl_src, " +
-			"dl_dst, dl_type, nw_src, nw_src_brdcst, nw_dst, nw_dst_brdcst, " +
-			"nw_proto, nw_tos, tp_src, tp_dst";
+    
+    public List<Integer> getQueues() {
+    	return this.queues;
+    }
+    
+    public void setQueues(List<Integer> qlist) {
+    	this.queues = qlist;
+    }
+    
+    public long getForcedQueue() {
+    	return this.force_queue;
+    }
+    
+    public void setForcedQueue(long queue) {
+    	this.force_queue = queue;
+    }
+    
 }

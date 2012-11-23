@@ -18,7 +18,7 @@ import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.openflow.protocol.FVMatch;
 import org.openflow.protocol.OFMatch;
-import org.openflow.protocol.action.OFAction;
+
 
 /**
  * This is the FlowSpaceRuleStore, it is the supporting structure for federated

@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import org.flowvisor.exceptions.MalformedFlowChange;
 import org.flowvisor.flows.FlowSpaceUtil;
 import org.flowvisor.flows.SliceAction;
@@ -15,6 +14,7 @@ import org.flowvisor.openflow.protocol.FVMatch;
 //import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.action.*;
 import org.openflow.util.HexString;
+
 
 /**
  * Object that holds a change to the flowspace
@@ -134,9 +134,11 @@ public class FlowChange {
 			for (int i = 0; i < list.length; i++)
 				alist.add(SliceAction.fromString(list[i]));
 			flowChange.setActions(alist);
+			
 		}
 		return flowChange;
 	}
+
 
 	/**
 	 * Create a map from the parameters
@@ -229,7 +231,8 @@ public class FlowChange {
 	public void setPriority(int priority) {
 		this.priority = priority;
 	}
-
+	
+	
 	/**
 	 * @return the dpid
 	 */

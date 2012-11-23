@@ -1,9 +1,11 @@
 package org.flowvisor.message;
 
+import java.util.LinkedList;
 import java.util.List;
 
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.exceptions.ActionDisallowedException;
+import org.flowvisor.flows.FlowEntry;
 import org.flowvisor.flows.FlowIntersect;
 import org.flowvisor.flows.SliceAction;
 import org.flowvisor.log.FVLog;
@@ -15,6 +17,8 @@ import org.openflow.protocol.OFError.OFFlowModFailedCode;
 import org.openflow.protocol.OFFlowMod;
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionEnqueue;
+import org.openflow.protocol.action.OFActionOutput;
 
 public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 		Classifiable, Slicable, Cloneable {
@@ -67,15 +71,8 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 				fvClassifier.getDPID(), new FVMatch(getMatch()));
 
 		int expansions = 0;
-		OFFlowMod original = null;
-		try {
-			original = this.clone(); // keep an unmodified copy
-		} catch (CloneNotSupportedException e) {
-			// will never happen because clone in FVFlowMod
-			// doesn't throw a CloneNotSupportedException
-			// but clone()'s spec does.
-			e.printStackTrace();
-		}
+		OFFlowMod original = this.clone(); // keep an unmodified copy
+		
 		
 		int oldALen = FVMessageUtil.countActionsLen(this.getActions());
 		this.setActions(actionsList);
@@ -84,7 +81,6 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 				.countActionsLen(actionsList)));
 		
 		for (FlowIntersect intersect : intersections) {
-			try {
 				if (intersect.getFlowEntry().hasPermissions(
 						fvSlicer.getSliceName(), SliceAction.WRITE)) {
 					expansions++;
@@ -106,7 +102,7 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 					/*if (fvClassifier.isFlowTracking() && !((this.flags & 1) != 0))
 						*/
 					/*
-					 * THIS HAS TO BE VIRTUALIZED!!!!!!!
+					 * FIXME: THIS HAS TO BE VIRTUALIZED!!!!!!!
 					 */
 					newFlowMod.flags = (short) (newFlowMod.flags & 1);
 					if(this.command == OFFlowMod.OFPFC_DELETE || this.command == OFFlowMod.OFPFC_DELETE_STRICT){
@@ -124,17 +120,16 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 						//do nothing
 						//this is modifying existing flows not adding/subtracting
 					}
-							
-
+					
+					/*
+					 * Iterates over the list of actions
+					 * if the FV rule forces an enqueue action
+					 * apply it. Otherwise change nothing.
+					 */
+					applyForceEnqueue(newFlowMod, intersect.getFlowEntry());
 					
 					fvClassifier.sendMsg(newFlowMod, fvSlicer);
 				}
-			} catch (CloneNotSupportedException e) {
-				// will never happen because clone in FVFlowMod
-				// doesn't throw a CloneNotSupportedException
-				// but clone()'s spec does.
-				e.printStackTrace();
-			}
 		}
 		
 
@@ -147,6 +142,24 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 					" times: ", this);
 	}
 	
+
+	private void applyForceEnqueue(FVFlowMod newFlowMod, FlowEntry flowEntry) {
+		if (!flowEntry.forcesEnqueue())
+			return;
+		List<OFAction> neoActions = new LinkedList<OFAction>();
+		for (OFAction action : newFlowMod.actions) {
+			if (action instanceof OFActionOutput) {
+				OFActionOutput output = (OFActionOutput) action;
+				OFActionEnqueue repl = new OFActionEnqueue();
+				repl.setPort(output.getPort());
+				repl.setQueueId((int)flowEntry.getForcedQueue());
+				neoActions.add(repl);
+			} else {
+				neoActions.add(action);
+			}
+		}
+		newFlowMod.setActions(neoActions);
+	}
 
 	public FVFlowMod setMatch(FVMatch match) {
 		this.match = match;

@@ -78,9 +78,11 @@ public class FVCtl {
 		new APICmd("listFlowSpace", 0),
 		new APICmd("removeFlowSpace", 1, "<id>"),
 		new APICmd("addFlowSpace", 4, "<dpid> <priority> <match> <actions>"),
+		
 		new APICmd("changeFlowSpace", 5,
 		"<id> <dpid> <priority> <match> <actions>"),
 		
+				
 		new APICmd("dumpConfig", 1, "<filename>"),
 
 		new APICmd("listDevices", 0),
@@ -603,11 +605,16 @@ public class FVCtl {
 
 	}
 
+
+	
+	
 	public void run_addFlowSpace(String dpid, String priority, String match,
 			String actions) throws XmlRpcException, MalformedFlowChange {
 		do_flowSpaceChange(FlowChangeOp.ADD, dpid, null, priority, match,
 				actions);
 	}
+	
+
 
 	public void run_changeFlowSpace(String idStr, String dpid, String priority,
 			String match, String actions) throws XmlRpcException,
