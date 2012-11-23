@@ -578,7 +578,6 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		map.put("actionsList", FlowSpaceUtil.toString(actionsList));
 		map.put("id", String.valueOf(this.id));
 		map.put("priority", String.valueOf(this.priority));
-		map.put("queue_id", String.valueOf(this.queue_ids.toString()));
 		return map;
 	}
 
@@ -607,11 +606,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		else
 			throw new IllegalArgumentException(
 					"missing expected key priority, got '" + map + "'");
-		if (map.containsKey("queue"))
-			queueList(qids, map.get("queue"));
-		else
-			throw new IllegalArgumentException(
-					"missing expected key queue, got '" + map + "'");
+		
 		
 		int i;
 		// translate dpid
@@ -630,22 +625,9 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		this.setRuleMatch(rule);
 		this.setId(id);
 		this.setPriority(priority);
-		this.setQueueId(qids);
 
 		return this;
 	}
-	
-	private static void queueList(List<Integer> qlist, String qstr) throws IllegalArgumentException {
-		String[] tmp = qstr.split("[=,]");
-		for (int i = 1 ; i < tmp.length ; i++) {
-			try {
-				qlist.add(Integer.parseInt(tmp[i]));
-			} catch (NumberFormatException nfe) {
-				throw new IllegalArgumentException("Queue id " + tmp[i] + 
-						" is not a valid queue identifier.");
-			}
-		}
-		
-	}
+
 	
 }

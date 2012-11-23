@@ -701,14 +701,15 @@ public class FlowSpaceImpl implements FlowSpace {
 				ps.setNull(14, Types.SMALLINT);
 			else
 				ps.setShort(14, ((Double) row.get(TPDST)).shortValue());
-			if (row.get(WILDCARDS) == null) 
-				ps.setNull(15, Types.INTEGER);
-			else
-				ps.setInt(15, ((Double) row.get(WILDCARDS)).intValue());
 			if (row.get(FORCED_QUEUE) == null) 
 				ps.setInt(15, -1);
 			else
 				ps.setInt(15, ((Double) row.get(FORCED_QUEUE)).intValue());
+			if (row.get(WILDCARDS) == null) 
+				ps.setNull(16, Types.INTEGER);
+			else
+				ps.setInt(16, ((Double) row.get(WILDCARDS)).intValue());
+			
 			
 			if (ps.executeUpdate() == 0)
 				FVLog.log(LogLevel.WARN, null, "Flow rule insertion failed... siliently.");
@@ -741,7 +742,7 @@ public class FlowSpaceImpl implements FlowSpace {
 				return;
 			ps = conn.prepareStatement(SQUEUES);
 			ps.setInt(1, ruleid);
-			for (Integer queue_id : (LinkedList<Integer>) row.get(QUEUE)) {
+			for (Integer queue_id : (ArrayList<Integer>) row.get(QUEUE)) {
 				ps.setInt(2, queue_id);
 				if (ps.executeUpdate() == 0)
 					FVLog.log(LogLevel.WARN, null, "Queue insertion failed... siliently.");
