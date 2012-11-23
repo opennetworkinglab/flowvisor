@@ -221,7 +221,10 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 	}
 	
 	public List<Integer> getQueueId() {
-		return this.ruleMatch.getQueues();
+		if (this.ruleMatch.getQueues() == null) {
+			return new LinkedList<Integer>();
+		} else 
+			return this.ruleMatch.getQueues();
 	}
 	
 	public void setForcedQueue(long qid) {
