@@ -147,6 +147,7 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 		if (!flowEntry.forcesEnqueue())
 			return;
 		List<OFAction> neoActions = new LinkedList<OFAction>();
+		int length = 0;
 		for (OFAction action : newFlowMod.actions) {
 			if (action instanceof OFActionOutput) {
 				OFActionOutput output = (OFActionOutput) action;
@@ -154,11 +155,14 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 				repl.setPort(output.getPort());
 				repl.setQueueId((int)flowEntry.getForcedQueue());
 				neoActions.add(repl);
+				length += repl.getLengthU();
 			} else {
 				neoActions.add(action);
+				length += action.getLengthU();
 			}
 		}
 		newFlowMod.setActions(neoActions);
+		newFlowMod.setLengthU(FVFlowMod.MINIMUM_LENGTH + length);
 	}
 
 	public FVFlowMod setMatch(FVMatch match) {
