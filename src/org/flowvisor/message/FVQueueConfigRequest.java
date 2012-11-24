@@ -16,6 +16,7 @@ public class FVQueueConfigRequest extends OFQueueConfigRequest implements
 					OFBadRequestCode.OFPBRC_EPERM, this), fvClassifier);
 			return;
 		}
+		
 		FVMessageUtil.translateXidAndSend(this, fvClassifier, fvSlicer);
 			
 	}
