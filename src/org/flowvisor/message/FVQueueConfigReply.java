@@ -57,6 +57,7 @@ public class FVQueueConfigReply extends OFQueueConfigReply implements
 					FVLog.log(LogLevel.DEBUG, fvClassifier, "Pruning queue " + queue.getQueueId() 
 							+ " because it is not in slice " + fvSlicer.getSliceName());
 					it.remove();
+					this.setLengthU(this.getLengthU() - OFPacketQueue.MINIMUM_LENGTH);
 				}
 			}
 		}
