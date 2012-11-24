@@ -54,7 +54,7 @@ public class FVQueueConfigReply extends OFQueueConfigReply implements
 				if (fe.getQueueId().contains(queue.getQueueId())) {
 					found = true;
 				} else {
-					FVLog.log(LogLevel.DEBUG, fvClassifier, "Pruning queue " + queue.getQueueId() 
+					FVLog.log(LogLevel.INFO, fvClassifier, "Pruning queue " + queue.getQueueId() 
 							+ " because it is not in slice " + fvSlicer.getSliceName());
 					it.remove();
 					this.setLengthU(this.getLengthU() - OFPacketQueue.MINIMUM_LENGTH);
