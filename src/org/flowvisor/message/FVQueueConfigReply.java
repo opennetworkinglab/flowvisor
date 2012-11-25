@@ -34,9 +34,11 @@ public class FVQueueConfigReply extends OFQueueConfigReply implements
 		}
 		FVMatch match = new FVMatch();
 		match.setInputPort(this.port);
+		FVLog.log(LogLevel.DEBUG, fvSlicer, "matching FS");
 		List<FlowEntry> entries = fvSlicer.getFlowSpace().matches(fvClassifier.getDPID(), match);
 		Iterator<FlowEntry> it = entries.iterator();
 		while (it.hasNext()) {
+			FVLog.log(LogLevel.DEBUG, fvSlicer, "pruning FS");
 			FlowEntry fe = it.next();
 			for (OFAction act : fe.getActionsList()) {
 				SliceAction sa = (SliceAction) act;
@@ -48,6 +50,7 @@ public class FVQueueConfigReply extends OFQueueConfigReply implements
 		List<Integer> queuelog = new LinkedList<Integer>();
 		Iterator<OFPacketQueue> qit = this.queues.iterator();
 		while (qit.hasNext()) {
+			FVLog.log(LogLevel.DEBUG, fvSlicer, "matching queue reply");
 			OFPacketQueue queue = qit.next();
 			queuelog.add(queue.getQueueId());
 			for (FlowEntry fe : entries) {
