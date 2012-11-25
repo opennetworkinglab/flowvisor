@@ -58,8 +58,8 @@ public class FlowvisorImpl implements Flowvisor {
 	private static String INSERT = "INSERT INTO " + FLOWVISOR + "(" + APIPORT + "," + 
 					JETTYPORT + "," + CHECKPOINT + "," + LISTEN + "," + TRACK + "," +
 					STATS + "," + TOPO + "," + LOGGING + "," + LOGIDENT + "," + LOGFACILITY + "," +
-					VERSION + "," + HOST + "," + FLOODPERM + "," + CONFIG + ") VALUES(" +
-					"?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+					VERSION + "," + HOST + "," + FLOODPERM + "," + CONFIG + "," + DB_VERSION + ") VALUES(" +
+					"?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	
 	private static String DELETE = "DELETE FROM " + FLOWVISOR;
 	private static String DELSWITCH = "DELETE FROM " + Switch.TSWITCH;
@@ -739,6 +739,7 @@ public class FlowvisorImpl implements Flowvisor {
 				fv.put(HOST, set.getString(HOST));
 				fv.put(FLOODPERM, set.getString(FLOODPERM));
 				fv.put(CONFIG, set.getString(CONFIG));
+				fv.put(DB_VERSION, set.getInt(DB_VERSION));
 				list.add(fv.clone());
 				fv.clear();
 			}
@@ -843,7 +844,13 @@ public class FlowvisorImpl implements Flowvisor {
 			
 			if (row.get(CONFIG) == null)
 				row.put(CONFIG, "default");
+			
 			ps.setString(14, (String) row.get(CONFIG));
+			
+			if (row.get(DB_VERSION) == null)
+				row.put(DB_VERSION, 0);
+			
+			ps.setInt(15, ((Double) row.get(DB_VERSION)).intValue()); 
 			if (ps.executeUpdate() == 0)
 				FVLog.log(LogLevel.WARN, null, "Insertion failed... siliently.");
 			} catch (SQLException e) {

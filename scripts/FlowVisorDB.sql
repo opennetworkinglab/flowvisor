@@ -18,6 +18,7 @@ CREATE TABLE Flowvisor (
   host VARCHAR(45)  DEFAULT 'localhost' ,
   default_flood_perm VARCHAR(45) DEFAULT 'fvadmin',
   config_name VARCHAR(100) UNIQUE DEFAULT 'default',
+  db_version INT,
   PRIMARY KEY (id));
 
 CREATE TABLE Slice (

@@ -38,6 +38,7 @@ public class FlowVisor {
 
 	// VERSION
 	public final static String FLOWVISOR_VERSION = "flowvisor-0.9.10";
+	public final static int FLOWVISOR_DB_VERSION = 1;
 
 
 	// Max slicename len ; used in LLDP for now; needs to be 1 byte

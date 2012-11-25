@@ -25,6 +25,7 @@ public interface Flowvisor extends FVAppConfig {
 	public static String VERSION = "version";
 	public static String HOST = "host";
 	public static String CONFIG = "config_name";
+	public static String DB_VERSION = "db_version";
 	
 	// Table name
 	public static String FLOWVISOR = "flowvisor";
