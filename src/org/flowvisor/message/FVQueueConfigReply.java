@@ -34,9 +34,11 @@ public class FVQueueConfigReply extends OFQueueConfigReply implements
 		}
 		FVMatch match = new FVMatch();
 		match.setInputPort(this.port);
+		FVLog.log(LogLevel.INFO, fvSlicer, "matching FS");
 		List<FlowEntry> entries = fvSlicer.getFlowSpace().matches(fvClassifier.getDPID(), match);
 		Iterator<FlowEntry> it = entries.iterator();
 		while (it.hasNext()) {
+			FVLog.log(LogLevel.INFO, fvSlicer, "pruning FS");
 			FlowEntry fe = it.next();
 			for (OFAction act : fe.getActionsList()) {
 				SliceAction sa = (SliceAction) act;
@@ -48,22 +50,29 @@ public class FVQueueConfigReply extends OFQueueConfigReply implements
 		List<Integer> queuelog = new LinkedList<Integer>();
 		Iterator<OFPacketQueue> qit = this.queues.iterator();
 		while (qit.hasNext()) {
+			FVLog.log(LogLevel.INFO, fvSlicer, "matching queue reply");
 			OFPacketQueue queue = qit.next();
 			queuelog.add(queue.getQueueId());
 			for (FlowEntry fe : entries) {
 				if (fe.getQueueId().contains(queue.getQueueId())) {
 					found = true;
-				} else {
-					FVLog.log(LogLevel.DEBUG, fvClassifier, "Pruning queue " + queue.getQueueId() 
-							+ " because it is not in slice " + fvSlicer.getSliceName());
-					it.remove();
-				}
+					break;
+				} 
 			}
+			if (!found) {
+				FVLog.log(LogLevel.INFO, fvClassifier, "Pruning queue " + queue.getQueueId() 
+						+ " because it is not in slice " + fvSlicer.getSliceName());
+				qit.remove();
+				this.setLengthU(this.getLengthU() - queue.computeLength());
+			}
+			
 		}
-		if (!found)
+		if (!found) {
 			FVLog.log(LogLevel.WARN, fvClassifier,
 					"dropping QueueConfigReply because queues " + queuelog + 
 					" are not in slice: " + fvSlicer.getSliceName() + " : " + this);
+			return;
+		}
 		if (fvSlicer.portInSlice(this.port))
 			fvSlicer.sendMsg(this, fvClassifier);
 		else 
