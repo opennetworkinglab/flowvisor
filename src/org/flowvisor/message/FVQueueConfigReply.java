@@ -56,13 +56,16 @@ public class FVQueueConfigReply extends OFQueueConfigReply implements
 			for (FlowEntry fe : entries) {
 				if (fe.getQueueId().contains(queue.getQueueId())) {
 					found = true;
-				} else {
-					FVLog.log(LogLevel.INFO, fvClassifier, "Pruning queue " + queue.getQueueId() 
-							+ " because it is not in slice " + fvSlicer.getSliceName());
-					qit.remove();
-					this.setLengthU(this.getLengthU() - queue.computeLength());
-				}
+					break;
+				} 
 			}
+			if (!found) {
+				FVLog.log(LogLevel.INFO, fvClassifier, "Pruning queue " + queue.getQueueId() 
+						+ " because it is not in slice " + fvSlicer.getSliceName());
+				qit.remove();
+				this.setLengthU(this.getLengthU() - queue.computeLength());
+			}
+			
 		}
 		if (!found) {
 			FVLog.log(LogLevel.WARN, fvClassifier,
