@@ -59,7 +59,7 @@ public class FVQueueConfigReply extends OFQueueConfigReply implements
 				} else {
 					FVLog.log(LogLevel.INFO, fvClassifier, "Pruning queue " + queue.getQueueId() 
 							+ " because it is not in slice " + fvSlicer.getSliceName());
-					it.remove();
+					qit.remove();
 					this.setLengthU(this.getLengthU() - queue.computeLength());
 				}
 			}
