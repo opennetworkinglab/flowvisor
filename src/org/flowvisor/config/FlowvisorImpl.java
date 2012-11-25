@@ -850,7 +850,7 @@ public class FlowvisorImpl implements Flowvisor {
 			if (row.get(DB_VERSION) == null)
 				row.put(DB_VERSION, 0);
 			
-			ps.setInt(15, ((Double) row.get(DB_VERSION)).intValue()); 
+			ps.setInt(15, (Integer) row.get(DB_VERSION)); 
 			if (ps.executeUpdate() == 0)
 				FVLog.log(LogLevel.WARN, null, "Insertion failed... siliently.");
 			} catch (SQLException e) {
