@@ -879,5 +879,67 @@ public class FlowvisorImpl implements Flowvisor {
 			close(conn);
 		}
 	}
+	
+	private void processAlter(String alter) {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(alter);
+			ps.execute();
+		} catch (SQLException e) {
+			throw new RuntimeException("Table alteration failed. Quitting. " + e.getMessage());
+		} finally {
+			close(ps);
+			close(conn);
+		}
+	}
+
+	@Override
+	public void updateDB(int version) {
+		FVLog.log(LogLevel.INFO, null, "Updating FlowVisor database table.");
+		if (version == 0) {
+			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + DB_VERSION + " INT");
+			version++;
+		}
+		processAlter("UPDATE FlowVisor SET " + DB_VERSION + " = " + FlowVisor.FLOWVISOR_DB_VERSION);
+		
+	}
+
+	@Override
+	public int fetchDBVersion() {
+		String check = "DESCRIBE Flowvisor";
+		String version = "SELECT " + DB_VERSION + " FROM Flowvisor";
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(check);
+			set = ps.executeQuery();
+			try {
+				set.findColumn(DB_VERSION);
+			} catch (SQLException e) {
+				return 0;
+			}
+			ps = conn.prepareStatement(version);
+			set = ps.executeQuery();
+			if (set.next())
+				return set.getInt(DB_VERSION);
+			else {
+				System.err.println("Failed fetching DB version, exiting");
+				System.exit(1);
+			}
+				
+		} catch (SQLException e) {
+			System.err.println("Updating database failed, exiting. : " + e.getMessage());
+			System.exit(1);
+		} finally {
+			close(ps);
+			close(conn);
+		}
+		
+		return 0;
+	}
 
 }

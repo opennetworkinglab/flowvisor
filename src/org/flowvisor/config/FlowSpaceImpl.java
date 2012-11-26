@@ -772,4 +772,39 @@ public class FlowSpaceImpl implements FlowSpace {
 			close(conn);
 		}
 	}
+
+	private void processAlter(String alter) {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(alter);
+			ps.execute();
+		} catch (SQLException e) {
+			throw new RuntimeException("Table alteration failed. Quitting. " + e.getMessage());
+		} finally {
+			close(ps);
+			close(conn);
+		}
+	}
+
+	@Override
+	public void updateDB(int version) {
+		FVLog.log(LogLevel.INFO, null, "Updating FlowSpace database table.");
+		if (version == 0) {
+			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + FORCED_QUEUE + " INT DEFAULT -1");
+			processAlter("CREATE TABLE FSRQueue( " +
+					"id  INT GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
+					"fsr_id INT NOT NULL, " +
+					"queue_id INT DEFAULT -1, " +
+					"PRIMARY KEY (id))");
+			processAlter("CREATE INDEX fsrqueue_index on FSRQueue (fsr_id ASC)");
+			processAlter("ALTER TABLE FSRQueue " +
+					"ADD CONSTRAINT FlowSpaceRule_to_queue_fk FOREIGN KEY (fsr_id) " +
+					"REFERENCES FlowSpaceRule (id) ON DELETE CASCADE;");
+			version++;
+		}
+		
+		
+	}
 }

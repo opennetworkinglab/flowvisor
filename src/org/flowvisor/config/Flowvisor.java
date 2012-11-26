@@ -75,5 +75,7 @@ public interface Flowvisor extends FVAppConfig {
 	public void setJettyPort(Integer id, Integer port) throws ConfigError;
 	public void setJettyPort(Integer port) throws ConfigError;
 	
+	public int fetchDBVersion();
+	
 	
 }

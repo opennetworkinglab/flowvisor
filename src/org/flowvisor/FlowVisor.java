@@ -15,7 +15,10 @@ import org.flowvisor.config.ConfDBHandler;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
 import org.flowvisor.config.FVConfigurationController;
+import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.config.FlowvisorImpl;
+import org.flowvisor.config.SliceImpl;
+import org.flowvisor.config.SwitchImpl;
 import org.flowvisor.events.FVEventHandler;
 import org.flowvisor.events.FVEventLoop;
 import org.flowvisor.exceptions.UnhandledEvent;
@@ -219,6 +222,7 @@ public class FlowVisor {
 				else 
 					// Set temp file for config checkpointing.
 					fv.configFile = "/tmp/flowisor";
+				updateDB();
 				
 				fv.run(); 
 			} catch (NullPointerException e) {
@@ -248,6 +252,8 @@ public class FlowVisor {
 			} 
 		}
 	}
+
+	
 
 	private void parseArgs(String[] args) {
 		SimpleCLI cmd = null;
@@ -418,4 +424,22 @@ public class FlowVisor {
 		// TODO pull from FVConfig; needed for slice stiching
 		return "magic flowvisor1";
 	}
+	
+	
+	
+	private static void updateDB() {
+		int db_version = FlowvisorImpl.getProxy().fetchDBVersion();
+		if (db_version == FLOWVISOR_DB_VERSION)
+			return;
+		if (db_version > FLOWVISOR_DB_VERSION)
+			FVLog.log(LogLevel.WARN, null, "Your FlowVisor comes from the future.");
+		FlowvisorImpl.getProxy().updateDB(db_version);
+		SliceImpl.getProxy().updateDB(db_version);
+		FlowSpaceImpl.getProxy().updateDB(db_version);
+		SwitchImpl.getProxy().updateDB(db_version);
+		
+	}
+
+
+	
 }

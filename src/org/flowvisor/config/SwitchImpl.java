@@ -551,6 +551,44 @@ public class SwitchImpl implements Switch {
 	public static void removeListener(long dpid, FlowvisorChangedListener l) {
 		FVConfigurationController.instance().removeChangeListener(dpid, l);
 	}
+
+	private void processAlter(String alter) {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(alter);
+			ps.execute();
+		} catch (SQLException e) {
+			throw new RuntimeException("Table alteration failed. Quitting. " + e.getMessage());
+		} finally {
+			close(ps);
+			close(conn);
+		}
+	}
+
+	@Override
+	public void updateDB(int version) {
+		FVLog.log(LogLevel.INFO, null, "Updating Switch database table.");
+		if (version == 0) {
+			processAlter("CREATE TABLE jSliceSwitchLimits ( " +
+					"id INT GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
+					"slice_id INT NOT NULL, " +
+					"switch_id INT NOT NULL, " +
+					"maximum_flow_mods INT NOT NULL DEFAULT -1, " +
+					"PRIMARY KEY (id))");
+			processAlter("CREATE INDEX slice_limit_index ON jSliceSwitchLimits (slice_id ASC)");
+			processAlter("CREATE INDEX switch_limit_index ON jSliceSwitchLimits (switch_id ASC)");
+			processAlter("ALTER TABLE JSliceSwitchLimits " +
+					"ADD CONSTRAINT limit_to_switch_fk FOREIGN KEY (switch_id) " +
+					"REFERENCES Switch (id) ON DELETE CASCADE");
+			processAlter("ALTER TABLE jSliceSwitchLimits " +
+					"ADD CONSTRAINT limit_to_slice_fk FOREIGN KEY (slice_id) " +
+					"REFERENCES Slice (id) ON DELETE CASCADE");
+			version++;
+		}
+		
+	}
 	
 }
 

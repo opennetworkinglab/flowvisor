@@ -4,8 +4,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.StringBufferInputStream;
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -13,7 +11,6 @@ import java.util.Scanner;
 
 import org.flowvisor.FlowVisor;
 import org.flowvisor.api.APIAuth;
-import org.openflow.protocol.OFMatch;
 
 /**
  * List of things to populate FVConfig with on startup Everything here can be

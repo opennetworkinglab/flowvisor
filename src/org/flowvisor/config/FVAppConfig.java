@@ -20,4 +20,6 @@ public interface FVAppConfig {
 	public HashMap<String, Object> toJson(HashMap<String,Object> output);
 	public void fromJson(ArrayList<HashMap<String, Object>> input) throws IOException;
 	
+	public void updateDB(int version);
+	
 }
