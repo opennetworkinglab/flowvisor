@@ -40,7 +40,7 @@ public class FlowVisor {
 	public final static int FLOWVISOR_VENDOR_EXTENSION = 0x80000001;
 
 	// VERSION
-	public final static String FLOWVISOR_VERSION = "flowvisor-0.9.14";
+	public final static String FLOWVISOR_VERSION = "flowvisor-0.9.15";
 	public final static int FLOWVISOR_DB_VERSION = 1;
 
 
