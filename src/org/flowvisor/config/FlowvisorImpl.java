@@ -848,9 +848,9 @@ public class FlowvisorImpl implements Flowvisor {
 			ps.setString(14, (String) row.get(CONFIG));
 			
 			if (row.get(DB_VERSION) == null)
-				row.put(DB_VERSION, 0);
+				row.put(DB_VERSION, new Double(0));
 			
-			ps.setInt(15, (Integer) row.get(DB_VERSION)); 
+			ps.setInt(15, ((Double) row.get(DB_VERSION)).intValue()); 
 			if (ps.executeUpdate() == 0)
 				FVLog.log(LogLevel.WARN, null, "Insertion failed... siliently.");
 			} catch (SQLException e) {
@@ -924,7 +924,7 @@ public class FlowvisorImpl implements Flowvisor {
 			}
 			ps = conn.prepareStatement(version);
 			set = ps.executeQuery();
-			if (set.next())
+			if (set.next()) 
 				return set.getInt(DB_VERSION);
 			else {
 				System.err.println("Failed fetching DB version, exiting");
