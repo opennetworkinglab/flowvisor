@@ -801,7 +801,7 @@ public class FlowSpaceImpl implements FlowSpace {
 			processAlter("CREATE INDEX fsrqueue_index on FSRQueue (fsr_id ASC)");
 			processAlter("ALTER TABLE FSRQueue " +
 					"ADD CONSTRAINT FlowSpaceRule_to_queue_fk FOREIGN KEY (fsr_id) " +
-					"REFERENCES FlowSpaceRule (id) ON DELETE CASCADE;");
+					"REFERENCES FlowSpaceRule (id) ON DELETE CASCADE");
 			version++;
 		}
 		
