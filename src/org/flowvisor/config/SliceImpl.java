@@ -739,7 +739,7 @@ public class SliceImpl implements Slice {
 	public void updateDB(int version) {
 		FVLog.log(LogLevel.INFO, null, "Updating Slice database table.");
 		if (version == 0) {
-			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + FMLIMIT + " INT NOT NULL DEFAULT -1");
+			processAlter("ALTER TABLE Slice ADD COLUMN " + FMLIMIT + " INT NOT NULL DEFAULT -1");
 			version++;
 		}
 		

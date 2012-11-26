@@ -792,7 +792,7 @@ public class FlowSpaceImpl implements FlowSpace {
 	public void updateDB(int version) {
 		FVLog.log(LogLevel.INFO, null, "Updating FlowSpace database table.");
 		if (version == 0) {
-			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + FORCED_QUEUE + " INT DEFAULT -1");
+			processAlter("ALTER TABLE FlowSpaceRule ADD COLUMN " + FORCED_QUEUE + " INT DEFAULT -1");
 			processAlter("CREATE TABLE FSRQueue( " +
 					"id  INT GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
 					"fsr_id INT NOT NULL, " +
