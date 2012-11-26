@@ -908,7 +908,7 @@ public class FlowvisorImpl implements Flowvisor {
 
 	@Override
 	public int fetchDBVersion() {
-		String check = "DESCRIBE Flowvisor";
+		String check = "SELECT * FROM FLOWVISOR";
 		String version = "SELECT " + DB_VERSION + " FROM Flowvisor";
 		Connection conn = null;
 		PreparedStatement ps = null;
