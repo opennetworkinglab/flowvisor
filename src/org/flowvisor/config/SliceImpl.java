@@ -719,6 +719,31 @@ public class SliceImpl implements Slice {
 		}
 		
 	}
+
+	private void processAlter(String alter) {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(alter);
+			ps.execute();
+		} catch (SQLException e) {
+			throw new RuntimeException("Table alteration failed. Quitting. " + e.getMessage());
+		} finally {
+			close(ps);
+			close(conn);
+		}
+	}
+
+	@Override
+	public void updateDB(int version) {
+		FVLog.log(LogLevel.INFO, null, "Updating Slice database table.");
+		if (version == 0) {
+			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + FMLIMIT + " INT NOT NULL DEFAULT -1");
+			version++;
+		}
+		
+	}
 	
 
 }
