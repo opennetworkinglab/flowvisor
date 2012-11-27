@@ -1,6 +1,8 @@
 Flowvisor 0.10.0 : November 30 2012
     * FLOWVISOR-32  Assign queue to slice
     * FLOWVISOR-111 Per slice per dpid slice tcam usage limits
+    * FLOWVISOR-40  add QoS queue rewriting
+    * FLOWVISOR-51  implement isolation for all of_actions (include set_dl_dst)
     * FLOWVISOR-86  Flowvisor causes spurious bufferid errors due to flowmod expansion
     * FLOWVISOR-87  changeFlowSpace is very slow
     * FLOWVISOR-108 Change 'version' config variable
