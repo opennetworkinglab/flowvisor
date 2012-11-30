@@ -110,7 +110,8 @@ chain to the root slice.
 .PP
 The following command enable the FlowVisor admin to define maximum flow table usage on a per slice
 and/of per dpid basis. These commands allow to set the maximal limits, query the said limits and 
-finally check the current usage. The default setting is set to unlimited usage.
+finally check the current usage. The default setting is set to unlimited usage. Note that the actual
+existence of a queue on a switch is not handled by OpenFlow and nor is it handled by FlowVisor.
 
 .TP
 \fBsetMaximumFlowMods \fIslicename\fR \fIDPID\fR \fImax usage\fR
