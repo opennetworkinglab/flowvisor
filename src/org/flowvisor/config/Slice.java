@@ -21,6 +21,7 @@ public interface Slice extends FVAppConfig {
 	public static String SALT = "passwd_salt";
 	public static String FMTYPE = "flowmap_type";
 	public static String FLOWVISORID = "flowvisor_id";
+	public static String FMLIMIT = "max_flow_rules";
 	
 	// Table name
 	public static String TSLICE = "Slice";
@@ -31,6 +32,7 @@ public interface Slice extends FVAppConfig {
 	public void setcontroller_port(String sliceName, Integer port) throws ConfigError;
 	public void setContactEmail(String sliceName, String email) throws ConfigError;
 	public void setPasswd(String sliceName, String salt, String crypt) throws ConfigError;
+	public void setMaxFlowMods(String sliceName, int limit) throws ConfigError;
 	
 	public Boolean getlldp_spam(String sliceName);
 	public String getdrop_policy(String sliceName);
@@ -40,6 +42,7 @@ public interface Slice extends FVAppConfig {
 	public String getCreator(String sliceName) throws ConfigError;
 	public String getEmail(String sliceName) throws ConfigError ;
 	public LinkedList<String> getAllSliceNames() throws ConfigError;
+	public Integer getMaxFlowMods(String sliceName) throws ConfigError;
 	
 	
 	public Boolean checkSliceName(String sliceName);
@@ -70,7 +73,8 @@ public interface Slice extends FVAppConfig {
 			int flowvisor_id, int type) 
 					throws InvalidSliceName, DuplicateControllerException;
 	
-	public void deleteSlice(String SliceName) throws InvalidSliceName;	
+	public void deleteSlice(String SliceName) throws InvalidSliceName;
+		
 
 	
 }

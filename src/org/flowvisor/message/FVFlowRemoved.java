@@ -64,6 +64,7 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 								+ slice);
 				continue;
 			}
+			fvSlicer.decrementFlowRules();
 			fvSlicer.getFlowRewriteDB().processFlowRemoved(this);
 			fvSlicer.sendMsg(this, fvClassifier);
 		}

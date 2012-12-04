@@ -46,7 +46,9 @@ public class FVEventLoop {
 	public void register(SelectableChannel ch, int ops, FVEventHandler handler) {
 		FlowVisor.getInstance().addHandler(handler);
 		try {
-			ch.register(selector, ops, handler);
+			synchronized (selector) {
+				ch.register(selector, ops, handler);
+			}
 		} catch (ClosedChannelException e) {
 			FVLog.log(LogLevel.WARN, null, "Tried to register channel ", ch,
 					" but got :", e);
@@ -133,20 +135,22 @@ public class FVEventLoop {
 			// update the interested ops for each event handler
 			int ops;
 			FVEventHandler handler;
-			for (SelectionKey sk : selector.keys()) {
-				ops = 0;
-				if (!sk.isValid())
-					continue;
-				handler = (FVEventHandler) sk.attachment();
-				if (handler.needsRead())
-					ops |= SelectionKey.OP_READ;
-				if (handler.needsWrite())
-					ops |= SelectionKey.OP_WRITE;
-				if (handler.needsConnect())
-					ops |= SelectionKey.OP_CONNECT;
-				if (handler.needsAccept())
-					ops |= SelectionKey.OP_ACCEPT;
-				sk.interestOps(ops);
+			synchronized (selector) {
+				for (SelectionKey sk : selector.keys()) {
+					ops = 0;
+					if (!sk.isValid())
+						continue;
+					handler = (FVEventHandler) sk.attachment();
+					if (handler.needsRead())
+						ops |= SelectionKey.OP_READ;
+					if (handler.needsWrite())
+						ops |= SelectionKey.OP_WRITE;
+					if (handler.needsConnect())
+						ops |= SelectionKey.OP_CONNECT;
+					if (handler.needsAccept())
+						ops |= SelectionKey.OP_ACCEPT;
+					sk.interestOps(ops);
+				}
 			}
 
 			// wait until next IO event or timer event

@@ -65,6 +65,7 @@ bin_SCRIPTS="\
 sbin_SCRIPTS="\
     fvconfig \
     flowvisor \
+    derby-interact.sh
     "
 
 LIBS="\
@@ -97,9 +98,9 @@ LIBS="\
     "
 
 DOCS="\
-    README
-    README.dev
-    INSTALL
+    README \
+    README.dev \
+    INSTALL \
     "
 
 owd=`pwd`
@@ -112,7 +113,7 @@ done
 
 echo Creating directories
 
-for d in bin sbin libexec/flowvisor etc share/man/man1 share/man/man8 share/doc/flowvisor share/db/flowvisor ; do 
+for d in bin sbin libexec/flowvisor share/man/man1 share/man/man8 share/doc/flowvisor share/db/flowvisor ; do 
     echo Creating $prefix/$d
     $install $verbose --owner=$binuser --group=$bingroup --mode=755 -d $root$prefix/$d
 done
@@ -166,35 +167,37 @@ $install $verbose --owner=$binuser --group=$bingroup --mode=644 flowvisor.8  $ro
 # do we need to run makewhatis manually here? I think it's a cronjob on most systems
 
 
-echo Installing FlowVisorDB
-cd $owd
-envs=$base/scripts/envs.sh
-flowvisor_db=`dirname $0`/../scripts/FlowVisorDB.sql
-if [ -z $flowvisor_db ]; then
-    echo "Could not find database script file; your release is probably corrupt..." >&2
-    exit 
-fi
-if [ -f $envs ] ; then
-    . $envs
-else
-    echo "Could not find $envs: dying..." >&2
-    exit 1
-fi
-$install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/derby.properties $root/etc/flowvisor/derby.properties
-JAVA=`which java`
-CHOWN=`which chown`
-$JAVA -Dderby.system.home=$root$prefix/share/db/flowvisor -cp $classpath org.apache.derby.tools.ij $flowvisor_db > /dev/null
-$CHOWN -R $fvuser:$fvgroup $root$prefix/share/db/flowvisor
+#echo Installing FlowVisorDB
+#cd $owd
+#envs=$base/scripts/envs.sh
+#flowvisor_db=`dirname $0`/../scripts/FlowVisorDB.sql
+#if [ -z $flowvisor_db ]; then
+#    echo "Could not find database script file; your release is probably corrupt..." >&2
+#    exit 
+#fi
+#if [ -f $envs ] ; then
+#    . $envs
+#else
+#    echo "Could not find $envs: dying..." >&2
+#    exit 1
+#fi
+#JAVA=`which java`
+#CHOWN=`which chown`
+#$JAVA -Dderby.system.home=$root$prefix/share/db/flowvisor -cp $classpath org.apache.derby.tools.ij $flowvisor_db > /dev/null
+#$CHOWN -R $fvuser:$fvgroup $root$prefix/share/db/flowvisor
 
 echo Installing configs
 cd $owd
+$install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/derby.properties $root/etc/flowvisor/derby.properties
+$install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/FlowVisorDB.sql $root/etc/flowvisor/FlowVisorDB.sql
+
 $install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/envs $root/etc/flowvisor/envs.sh
 $install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/fvlog.config $root/etc/flowvisor/fvlog.config
 
 echo Installing documentation
 cd $owd
 $install $verbose --owner=$binuser --group=$bingroup --mode=644 $DOCS $root$prefix/share/doc/flowvisor
-$CHOWN -R $fvuser:$fvgroup $root$prefix/share/db/flowvisor
+#$CHOWN $fvuser:$fvgroup $root$prefix/share/doc/flowvisor
 #if [ ! -f $root/etc/flowvisor/config.json ] ; then 
 #    echo Generating a default config FlowVisor config
 #    install_root=$root $root$prefix/sbin/fvconfig generate $root/etc/flowvisor/config.json localhost flowvisor 6633 8080 

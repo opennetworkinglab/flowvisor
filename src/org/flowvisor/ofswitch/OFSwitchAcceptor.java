@@ -1,6 +1,7 @@
 package org.flowvisor.ofswitch;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
@@ -16,6 +17,7 @@ import org.flowvisor.events.FVIOEvent;
 import org.flowvisor.exceptions.UnhandledEvent;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
+import org.flowvisor.resources.SlicerLimits;
 
 public class OFSwitchAcceptor implements FVEventHandler {
 	FVEventLoop pollLoop;
@@ -24,6 +26,8 @@ public class OFSwitchAcceptor implements FVEventHandler {
 	int listenPort;
 	ServerSocketChannel ssc;
 	List<FVClassifier> switches;
+
+	private SlicerLimits slicerLimits;
 
 	public OFSwitchAcceptor(FVEventLoop pollLoop, int port, int backlog)
 			throws IOException {
@@ -44,13 +48,16 @@ public class OFSwitchAcceptor implements FVEventHandler {
 				ssc.socket().bind(
 						new InetSocketAddress(port),
 						backlog);
+			} catch (BindException be) {
+				FVLog.log(LogLevel.FATAL, this, "Unable to listen on port " + port + " on localhost");
+				System.exit(1);
 			} catch (java.net.SocketException se) {
 				FVLog.log(LogLevel.NOTE, this, "failed to bind IPv4 address; Quitting");
 				FVLog.log(LogLevel.NOTE, this, "OF Control address already in use.");
 				e.printStackTrace();
 				System.exit(1);
-			}
-		}
+			} 
+		} 
 		ssc.configureBlocking(false);
 		this.listenPort = ssc.socket().getLocalPort();
 
@@ -128,6 +135,7 @@ public class OFSwitchAcceptor implements FVEventHandler {
 			}
 			FVLog.log(LogLevel.INFO, this, "got new connection: " + sock);
 			FVClassifier fvc = new FVClassifier(pollLoop, sock);
+			fvc.setSlicerLimits(this.slicerLimits);
 			fvc.init();
 		} catch (IOException e) // ignore IOExceptions -- is this the right
 		// thing to do?
@@ -141,5 +149,9 @@ public class OFSwitchAcceptor implements FVEventHandler {
 	@Override
 	public String getName() {
 		return "OFSwitchAcceptor";
+	}
+
+	public void setSlicerLimits(SlicerLimits slicerLimits) {
+		this.slicerLimits = slicerLimits;	
 	}
 }

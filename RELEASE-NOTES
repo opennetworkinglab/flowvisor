@@ -1,3 +1,28 @@
+Flowvisor 0.10.0 : November 30 2012
+    * FLOWVISOR-32  Assign queue to slice
+    * FLOWVISOR-111 Per slice per dpid slice tcam usage limits
+    * FLOWVISOR-40  add QoS queue rewriting
+    * FLOWVISOR-51  implement isolation for all of_actions (include set_dl_dst)
+    * FLOWVISOR-86  Flowvisor causes spurious bufferid errors due to flowmod expansion
+    * FLOWVISOR-87  changeFlowSpace is very slow
+    * FLOWVISOR-108 Change 'version' config variable
+    * FLOWVISOR-82  fvconfig chpasswd doesn't work
+    * FLOWVISOR-81  FV 0.8.6-1 package still creates /usr/etc
+    * FLOWVISOR-73  implement isolation for all actions
+    * FLOWVISOR-50  make "port alread bound" fatal error clearer to the user
+    * FLOWVISOR-29  Don't ship a default configuration
+    * FLOWVISOR-26  flowvisor should send PortStatus messages when the port part of a slice's flowspace changes
+    * FLOWVISOR-14  when expanding flowmods, only copy bufferid to first flowmod
+    * FLOWVISOR-123 Implement db structure update on FV startup
+
+Flowvisor 0.8.13 : November 15 2012
+    * FLOWVISOR-98    Need to quote variables in /usr/sbin/flowvisor
+    * FLOWVISOR-95    FV DB is destroyed when the package is removed
+    * FLOWVISOR-93    Don't remove 'flowvisor' user and group
+    * FLOWVISOR-90    Flowvisor crashed
+
+Flowvisor 0.8.7-0.8.12 : Transitory Debug versions
+
 Flowvisor 0.8.6 : September 30 2012
     * FLOWVISOR-43   FlowVisor 0.6.x package improvements
     * FLOWVISOR-90   Nightly build packages in unstable apt repo

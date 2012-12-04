@@ -15,7 +15,10 @@ import org.flowvisor.config.ConfDBHandler;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
 import org.flowvisor.config.FVConfigurationController;
+import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.config.FlowvisorImpl;
+import org.flowvisor.config.SliceImpl;
+import org.flowvisor.config.SwitchImpl;
 import org.flowvisor.events.FVEventHandler;
 import org.flowvisor.events.FVEventLoop;
 import org.flowvisor.exceptions.UnhandledEvent;
@@ -26,6 +29,7 @@ import org.flowvisor.log.ThreadLogger;
 import org.flowvisor.message.FVMessageFactory;
 import org.flowvisor.ofswitch.OFSwitchAcceptor;
 import org.flowvisor.ofswitch.TopologyController;
+import org.flowvisor.resources.SlicerLimits;
 import org.openflow.example.cli.Option;
 import org.openflow.example.cli.Options;
 import org.openflow.example.cli.ParseException;
@@ -36,7 +40,9 @@ public class FlowVisor {
 	public final static int FLOWVISOR_VENDOR_EXTENSION = 0x80000001;
 
 	// VERSION
-	public final static String FLOWVISOR_VERSION = "flowvisor-0.8.6";
+	public final static String FLOWVISOR_VERSION = "flowvisor-0.10.0";
+	public final static int FLOWVISOR_DB_VERSION = 1;
+
 
 	// Max slicename len ; used in LLDP for now; needs to be 1 byte
 	public final static int MAX_SLICENAME_LEN = 255;
@@ -50,6 +56,7 @@ public class FlowVisor {
 
 	private WebServer apiServer;
 	static FlowVisor instance;
+	private SlicerLimits sliceLimits;
 
 	FVMessageFactory factory;
 
@@ -147,7 +154,8 @@ public class FlowVisor {
 				// init polling loop
 		FVLog.log(LogLevel.INFO, null, "initializing poll loop");
 		FVEventLoop pollLoop = new FVEventLoop();
-
+		sliceLimits = new SlicerLimits();
+		
 		JettyServer.spawnJettyServer(FVConfig.getJettyPort());//jettyPort);
 		
 		if (port == 0)
@@ -159,6 +167,7 @@ public class FlowVisor {
 
 		// init switchAcceptor
 		OFSwitchAcceptor acceptor = new OFSwitchAcceptor(pollLoop, port, 16);
+		acceptor.setSlicerLimits(sliceLimits);
 		handlers.add(acceptor);
 		// start XMLRPC UserAPI server; FIXME not async!
 		try {
@@ -213,6 +222,7 @@ public class FlowVisor {
 				else 
 					// Set temp file for config checkpointing.
 					fv.configFile = "/tmp/flowisor";
+				updateDB();
 				
 				fv.run(); 
 			} catch (NullPointerException e) {
@@ -242,6 +252,8 @@ public class FlowVisor {
 			} 
 		}
 	}
+
+	
 
 	private void parseArgs(String[] args) {
 		SimpleCLI cmd = null;
@@ -412,4 +424,22 @@ public class FlowVisor {
 		// TODO pull from FVConfig; needed for slice stiching
 		return "magic flowvisor1";
 	}
+	
+	
+	
+	private static void updateDB() {
+		int db_version = FlowvisorImpl.getProxy().fetchDBVersion();
+		if (db_version == FLOWVISOR_DB_VERSION)
+			return;
+		if (db_version > FLOWVISOR_DB_VERSION)
+			FVLog.log(LogLevel.WARN, null, "Your FlowVisor comes from the future.");
+		FlowvisorImpl.getProxy().updateDB(db_version);
+		SliceImpl.getProxy().updateDB(db_version);
+		FlowSpaceImpl.getProxy().updateDB(db_version);
+		SwitchImpl.getProxy().updateDB(db_version);
+		
+	}
+
+
+	
 }

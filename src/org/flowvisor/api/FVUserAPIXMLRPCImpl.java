@@ -22,6 +22,7 @@ import org.flowvisor.log.LogLevel;
 
 public class FVUserAPIXMLRPCImpl extends FVUserAPIImpl implements FVUserAPIXML{
 
+	
 	/**
 	 * Lists all the flowspace
 	 *
@@ -31,6 +32,7 @@ public class FVUserAPIXMLRPCImpl extends FVUserAPIImpl implements FVUserAPIXML{
 	public Collection<String> listFlowSpace() throws ConfigError {
 		String[] fs;
 		synchronized (FVConfig.class) {
+			
 			Collection<FlowEntry> flowEntries = getFlowEntries();
 			fs = new String[flowEntries.size()];
 			int i = 0;
@@ -43,7 +45,7 @@ public class FVUserAPIXMLRPCImpl extends FVUserAPIImpl implements FVUserAPIXML{
 	/**
 	 * Implements {@link org.flowvisor.api.FVUserAPI#changeFlowSpace}
 	 *
-	 * Allow this change if it affectst the flowspace delagated to this slice.
+	 * Allow this change if it affects the flowspace delagated to this slice.
 	 *
 	 * @throws PermissionDeniedException
 	 *
@@ -65,6 +67,7 @@ public class FVUserAPIXMLRPCImpl extends FVUserAPIImpl implements FVUserAPIXML{
 			// stomping
 			// on each other
 			FlowMap flowSpace = FVConfig.getFlowSpaceFlowMap();
+				
 			String logMsg;
 			for (int i = 0; i < changes.size(); i++) {
 				FlowChange change = FlowChange.fromMap(changes.get(i));
@@ -82,7 +85,7 @@ public class FVUserAPIXMLRPCImpl extends FVUserAPIImpl implements FVUserAPIXML{
 							+ " match=" + change.getMatch() + " priority="
 							+ change.getPriority() + " actions="
 							+ FlowSpaceUtil.toString(change.getActions());
-
+				
 					FlowEntry flowEntry = new FlowEntry(change.getDpid(),
 							change.getMatch(), change.getPriority(),
 							change.getActions());

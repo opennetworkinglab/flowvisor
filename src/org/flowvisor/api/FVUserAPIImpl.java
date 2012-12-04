@@ -23,6 +23,7 @@ import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.config.FlowvisorImpl;
 import org.flowvisor.config.InvalidDropPolicy;
 import org.flowvisor.config.InvalidSliceName;
+import org.flowvisor.config.SliceImpl;
 import org.flowvisor.config.SwitchImpl;
 import org.flowvisor.events.FVEventHandler;
 import org.flowvisor.exceptions.DPIDNotFound;
@@ -40,6 +41,7 @@ import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.log.SendRecvDropStats;
 import org.flowvisor.ofswitch.TopologyController;
+import org.flowvisor.resources.SlicerLimits;
 import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFPhysicalPort;
@@ -236,7 +238,7 @@ public class FVUserAPIImpl extends BasicJSONRPCService implements FVUserAPI {
 				//either to an exact match of the packet in or to the
 				//flow entry.
 				FVConfig.setSliceDropPolicy(sliceName, value);
-			}
+			} 
 			else
 				throw new InvalidUserInfoKey("invalid key: " + key
 						+ "-- only contact_email, drop_policy and "
@@ -693,6 +695,8 @@ public class FVUserAPIImpl extends BasicJSONRPCService implements FVUserAPI {
 		}
 		return ret;
 	}
+	
+
 
 	/**
 	 *
@@ -734,6 +738,19 @@ public class FVUserAPIImpl extends BasicJSONRPCService implements FVUserAPI {
 			}
 		}
 		throw new DPIDNotFound("No such switch: " + dpid);
+	}
+	
+	
+	private SlicerLimits getSliceLimits() throws DPIDNotFound{
+		for (Iterator<FVEventHandler> it = FlowVisor.getInstance()
+				.getHandlersCopy().iterator(); it.hasNext();) {
+			FVEventHandler eventHandler = it.next();
+			if (eventHandler instanceof FVClassifier) {
+				FVClassifier classifier = (FVClassifier) eventHandler;
+				return classifier.getSlicerLimits();
+			}
+		}
+		throw new DPIDNotFound("No classifier found, therefore no limits accessible");
 	}
 
 
@@ -805,7 +822,69 @@ public class FVUserAPIImpl extends BasicJSONRPCService implements FVUserAPI {
 		}
 		return null;
 	}
+	
+	
+	@Override
+	public boolean setMaximumFlowMods(String sliceName, String dpid,
+			String maxFlowMods) throws PermissionDeniedException {
+		String user = APIUserCred.getUserName();
+		if (!APIAuth.transitivelyCreated(user, sliceName)
+				&& !FVConfig.isSupervisor(user))
+			throw new PermissionDeniedException("User " + user
+					+ " does not have perms to set the flow mod limit for slice " + sliceName);
+		Long dp = FlowSpaceUtil.parseDPID(dpid);
+		int limit = Integer.parseInt(maxFlowMods);
+		FVLog.log(LogLevel.DEBUG, null, "Setting flowmod limit for slice " + sliceName + 
+					" for dpid " + dpid + " to " + maxFlowMods);
+		try {
+			if (dp == FlowEntry.ALL_DPIDS)
+				SliceImpl.getProxy().setMaxFlowMods(sliceName, limit);
+			else
+				SwitchImpl.getProxy().setMaxFlowMods(sliceName, dp, limit);
+		} catch (ConfigError e) {
+			return false;
+		}
+		return true;
+	}
 
+
+	@Override
+	public Integer getMaximumFlowMods(String sliceName, String dpid)
+			throws PermissionDeniedException {
+		String user = APIUserCred.getUserName();
+		if (!APIAuth.transitivelyCreated(user, sliceName)
+				&& !FVConfig.isSupervisor(user))
+			throw new PermissionDeniedException("User " + user
+					+ " does not have perms to get the flow mod limit for slice " + sliceName);
+		Long dp = FlowSpaceUtil.parseDPID(dpid);
+		try {
+			if (dp == FlowEntry.ALL_DPIDS)
+				return SliceImpl.getProxy().getMaxFlowMods(sliceName);
+			else
+				return SwitchImpl.getProxy().getMaxFlowMods(sliceName, dp);
+		} catch (ConfigError e) {
+			FVLog.log(LogLevel.DEBUG, null, "Unable to get flow mod limit; " + e.getMessage());
+			return null;
+		}
+	}
+	
+	public Integer getCurrentFlowMods(String sliceName, String dpid) 
+			throws PermissionDeniedException, SliceNotFound, DPIDNotFound {
+		String user = APIUserCred.getUserName();
+		if (!APIAuth.transitivelyCreated(user, sliceName)
+				&& !FVConfig.isSupervisor(user))
+			throw new PermissionDeniedException("User " + user
+					+ " does not have perms to get the current flow mod value for slice " + sliceName);
+		Long dp = FlowSpaceUtil.parseDPID(dpid);
+		if (dp == FlowEntry.ALL_DPIDS)
+			return getSliceLimits().getSliceFMLimit(sliceName);
+		else
+			return lookupClassifier(dp).getCurrentFlowModCounter(sliceName);
+	}
+
+
+
+	
 
 
 	@Override
@@ -849,4 +928,5 @@ public class FVUserAPIImpl extends BasicJSONRPCService implements FVUserAPI {
 		FVConfig.writeToFile(filename);
 		return true;
 	}
+
 }

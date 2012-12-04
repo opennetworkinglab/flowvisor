@@ -23,7 +23,7 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
 
 	@Override
 	public void classifyFromSwitch(OFMessage msg, FVClassifier fvClassifier) {
-		FVMessageUtil.untranslateXidAndSend(msg, fvClassifier);
+		FVMessageUtil.untranslateXidAndSend(msg, fvClassifier);		
 	}
 
 }

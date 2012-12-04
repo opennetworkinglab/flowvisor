@@ -6,15 +6,16 @@ FlowVisor:
 Documentation:
 
     Start with the INSTALL file and then refer to:
-        https://openflow.stanford.edu/display/flowvisor/Home
-    for more information and to:
-        https://openflow.stanford.edu/display/flowvisor/fv_deploy
+        https://github.com/OPENNETWORKINGLAB/flowvisor/wiki
+    for more information on the installation process refer to:
+        https://github.com/OPENNETWORKINGLAB/flowvisor/wiki/Installation-from-Source, or
+        https://github.com/OPENNETWORKINGLAB/flowvisor/wiki/Installation-from-Binary
     for configuration and deployment instructions.  Also,
     the manpages are in the ./doc directory and can be viewed
     without installing them using `man ./doc/fvctl.1`
 
     For developers, check out README.dev and the architecture diagrams:
-        https://openflow.stanford.edu/display/flowvisor/Internals+and+Dev+Docs
+        https://github.com/OPENNETWORKINGLAB/flowvisor/wiki under the developement section
     Also, `make docs` produces the source code documentation and
     there are manpages under ./doc
 

@@ -55,7 +55,7 @@ public class FVMessageFactory extends BasicFactory {
 			FVPortStatus.class, FVPacketOut.class, FVFlowMod.class,
 			FVPortMod.class, FVStatisticsRequest.class,
 			FVStatisticsReply.class, FVBarrierRequest.class,
-			FVBarrierReply.class };
+			FVBarrierReply.class, FVQueueConfigRequest.class, FVQueueConfigReply.class };
 
 	@SuppressWarnings({ "rawtypes" })
 	static final Class convertActionsMap[] = { FVActionOutput.class,

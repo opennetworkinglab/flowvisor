@@ -108,6 +108,36 @@ chain to the root slice.
     Dump the config currently stored in the database.
 
 .PP
+The following command enable the FlowVisor admin to define maximum flow table usage on a per slice
+and/of per dpid basis. These commands allow to set the maximal limits, query the said limits and 
+finally check the current usage. The default setting is set to unlimited usage. Note that the actual
+existence of a queue on a switch is not handled by OpenFlow and nor is it handled by FlowVisor.
+
+.TP
+\fBsetMaximumFlowMods \fIslicename\fR \fIDPID\fR \fImax usage\fR
+    This command allows you to set the maximal flowtable usage either 
+locally for a \fIslicename\fR or per \fIslicename\fR per \fIDPID\fR. For example,
+
+    % fvctl setMaximumFlowMods bob 00:00:00:00:00:00:00:01 100
+    This allows slice bob to use a maximum of 100 flow table entries on dpid 00:00:00:00:00:00:00:01.
+
+    % fvctl setMaximumFlowMods bob any 100
+    This allows slice bob to use a maximum of 100 flow table entries \fIspread\fR on all the dpids it
+    encompasses.
+
+.TP
+\fBgetMaximumFlowMods \fIslicename\fR \fIDPID\fR
+    Fetch the configured limits that have been set by the command above.
+
+.TP
+\fBgetCurrentFlowMods \fIslicename\fR \fIDPID\fR
+    Fetch the current usage of the configured limits.
+
+
+.TP
+    
+
+.PP
 The following commands manipulate the FlowVisor's flowspace.
 Each flowspace entry consists of a DPID, a FLOW_MATCH rule, a list
 of SLICEACTIONS, an ID, and a PRIORITY.  The format of the DPID and
@@ -209,8 +239,7 @@ Total ::
     For hardware switches, this is likely much cheaper to ask the FlowVisor
     for its cached copy than to ask the switch itself. Note that track_flows must
     be enabled for this feature to work, else this command will return an empty list.
-    Flow tracking can be enabled with:
-        \fBfvctl\fR \fIsetConfig\fR \fB!flowvisor!track_flows\fR \fItrue\fR
+    Flow tracking can be enabled is enabled by editing to config file.
 
 .TP
 \fBgetSliceRewriteDB\fR \fIsliceName\fR \fIdpid\fR
@@ -296,6 +325,16 @@ inclusive, e.g. 80 to match packets originating from a HTTP server.
 
 .IP \fBtp_dst=\fIport\fR
 Matches transport-layer destination port \fIport\fR.
+
+.IP \fBqueues=\fIqueuelist\fR
+Assigns a list of queue identifiers to a flow space entry. Each queue 
+identifier is seperated by a colon. When defined, FlowVisor will permit
+flow modifications which match this flow space entry to enqueue packets
+to any of the specified queue identifiers.
+
+.IP \fBforce_enqueue=\fIqueue_id\fR
+When defined any flow modification with an output action will be rewritten
+to an enqueue action on the same port into queue \fIqueue_id\fR. 
 
 
 .PP

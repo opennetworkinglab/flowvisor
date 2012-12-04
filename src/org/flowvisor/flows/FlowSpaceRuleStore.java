@@ -18,7 +18,7 @@ import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.openflow.protocol.FVMatch;
 import org.openflow.protocol.OFMatch;
-import org.openflow.protocol.action.OFAction;
+
 
 /**
  * This is the FlowSpaceRuleStore, it is the supporting structure for federated
@@ -660,7 +660,6 @@ public class FlowSpaceRuleStore {
 			}
 
 		} catch (NoMatch e) {
-			FVLog.log(LogLevel.WARN, null, getRules());
 			FVLog.log(LogLevel.WARN, null, "No match for: ", match);
 			return flowrules;
 		}

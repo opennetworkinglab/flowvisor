@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -46,15 +47,17 @@ import org.flowvisor.log.SendRecvDropStats;
 import org.flowvisor.log.SendRecvDropStats.FVStatsType;
 import org.flowvisor.message.FVMessageFactory;
 import org.flowvisor.message.FVPacketOut;
+import org.flowvisor.message.FVPortStatus;
 import org.flowvisor.message.SanityCheckable;
 import org.flowvisor.message.Slicable;
-import org.flowvisor.ofswitch.TopologyConnection;
 import org.flowvisor.ofswitch.TopologyController;
 import org.openflow.protocol.OFHello;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
+import org.openflow.protocol.OFPortStatus.OFPortReason;
 import org.openflow.util.LRULinkedHashMap;
+
 
 /**
  * @author capveg
@@ -88,7 +91,8 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 														// buffer-IDs
 	// that this slice can address
 	final private int MAX_ALLOWED_BUFFER_IDS = 256; // max cache size
-
+	
+	private Integer fmlimit = -1;
 
 	protected FVSlicer() {}
 	// get OFPP_FLOOD'd
@@ -155,6 +159,13 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 		this.reconnect();
 		this.keepAlive = new OFKeepAlive(this, this, loop);
 		this.keepAlive.scheduleNextCheck();
+		fvClassifier.loadLimit(sliceName);
+		try {
+			this.fmlimit = SliceImpl.getProxy().getMaxFlowMods(sliceName);
+		} catch (ConfigError e) {
+			FVLog.log(LogLevel.WARN, this, "Global slice flow mod limit unreadle; disabling.");
+			this.fmlimit = -1;
+		}
 	}
 
 	private FlowMap getLocalFlowSpace() {
@@ -171,6 +182,8 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 	}
 
 	private void updatePortList() {
+		ArrayList<Short> addedPorts = new ArrayList<Short>();
+		ArrayList<Short> removedPorts = new ArrayList<Short>();
 		synchronized (FVConfig.class) {
 			// update our local copy
 			this.localFlowSpace = getLocalFlowSpace();
@@ -191,6 +204,7 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 			if (!allowedPorts.keySet().contains(port)) {
 				FVLog.log(LogLevel.DEBUG, this, "adding access to port ", port);
 				allowedPorts.put(port, Boolean.TRUE);
+				addedPorts.add(port);
 			}
 		}
 		for (Iterator<Short> it = allowedPorts.keySet().iterator(); it
@@ -200,10 +214,43 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 				FVLog.log(LogLevel.DEBUG, this, "removing access to port ",
 						port);
 				it.remove();
+				removedPorts.add(port);
 			}
+		}
+		updatePortStatus(addedPorts, removedPorts);
+	}
+
+	private void updatePortStatus(ArrayList<Short> addedPorts,
+			ArrayList<Short> removedPorts) {
+		for (Short port : addedPorts) {
+			OFPhysicalPort phyPort = findPhyPort(port);
+			if (phyPort != null)
+				sendPortStatusUpdate(phyPort, true);
+		}
+		for (Short port : removedPorts) {
+			OFPhysicalPort phyPort = findPhyPort(port);
+			if (phyPort != null)
+				sendPortStatusUpdate(phyPort, false);
 		}
 	}
 
+	private void sendPortStatusUpdate(OFPhysicalPort phyPort, boolean added) {
+		FVPortStatus portStatus = new FVPortStatus();
+		portStatus.setDesc(phyPort);
+		portStatus.setReason(added ? (byte) OFPortReason.OFPPR_ADD.ordinal() : 
+			(byte) OFPortReason.OFPPR_DELETE.ordinal());
+		FVLog.log(LogLevel.INFO, this, (added ? "added " : "removed ") + "port " + phyPort.getPortNumber());
+		sendMsg(portStatus, this);
+	}
+
+	private OFPhysicalPort findPhyPort(Short port) {
+		for (OFPhysicalPort phyPort : this.fvClassifier.getSwitchInfo()
+				.getPorts()) {
+			if (phyPort.getPortNumber() == port)
+				return phyPort;
+		}
+		return null;
+	}
 	/**
 	 * Return the list of ports in this slice on this switch
 	 * 
@@ -535,7 +582,8 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 		} catch (Exception e2) {
 			e2.printStackTrace();
 			FVLog.log(LogLevel.ALERT, this,
-					"got unknown error; tearing down and reconnecting: ", e2);
+					"got unknown error; tearing down and reconnecting: " , e2);
+			
 			reconnect();
 		}
 		// no need to setup for next select; done in eventloop
@@ -688,7 +736,9 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 	
 	public void updateFlowSpace() {
 		updatePortList();
-		FVLog.log(LogLevel.CRIT, this, "FIXME: need to flush old flow entries");
+		/*
+		 * FIXME: need to flush old flow entries
+		 */
 	}
 
 	@Override
@@ -734,7 +784,29 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 	@Override
 	public void setDropPolicy(String in) {}
 
+	@Override                                      
+	public void setFlowModLimit(Integer in) {
+		this.fmlimit = in;
+		
+	}
+
+	public void incrementFlowRules(){
+		fvClassifier.incrementFlowMod(sliceName);
+		fvClassifier.getSlicerLimits().incrementSliceFMCounter(sliceName);
+	}
+		
+	public void decrementFlowRules(){
+		fvClassifier.decrementFlowMod(sliceName);
+		fvClassifier.getSlicerLimits().decrementSliceFMCounter(sliceName);
+	}
 	
-	
+	public boolean permitFlowMod() {
+		if (fmlimit == -1)
+			return true && fvClassifier.permitFlowMod(sliceName);
+		int currlimit = fvClassifier.getSlicerLimits().getSliceFMLimit(sliceName);
+		return ((currlimit < fmlimit) && (fvClassifier.permitFlowMod(sliceName)));
+	}
+
+
 
 }

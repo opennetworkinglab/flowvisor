@@ -7,11 +7,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.SortedSet;
-
 
 import org.flowvisor.flows.FederatedFlowMap;
 import org.flowvisor.flows.FlowEntry;
@@ -22,16 +23,12 @@ import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.openflow.protocol.FVMatch;
 import org.openflow.protocol.action.OFAction;
-import org.openflow.util.HexString;
-
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
-import java.sql.Types;
 
 public class FlowSpaceImpl implements FlowSpace {
 
 	private ConfDBSettings settings = null;
 	private static FlowSpaceImpl instance =  null;
+	private FlowMap cachedFlowMap = null;
 	
 	
 	//Callbacks
@@ -59,10 +56,16 @@ public class FlowSpaceImpl implements FlowSpace {
 	
 	private static String GACTIONS = "SELECT " + ACTION + ",S." + Slice.SLICE + " FROM jFSRSlice as J," +
 			"Slice as S  WHERE flowspacerule_id=? and slice_id = S.id";
+	private static String GQUEUES = "SELECT " + QUEUE + " FROM FSRQueue AS FQ, FlowSpaceRule AS FSR where " +
+			"FSR.id = FQ.fsr_id AND FSR.id = ?";
+	
+	private static String SQUEUES = "INSERT INTO FSRQueue(fsr_id, " + QUEUE + ") VALUES(?,?)";
+	
+	
 	private static String SFLOWMAP = "INSERT INTO FlowSpaceRule(" + DPID + "," + PRIO + "," +  
 			INPORT + "," + VLAN + "," + VPCP + "," + DLSRC + "," + DLDST + "," + DLTYPE + "," +
-			NWSRC + "," + NWDST + "," + NWPROTO + "," + NWTOS + "," + TPSRC + "," + TPDST + ","+ WILDCARDS+ ") " +
-			" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+			NWSRC + "," + NWDST + "," + NWPROTO + "," + NWTOS + "," + TPSRC + "," + TPDST + "," +
+			FORCED_QUEUE + "," + WILDCARDS+ ") " + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	private static String SACTIONS = "INSERT INTO jFSRSlice(flowspacerule_id, slice_id," + ACTION + ")" +
 			" VALUES(?,?,?)";
 	
@@ -91,26 +94,34 @@ public class FlowSpaceImpl implements FlowSpace {
 	 */
 	@Override
 	public FlowMap getFlowMap() throws ConfigError {
+		if (cachedFlowMap != null)
+			return cachedFlowMap;
 		Connection conn = null;
 		PreparedStatement ps = null;
 		PreparedStatement actions = null;
+		PreparedStatement queues = null;
 		ResultSet set = null;
 		ResultSet actionSet = null;
+		ResultSet queueSet = null;
 		try {
 			conn = settings.getConnection();
 			ps = conn.prepareStatement(GFLOWMAP);
 			set = ps.executeQuery();
 			FlowMap map = null;
 			LinkedList<OFAction> actionsList = null;
+			LinkedList<Integer> queueList = null;
 			FlowEntry fe = null;
 			SliceAction act = null;
 			int wildcards = -1;
+			int fsr_id = -1;
 			while (set.next()) {
 				if (map == null)
 					map = FlowSpaceUtil.getNewFlowMap(set.getInt(Slice.FMTYPE));
 				FVMatch match = new FVMatch();
 				actionsList = new LinkedList<OFAction>();
+				queueList = new LinkedList<Integer>();
 				wildcards = set.getInt(WILDCARDS);
+				fsr_id = set.getInt("id");
 				match.setInputPort(set.getShort(INPORT));
 				if ((wildcards & FVMatch.OFPFW_DL_VLAN) == 0)
 					match.setDataLayerVirtualLan(set.getShort(VLAN));
@@ -134,20 +145,31 @@ public class FlowSpaceImpl implements FlowSpace {
 					match.setTransportSource(set.getShort(TPSRC));
 				if ((wildcards & FVMatch.OFPFW_TP_DST) == 0)
 					match.setTransportDestination(set.getShort(TPDST));
+				
 				match.setWildcards(wildcards);
 				
+				
 				actions = conn.prepareStatement(GACTIONS);
-				actions.setInt(1, set.getInt("id"));
+				actions.setInt(1, fsr_id);
 				actionSet = actions.executeQuery();
 				while (actionSet.next()) {
 					act = new SliceAction(actionSet.getString(Slice.SLICE), actionSet.getInt(ACTION));
 					actionsList.add(act);
 				}
+				queues = conn.prepareStatement(GQUEUES);
+				queues.setInt(1, fsr_id);
+				queueSet = queues.executeQuery();
+				while (queueSet.next()) {
+					queueList.add(queueSet.getInt(QUEUE));
+				}
 				fe = new FlowEntry(set.getLong(DPID), match, set.getInt("id"),set.getInt(PRIO) , actionsList);
+				fe.setQueueId(queueList);
+				fe.setForcedQueue(set.getInt(FORCED_QUEUE));
 				map.addRule(fe);
 			}
 			if (map == null)
 				map = new FederatedFlowMap();
+			cachedFlowMap = map;
 			return map;
 		} catch (SQLException e) {
 			throw new ConfigError("Unable to retrieve flowmap from db : " + e.getMessage());
@@ -156,6 +178,8 @@ public class FlowSpaceImpl implements FlowSpace {
 			close(ps);
 			close(actionSet);
 			close(actions);
+			close(queueSet);
+			close(queues);
 			close(conn);	
 		}	
 	}
@@ -247,8 +271,9 @@ public class FlowSpaceImpl implements FlowSpace {
 				else
 					ps.setShort(14, fe.getRuleMatch().getTransportDestination());
 				
-				ps.setInt(15, wildcards);
-				ps.setInt(16, fe.getId());
+				ps.setInt(15, (int) fe.getForcedQueue());
+				ps.setInt(16, wildcards);
+				ps.setInt(17, fe.getId());
 				ps.executeUpdate();
 				set = ps.getGeneratedKeys();
 				set.next();
@@ -268,6 +293,15 @@ public class FlowSpaceImpl implements FlowSpace {
 					ps.setInt(2, sliceid);
 					ps.setInt(3, ((SliceAction) act).getSlicePerms());
 					ps.executeUpdate();
+				}
+				if (fe.getQueueId() == null)
+					return;
+				ps = conn.prepareStatement(SQUEUES);
+				ps.setInt(1, ruleid);
+				for (Integer queue_id : (LinkedList<Integer>) fe.getQueueId()) {
+					ps.setInt(2, queue_id);
+					if (ps.executeUpdate() == 0)
+						FVLog.log(LogLevel.WARN, null, "Queue insertion failed... siliently.");
 				}
 			}
 			notify(ChangedListener.FLOWMAP, FFLOWMAP, map);
@@ -295,6 +329,7 @@ public class FlowSpaceImpl implements FlowSpace {
 		Connection conn = null;
 		PreparedStatement ps = null;
 		PreparedStatement slice = null;
+		PreparedStatement queues = null;
 		ResultSet set = null;
 		try {
 			conn = settings.getConnection();
@@ -363,13 +398,15 @@ public class FlowSpaceImpl implements FlowSpace {
 			else
 				ps.setShort(14, fe.getRuleMatch().getTransportDestination());
 			
-			ps.setInt(15, wildcards);
+			ps.setInt(15, (int) fe.getForcedQueue());
+			ps.setInt(16, wildcards);
 			ps.executeUpdate();
 			set = ps.getGeneratedKeys();
 			set.next();
 			ruleid = set.getInt(1);
+			slice = conn.prepareStatement(GSLICEID);
+			ps = conn.prepareStatement(SACTIONS);
 			for (OFAction act : fe.getActionsList()) {
-				slice = conn.prepareStatement(GSLICEID);
 				slice.setString(1, ((SliceAction) act).getSliceName());
 				set = slice.executeQuery();
 				if (set.next())
@@ -378,11 +415,19 @@ public class FlowSpaceImpl implements FlowSpace {
 					FVLog.log(LogLevel.WARN, null, "Slice name " + ((SliceAction) act).getSliceName() + " does not exist... skipping.");
 					continue;
 				}
-				ps = conn.prepareStatement(SACTIONS);
+				
 				ps.setInt(1, ruleid);
 				ps.setInt(2, sliceid);
 				ps.setInt(3, ((SliceAction) act).getSlicePerms());
+				//ps.setInt(4, fe.getQueueId());
 				ps.executeUpdate();
+			}
+			
+			queues = conn.prepareStatement(SQUEUES);
+			queues.setInt(1, ruleid);
+			for (Integer queue_id : fe.getQueueId()) {
+				queues.setInt(2, queue_id);
+				queues.executeUpdate();
 			}
 			return ruleid;
 		} catch (SQLException e) {
@@ -392,6 +437,7 @@ public class FlowSpaceImpl implements FlowSpace {
 			close(set);
 			close(ps);
 			close(slice);
+			close(queues);
 			close(conn);	
 		}	
 	}
@@ -467,164 +513,119 @@ public class FlowSpaceImpl implements FlowSpace {
 		FVConfigurationController.instance().removeChangeListener(ChangedListener.FLOWMAP, l);
 	}
 
-	@Override
-	public void toJson(JsonWriter writer) throws IOException {
-		Connection conn = null;
-		PreparedStatement ps = null;
-		PreparedStatement actions = null;
-		ResultSet set = null;
-		ResultSet actionSet = null;
-		try {
-			int wildcards = -1;
-			conn = settings.getConnection();
-			ps = conn.prepareStatement(GFLOWMAP);
-			set = ps.executeQuery();
-			writer.name(FS);
-			writer.beginArray();
-			while (set.next()) {
-				writer.beginObject();
-				wildcards = set.getInt(WILDCARDS);
-				
-				setJsonParam(writer, DPID, Long.toString(set.getLong(DPID), 16), set.wasNull());
-				setJsonParam(writer, PRIO, set.getInt(PRIO), set.wasNull());
-				setJsonParam(writer,INPORT, set.getShort(INPORT), set.wasNull());
-				
-				if ((wildcards & FVMatch.OFPFW_DL_VLAN) == 0)
-					setJsonParam(writer, VLAN, set.getShort(VLAN), set.wasNull());
-				
-				if ((wildcards & FVMatch.OFPFW_DL_VLAN_PCP) == 0)
-					setJsonParam(writer, VPCP, set.getShort(VPCP), set.wasNull());
-				
-				if ((wildcards & FVMatch.OFPFW_DL_SRC) == 0)
-					setJsonParam(writer, DLSRC, HexString.toHexString(FlowSpaceUtil.toByteArray(set.getLong(DLSRC))), set.wasNull());
-				
-				if ((wildcards & FVMatch.OFPFW_DL_DST) == 0)
-					setJsonParam(writer, DLDST, HexString.toHexString(FlowSpaceUtil.toByteArray(set.getLong(DLDST))), set.wasNull());
-				
-				if ((wildcards & FVMatch.OFPFW_DL_TYPE) == 0)
-					setJsonParam(writer, DLTYPE, set.getShort(DLTYPE), set.wasNull());
-				
-				if ((wildcards & FVMatch.OFPFW_NW_SRC_ALL) == 0)
-					setJsonParam(writer, NWSRC, set.getInt(NWSRC), set.wasNull());
-				
-				if ((wildcards & FVMatch.OFPFW_NW_DST_ALL) == 0)
-					setJsonParam(writer, NWDST, set.getInt(NWDST), set.wasNull());
-				
-				if ((wildcards & FVMatch.OFPFW_NW_PROTO) == 0)
-					setJsonParam(writer, NWPROTO, set.getShort(NWPROTO), set.wasNull());
-				
-				if ((wildcards & FVMatch.OFPFW_NW_TOS) == 0)
-					setJsonParam(writer, NWTOS, set.getShort(NWTOS), set.wasNull());
-				
-				if ((wildcards & FVMatch.OFPFW_TP_SRC) == 0)
-					setJsonParam(writer, TPSRC, set.getShort(TPSRC), set.wasNull());
-				
-				if ((wildcards & FVMatch.OFPFW_TP_DST) == 0)
-					setJsonParam(writer, TPDST, set.getShort(TPDST), set.wasNull());
-				
-				
-				setJsonParam(writer, WILDCARDS, wildcards, set.wasNull());
-				actions = conn.prepareStatement(GACTIONS);
-				actions.setInt(1, set.getInt("id"));
-				actionSet = actions.executeQuery();
-				writer.name(ACTION);
-				writer.beginArray();
-				while (actionSet.next()) {
-					writer.beginObject();
-					writer.name(actionSet.getString(Slice.SLICE)).value(actionSet.getInt(ACTION));
-					writer.endObject();
-				}
-				writer.endArray();
-				writer.endObject();
-			}
-			writer.endArray();
-		} catch (SQLException e) {
-			FVLog.log(LogLevel.CRIT, null, "Failed to write flowspace config : " + e.getMessage());
-		} finally {
+  	@Override
+ 	public HashMap<String, Object> toJson(HashMap<String, Object> output) {
+  		Connection conn = null;
+  		PreparedStatement ps = null;
+  		PreparedStatement actions = null;
+  		PreparedStatement queues = null;
+  		ResultSet set = null;
+  		ResultSet actionSet = null;
+  		ResultSet queueSet = null;
+ 		HashMap<String, Object> fs = new HashMap<String, Object>();
+ 		HashMap<String, Object> action = new HashMap<String, Object>();
+ 		LinkedList<Object> list = new LinkedList<Object>();
+ 		LinkedList<Object> actionList = new LinkedList<Object>();
+ 		LinkedList<Integer> queueList = new LinkedList<Integer>();
+  		try {
+  			int wildcards = -1;
+  			conn = settings.getConnection();
+  			ps = conn.prepareStatement(GFLOWMAP);
+  			set = ps.executeQuery();
+ 			//writer.name(FS);
+ 			//writer.beginArray();
+  			while (set.next()) {
+ 				//writer.beginObject();
+  				wildcards = set.getInt(WILDCARDS);
+ 				fs.put(DPID, FlowSpaceUtil.dpidToString(set.getLong(DPID)));
+ 				fs.put(PRIO, set.getInt(PRIO));
+ 				if ((wildcards & FVMatch.OFPFW_IN_PORT) == 0)
+ 					fs.put(INPORT, set.getInt(INPORT));
+  				
+  				if ((wildcards & FVMatch.OFPFW_DL_VLAN) == 0)
+ 					fs.put(VLAN, set.getShort(VLAN));
+  				
+  				if ((wildcards & FVMatch.OFPFW_DL_VLAN_PCP) == 0)
+ 					fs.put(VPCP, set.getShort(VPCP));
+  				
+  				if ((wildcards & FVMatch.OFPFW_DL_SRC) == 0)
+ 					fs.put(DLSRC, FlowSpaceUtil.macToString(set.getLong(DLSRC)));
+  				
+  				if ((wildcards & FVMatch.OFPFW_DL_DST) == 0)
+ 					fs.put(DLDST, FlowSpaceUtil.macToString(set.getLong(DLDST)));
+  				
+  				if ((wildcards & FVMatch.OFPFW_DL_TYPE) == 0)
+ 					fs.put(DLTYPE, set.getShort(DLTYPE));
+  				
+  				if ((wildcards & FVMatch.OFPFW_NW_SRC_ALL) == 0)
+ 					fs.put(NWSRC, set.getInt(NWSRC));
+  				
+  				if ((wildcards & FVMatch.OFPFW_NW_DST_ALL) == 0)
+ 					fs.put(NWDST, set.getInt(NWDST));
+  				
+  				if ((wildcards & FVMatch.OFPFW_NW_PROTO) == 0)
+ 					fs.put(NWPROTO, set.getShort(NWPROTO));
+  				
+  				if ((wildcards & FVMatch.OFPFW_NW_TOS) == 0)
+ 					fs.put(NWTOS, set.getShort(NWTOS));
+ 				
+ 				if ((wildcards & FVMatch.OFPFW_TP_DST) == 0)
+ 					fs.put(TPDST, set.getShort(TPDST));
+  				
+  				if ((wildcards & FVMatch.OFPFW_TP_SRC) == 0)
+ 					fs.put(TPSRC, set.getShort(TPSRC));
+  				
+  				fs.put(FORCED_QUEUE, set.getInt(FORCED_QUEUE));
+ 				fs.put(WILDCARDS, wildcards);
+  				//fs.put(QUEUE, set.getInt(QUEUE));
+  				actions = conn.prepareStatement(GACTIONS);
+  				actions.setInt(1, set.getInt("id"));
+  				actionSet = actions.executeQuery();
+ 				//writer.name(ACTION);
+ 				//writer.beginArray();
+  				while (actionSet.next()) {
+ 					action.put(actionSet.getString(Slice.SLICE), actionSet.getInt(ACTION));
+ 					actionList.add(action.clone());
+ 					action.clear();
+  				}
+  				fs.put(ACTION, actionList.clone());
+  				actionList.clear();
+  				
+  				queues = conn.prepareStatement(GQUEUES);
+  				queues.setInt(1, set.getInt("id"));
+  				queueSet = queues.executeQuery();
+ 				while (queueSet.next()) {
+ 						queueList.add(queueSet.getInt(QUEUE));
+ 				}
+ 				fs.put(QUEUE, queueList.clone());
+ 				queueList.clear();
+ 				list.add(fs.clone());
+ 				fs.clear();
+  			}
+ 			output.put(FS, list);
+  		} catch (SQLException e) {
+  			FVLog.log(LogLevel.CRIT, null, "Failed to write flowspace config : " + e.getMessage());
+  		} finally {
+
 			close(set);
 			close(ps);
 			close(actionSet);
 			close(actions);
+			close(queueSet);
+			close(queues);
 			close(conn);	
 		}	
-		
+		return output;
 	}
 	
 	@Override
-	public void fromJson(JsonReader reader) throws IOException {
-		HashMap<String, Object> row = new HashMap<String , Object>();
-		HashMap<String, Integer> actions = new HashMap<String, Integer>();
-		String key = null;
-		Object value = null;
+	public void fromJson(ArrayList<HashMap<String, Object>> list) throws IOException {
 		reset();
-		while (true) {
-			switch (reader.peek()) {
-				case BEGIN_ARRAY:
-					reader.beginArray();
-					readActions(reader, actions);
-					row.put(key, actions.clone());
-					key = null;
-					actions.clear();
-					break;
-				case BEGIN_OBJECT:
-					reader.beginObject();
-					break;
-				case BOOLEAN:
-					value = reader.nextBoolean();
-					break;
-				case END_DOCUMENT:
-					throw new IOException("Unexpected EOF while parsing config file.");
-				case END_OBJECT:
-					reader.endObject();
-					insert(row);
-					row.clear();
-					key = null;
-					value = null;
-					break;
-				case END_ARRAY:
-					reader.endArray();
-					return;
-				case NAME:
-					key = reader.nextName();
-					break;
-				case NULL:
-					reader.nextNull();
-					if (key != null) {
-						row.put(key, value);
-						key = null;
-					}
-					break;
-				case NUMBER:
-					value = reader.nextLong();
-					break;
-				case STRING:
-					value = reader.nextString();
-					break;
-				default:
-					reader.skipValue();
-			}
-			if (key != null && value != null) {
-				row.put(key, value);
-				key = null;
-				value = null;
-			}
-		}
-		
+		for (HashMap<String, Object> row : list)
+			insert(row);
 	}
 	
-	private <T extends Number> void setJsonParam(JsonWriter writer, String param, T value, Boolean wasNull) throws IOException {
-		if (wasNull)
-			writer.name(param).nullValue();
-		else
-			writer.name(param).value(value);
-	}
-	
-	private void setJsonParam(JsonWriter writer, String param, String value, Boolean wasNull) throws IOException {
-		if (wasNull)
-			writer.name(param).nullValue();
-		else
-			writer.name(param).value(value);
-	}
+
 	
 
 	/*
@@ -645,39 +646,39 @@ public class FlowSpaceImpl implements FlowSpace {
 			if (row.get(DPID) == null) 
 				ps.setNull(1, Types.BIGINT);
 			else
-				ps.setLong(1, HexString.toLong((String)row.get(DPID)));
+				ps.setLong(1, FlowSpaceUtil.parseDPID(((String) row.get(DPID))));
 			if (row.get(PRIO) == null) 
 				ps.setNull(2, Types.INTEGER);
 			else
-				ps.setInt(2, ((Long) row.get(PRIO)).intValue());
+				ps.setInt(2, ((Double) row.get(PRIO)).intValue());
 			if (row.get(INPORT) == null) 
 				ps.setNull(3, Types.SMALLINT);
 			else
-				ps.setShort(3, ((Long) row.get(INPORT)).shortValue());
+				ps.setShort(3, ((Double) row.get(INPORT)).shortValue());
 			if (row.get(VLAN) == null) 
 				ps.setNull(4, Types.SMALLINT);
 			else
-				ps.setShort(4, ((Long) row.get(VLAN)).shortValue());
+				ps.setShort(4, ((Double) row.get(VLAN)).shortValue());
 			if (row.get(VPCP) == null) 
 				ps.setNull(5, Types.SMALLINT);
 			else
-				ps.setShort(5, ((Long) row.get(VPCP)).shortValue());
+				ps.setShort(5, ((Double) row.get(VPCP)).shortValue());
 			if (row.get(DLSRC) == null) 
 				ps.setNull(6, Types.BIGINT);
 			else
-				ps.setLong(6, HexString.toLong((String)row.get(DLSRC)));
+				ps.setLong(6, FlowSpaceUtil.parseMac(((String)row.get(DLSRC))));
 			if (row.get(DLDST) == null) 
 				ps.setNull(7, Types.BIGINT);
 			else
-				ps.setLong(7, HexString.toLong((String)row.get(DLDST)));
+				ps.setLong(7, FlowSpaceUtil.parseMac(((String)row.get(DLDST))));
 			if (row.get(DLTYPE) == null) 
 				ps.setNull(8, Types.SMALLINT);
 			else
-				ps.setShort(8, ((Long) row.get(DLTYPE)).shortValue());
+				ps.setShort(8, ((Double) row.get(DLTYPE)).shortValue());
 			if (row.get(NWSRC) == null) 
 				ps.setNull(9, Types.INTEGER);
 			else
-				ps.setInt(9, ((Long) row.get(NWSRC)).intValue());
+				ps.setInt(9, ((Double) row.get(NWSRC)).intValue());
 			if (row.get(NWDST) == null) 
 				ps.setNull(10, Types.INTEGER);
 			else
@@ -685,23 +686,28 @@ public class FlowSpaceImpl implements FlowSpace {
 			if (row.get(NWPROTO) == null) 
 				ps.setNull(11, Types.SMALLINT);
 			else
-				ps.setShort(11, ((Long) row.get(NWPROTO)).shortValue());
+				ps.setShort(11, ((Double) row.get(NWPROTO)).shortValue());
 			if (row.get(NWTOS) == null) 
 				ps.setNull(12, Types.SMALLINT);
 			else
-				ps.setShort(12, ((Long) row.get(NWTOS)).shortValue());
+				ps.setShort(12, ((Double) row.get(NWTOS)).shortValue());
 			if (row.get(TPSRC) == null) 
 				ps.setNull(13, Types.SMALLINT);
 			else
-				ps.setShort(13, ((Long) row.get(TPSRC)).shortValue());
+				ps.setShort(13, ((Double) row.get(TPSRC)).shortValue());
 			if (row.get(TPDST) == null) 
 				ps.setNull(14, Types.SMALLINT);
 			else
-				ps.setShort(14, ((Long) row.get(TPDST)).shortValue());
-			if (row.get(WILDCARDS) == null) 
-				ps.setNull(15, Types.INTEGER);
+				ps.setShort(14, ((Double) row.get(TPDST)).shortValue());
+			if (row.get(FORCED_QUEUE) == null) 
+				ps.setInt(15, -1);
 			else
-				ps.setInt(15, ((Long) row.get(WILDCARDS)).intValue());
+				ps.setInt(15, ((Double) row.get(FORCED_QUEUE)).intValue());
+			if (row.get(WILDCARDS) == null) 
+				ps.setNull(16, Types.INTEGER);
+			else
+				ps.setInt(16, ((Double) row.get(WILDCARDS)).intValue());
+			
 			
 			if (ps.executeUpdate() == 0)
 				FVLog.log(LogLevel.WARN, null, "Flow rule insertion failed... siliently.");
@@ -709,25 +715,37 @@ public class FlowSpaceImpl implements FlowSpace {
 			set.next();
 			ruleid = set.getInt(1);
 			
-			for (Entry<String, Integer> entry : ((HashMap<String, Integer>)  row.get(ACTION)).entrySet()) {
-				ps = conn.prepareStatement(SLICEID);
-				ps.setString(1, entry.getKey());
-				set = ps.executeQuery();
-				if (set.next()) 
-					sliceid = set.getInt("id");
-				else {
-					sliceid = -1;
-					System.err.println("Inserting rule with action on unknown slice " + entry.getKey() + 
-							"; hope you know what you are doing...");
+			for (HashMap<String, Double> item : ((ArrayList<HashMap<String, Double>>)  row.get(ACTION))) {
+				for (Entry<String, Double> entry : item.entrySet()) {
+					ps = conn.prepareStatement(SLICEID);
+					ps.setString(1, entry.getKey());
+					set = ps.executeQuery();
+					if (set.next()) 
+						sliceid = set.getInt("id");
+					else {
+						sliceid = -1;
+						System.err.println("Inserting rule with action on unknown slice " + entry.getKey() + 
+								"; hope you know what you are doing...");
+					}
+					ps = conn.prepareStatement(SACTIONS);
+					ps.setInt(1, ruleid);
+					ps.setInt(2, sliceid);
+					ps.setInt(3, ((Double) entry.getValue()).intValue());
+					
+					if (ps.executeUpdate() == 0)
+						FVLog.log(LogLevel.WARN, null, "Action insertion failed... siliently.");
 				}
-				ps = conn.prepareStatement(SACTIONS);
-				ps.setInt(1, ruleid);
-				ps.setInt(2, sliceid);
-				ps.setInt(3, entry.getValue());
-				if (ps.executeUpdate() == 0)
-					FVLog.log(LogLevel.WARN, null, "Action insertion failed... siliently.");
 			}
-			} catch (SQLException e) {
+			if (row.get(QUEUE) == null)
+				return;
+			ps = conn.prepareStatement(SQUEUES);
+			ps.setInt(1, ruleid);
+			for (Double queue_id : (ArrayList<Double>) row.get(QUEUE)) {
+				ps.setInt(2, queue_id.intValue());
+				if (ps.executeUpdate() == 0)
+					FVLog.log(LogLevel.WARN, null, "Queue insertion failed... siliently.");
+			}
+		} catch (SQLException e) {
 				e.printStackTrace();
 		} finally {
 			close(set);
@@ -737,37 +755,6 @@ public class FlowSpaceImpl implements FlowSpace {
 		
 	}
 	
-	private void readActions(JsonReader reader, HashMap<String, Integer> actions) throws IOException  {
-		String slice = null;
-		Integer perm = null;
-		while (true) {
-			switch (reader.peek()) {
-			
-			case BEGIN_OBJECT:
-				reader.beginObject();
-				break;
-			case END_OBJECT:
-				reader.endObject();
-				if (slice != null && perm != null)
-					actions.put(slice,perm);
-				slice = null;
-				perm = null;
-				break;
-			case END_ARRAY:
-				reader.endArray();
-				return;
-			case NAME:
-				slice = reader.nextName();
-				break;
-			
-			case NUMBER:
-				perm = reader.nextInt();
-				break;
-			default:
-				reader.skipValue();
-			}
-		}
-	}
 	
 	private void reset() {
 		Connection conn = null;
@@ -784,5 +771,40 @@ public class FlowSpaceImpl implements FlowSpace {
 			close(ps);
 			close(conn);
 		}
+	}
+
+	private void processAlter(String alter) {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(alter);
+			ps.execute();
+		} catch (SQLException e) {
+			throw new RuntimeException("Table alteration failed. Quitting. " + e.getMessage());
+		} finally {
+			close(ps);
+			close(conn);
+		}
+	}
+
+	@Override
+	public void updateDB(int version) {
+		FVLog.log(LogLevel.INFO, null, "Updating FlowSpace database table.");
+		if (version == 0) {
+			processAlter("ALTER TABLE FlowSpaceRule ADD COLUMN " + FORCED_QUEUE + " INT DEFAULT -1");
+			processAlter("CREATE TABLE FSRQueue( " +
+					"id  INT GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " +
+					"fsr_id INT NOT NULL, " +
+					"queue_id INT DEFAULT -1, " +
+					"PRIMARY KEY (id))");
+			processAlter("CREATE INDEX fsrqueue_index on FSRQueue (fsr_id ASC)");
+			processAlter("ALTER TABLE FSRQueue " +
+					"ADD CONSTRAINT FlowSpaceRule_to_queue_fk FOREIGN KEY (fsr_id) " +
+					"REFERENCES FlowSpaceRule (id) ON DELETE CASCADE");
+			version++;
+		}
+		
+		
 	}
 }
