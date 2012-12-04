@@ -920,14 +920,14 @@ public class FlowvisorImpl implements Flowvisor {
 			try {
 				set.findColumn(DB_VERSION);
 			} catch (SQLException e) {
+				System.out.println("Returning 0");
 				return 0;
 			}
 			ps = conn.prepareStatement(version);
 			set = ps.executeQuery();
-			if (set.next()) 
+			if (set.next()) { 
 				return set.getInt(DB_VERSION);
-			else {
-				System.err.println("Failed fetching DB version, exiting");
+			} else {
 				System.exit(1);
 			}
 				
