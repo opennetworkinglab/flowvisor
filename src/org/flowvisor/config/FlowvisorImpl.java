@@ -848,7 +848,7 @@ public class FlowvisorImpl implements Flowvisor {
 			ps.setString(14, (String) row.get(CONFIG));
 			
 			if (row.get(DB_VERSION) == null)
-				row.put(DB_VERSION, new Double(fetchDBVersion()));
+				row.put(DB_VERSION, new Double(FlowVisor.FLOWVISOR_DB_VERSION));
 			
 			ps.setInt(15, ((Double) row.get(DB_VERSION)).intValue()); 
 			if (ps.executeUpdate() == 0)
