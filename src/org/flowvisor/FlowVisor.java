@@ -217,12 +217,13 @@ public class FlowVisor {
 
 			try {
 				// load config from file
+				updateDB();
 				if (fv.configFile != null)
 					FVConfig.readFromFile(fv.configFile);
 				else 
 					// Set temp file for config checkpointing.
 					fv.configFile = "/tmp/flowisor";
-				updateDB();
+				
 				
 				fv.run(); 
 			} catch (NullPointerException e) {
