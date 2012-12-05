@@ -1,8 +1,11 @@
 package org.flowvisor.message;
 
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.flowvisor.classifier.FVClassifier;
+import org.flowvisor.exceptions.StatDisallowedException;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.message.statistics.SlicableStatistic;
@@ -22,18 +25,38 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 
 	@Override
 	public void sliceFromController(FVClassifier fvClassifier, FVSlicer fvSlicer) {
-		// TODO: come back and retool FV stats handling to make this less fugly
-		List<OFStatistics> statsList = this.getStatistics();
-		if (statsList.size() > 0) { // if there is a body, do body specific
-			// parsing
-			OFStatistics stat = statsList.get(0);
+		boolean hasBody = false;
+		List<OFStatistics> newStatsList = new LinkedList<OFStatistics>();
+		Iterator<OFStatistics> it = this.getStatistics().iterator();
+		while (it.hasNext()) {
+			OFStatistics stat = it.next();
 			assert (stat instanceof SlicableStatistic);
-			((SlicableStatistic) stat).sliceFromController(this, fvClassifier,
-					fvSlicer);
-		} else {
+			try {
+				((SlicableStatistic) stat).sliceFromController(newStatsList, fvClassifier,
+						fvSlicer);
+				hasBody = true;
+			} catch (StatDisallowedException e) {
+				it.remove();
+				this.setLengthU(this.getLengthU() - stat.getLength());
+				FVLog.log(LogLevel.WARN, fvSlicer, e.getMessage());
+				fvSlicer.sendMsg(FVMessageUtil.makeErrorMsg(
+						e.getError(), this), fvSlicer);
+			}
+			
+		}
+	
+		if (!hasBody)
 			// else just slice by xid and hope for the best
 			FVMessageUtil.translateXidAndSend(this, fvClassifier, fvSlicer);
+		else {
+			this.setLengthU(OFStatisticsMessageBase.MINIMUM_LENGTH);
+			for (OFStatistics stat : newStatsList) {
+				this.setLengthU(this.getLengthU() + stat.getLength());
+				this.setStatistics(newStatsList);
+			}
+			FVMessageUtil.translateXidAndSend(this, fvClassifier, fvSlicer);
 		}
+	
 	}
 
 	@Override
