@@ -483,7 +483,8 @@ public class SliceImpl implements Slice {
 			ps = conn.prepareStatement(CONTCHECK);
 			ps.setString(1, controller_hostname);
 			ps.setInt(2, controller_port);
-			if (!ps.execute())
+			set = ps.executeQuery();
+			if (set.getFetchSize() > 0)
 				throw new DuplicateControllerException(controller_hostname, controller_port, sliceName, null);
             close(conn);
 			conn = settings.getConnection();
