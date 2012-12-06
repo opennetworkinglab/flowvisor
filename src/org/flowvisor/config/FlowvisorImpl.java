@@ -848,7 +848,7 @@ public class FlowvisorImpl implements Flowvisor {
 			ps.setString(14, (String) row.get(CONFIG));
 			
 			if (row.get(DB_VERSION) == null)
-				row.put(DB_VERSION, new Double(0));
+				row.put(DB_VERSION, new Double(FlowVisor.FLOWVISOR_DB_VERSION));
 			
 			ps.setInt(15, ((Double) row.get(DB_VERSION)).intValue()); 
 			if (ps.executeUpdate() == 0)
@@ -920,14 +920,14 @@ public class FlowvisorImpl implements Flowvisor {
 			try {
 				set.findColumn(DB_VERSION);
 			} catch (SQLException e) {
+				System.out.println("Returning 0");
 				return 0;
 			}
 			ps = conn.prepareStatement(version);
 			set = ps.executeQuery();
-			if (set.next()) 
+			if (set.next()) { 
 				return set.getInt(DB_VERSION);
-			else {
-				System.err.println("Failed fetching DB version, exiting");
+			} else {
 				System.exit(1);
 			}
 				
