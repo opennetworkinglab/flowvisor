@@ -1,8 +1,11 @@
 package org.flowvisor.message;
 
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.flowvisor.classifier.FVClassifier;
+import org.flowvisor.exceptions.StatDisallowedException;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.message.statistics.ClassifiableStatistic;
@@ -19,23 +22,40 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
-		// TODO: come back and retool FV stats handling to make this less fugly
-		List<OFStatistics> statsList = this.getStatistics();
-		if (statsList.size() > 0) { // if there is a body, do body specific
-			// parsing
-			OFStatistics stat = statsList.get(0);
+
+		FVSlicer fvSlicer = FVMessageUtil
+				.untranslateXid(this, fvClassifier);
+		if (fvSlicer == null) {
+			FVLog.log(LogLevel.WARN, fvClassifier,
+					"dropping unclassifiable stats reply: " + this);
+			return;
+		}
+		boolean hasBody = false;
+		List<OFStatistics> newStatsList = new LinkedList<OFStatistics>();
+		Iterator<OFStatistics> it = this.getStatistics().iterator();
+		while (it.hasNext()) {
+			OFStatistics stat = it.next();
 			assert (stat instanceof ClassifiableStatistic);
-			((ClassifiableStatistic) stat).classifyFromSwitch(this,
-					fvClassifier);
-		} else {
-			// else just classify by xid and hope for the best
-			FVSlicer fvSlicer = FVMessageUtil
-					.untranslateXid(this, fvClassifier);
-			if (fvSlicer == null)
-				FVLog.log(LogLevel.WARN, fvClassifier,
-						"dropping unclassifiable msg: " + this);
-			else
-				fvSlicer.sendMsg(this, fvClassifier);
+			try {
+				((ClassifiableStatistic) stat).classifyFromSwitch(newStatsList, fvClassifier,
+						fvSlicer);
+				hasBody = true;
+			} catch (StatDisallowedException e) {
+				it.remove();
+				this.setLengthU(this.getLengthU() - stat.getLength());
+				FVLog.log(LogLevel.WARN, fvSlicer, e.getMessage());
+			}
+			
+		}
+		if (!hasBody)
+			fvSlicer.sendMsg(this, fvClassifier);
+		else {
+			this.setLengthU(OFStatisticsMessageBase.MINIMUM_LENGTH);
+			for (OFStatistics stat : newStatsList) {
+				this.setLengthU(this.getLengthU() + stat.getLength());
+				this.setStatistics(newStatsList);
+			}
+			fvSlicer.sendMsg(this, fvClassifier);
 		}
 	}
 
