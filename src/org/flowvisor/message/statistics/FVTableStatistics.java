@@ -25,7 +25,7 @@ public class FVTableStatistics extends OFTableStatistics implements
 		if (this.activeCount > currentFMs)
 			this.activeCount = currentFMs;
 		approvedStats.add(this);
-		
+		FVLog.log(LogLevel.DEBUG, fvSlicer, "Approving Table stats : ", this);
 	}
 
 	@Override

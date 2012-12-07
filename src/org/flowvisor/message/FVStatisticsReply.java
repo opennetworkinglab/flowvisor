@@ -44,7 +44,7 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 			OFStatistics stat = it.next();
 			assert (stat instanceof ClassifiableStatistic);
 			try {
-				FVLog.log(LogLevel.DEBUG, fvSlicer, "Classifying inner stat : ", stat);
+
 				((ClassifiableStatistic) stat).classifyFromSwitch(original, newStatsList, fvClassifier,
 						fvSlicer);
 				
