@@ -22,6 +22,7 @@ public class FVTableStatistics extends OFTableStatistics implements
 			FVSlicer fvSlicer) throws StatDisallowedException {
 		FVLog.log(LogLevel.DEBUG, fvSlicer, "Inner stat process : ", this);
 		int currentFMs = fvClassifier.getCurrentFlowModCounter(fvSlicer.getSliceName());
+		FVLog.log(LogLevel.DEBUG, fvSlicer, "WTF ", this);
 		this.setMaximumEntries(currentFMs);
 		if (this.activeCount > currentFMs)
 			this.activeCount = currentFMs;
