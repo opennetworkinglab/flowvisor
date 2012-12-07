@@ -20,15 +20,13 @@ public class FVTableStatistics extends OFTableStatistics implements
 	public void classifyFromSwitch(OFMessage original,
 			List<OFStatistics> approvedStats, FVClassifier fvClassifier,
 			FVSlicer fvSlicer) throws StatDisallowedException {
-		FVLog.log(LogLevel.DEBUG, fvSlicer, "Inner stat process : ", this);
+		int currentMax = fvClassifier.getMaxAllowedFlowMods(fvSlicer.getSliceName());
 		int currentFMs = fvClassifier.getCurrentFlowModCounter(fvSlicer.getSliceName());
-		FVLog.log(LogLevel.DEBUG, fvSlicer, "WTF ", this);
-		this.setMaximumEntries(currentFMs);
-		if (this.activeCount > currentFMs)
-			this.activeCount = currentFMs;
-		FVLog.log(LogLevel.DEBUG, fvSlicer, "WTF ", this);
+		if (currentMax != -1)
+			this.setMaximumEntries(currentMax);
+		this.setActiveCount(currentFMs);
 		approvedStats.add(this);
-		FVLog.log(LogLevel.DEBUG, fvSlicer, "Approving Table stats : ", this);
+		
 	}
 
 	@Override

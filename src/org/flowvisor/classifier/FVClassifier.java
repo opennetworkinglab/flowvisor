@@ -838,6 +838,10 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			return 0;
 		return curr;
 	}
+	
+	public Integer getMaxAllowedFlowMods(String sliceName) {
+		return fmlimits.get(sliceName);
+	}
 
 	public void setSlicerLimits(SlicerLimits slicerLimits) {
 		this.slicerLimits = slicerLimits;
