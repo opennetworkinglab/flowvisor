@@ -833,7 +833,10 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	}
 
 	public Integer getCurrentFlowModCounter(String sliceName) {
-		return currfmlimits.get(sliceName);
+		Integer curr = currfmlimits.get(sliceName);
+		if (curr == null)
+			return 0;
+		return curr;
 	}
 
 	public void setSlicerLimits(SlicerLimits slicerLimits) {
