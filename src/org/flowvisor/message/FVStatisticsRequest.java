@@ -48,15 +48,22 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 						fvSlicer);
 			} catch (StatDisallowedException e) {
 				it.remove();
-				this.setLengthU(this.getLengthU() - stat.getLength());
 				FVLog.log(LogLevel.WARN, fvSlicer, e.getMessage());
 				fvSlicer.sendMsg(FVMessageUtil.makeErrorMsg(
 						e.getError(), this), fvSlicer);
 			}
 			
 		}
-	
+		
 		this.setStatistics(newStatsList);
+		if (newStatsList.size() == 0) {
+			FVLog.log(LogLevel.WARN, fvClassifier, "dropping empty stats request: "
+					+ this);
+			return;
+		}
+		this.setLengthU(FVStatisticsRequest.MINIMUM_LENGTH);
+		for (OFStatistics stat : newStatsList) 
+			this.setLengthU(this.getLengthU() + stat.computeLength());
 		FVMessageUtil.translateXidMsgAndSend(original, this, fvClassifier, fvSlicer);
 		
 	

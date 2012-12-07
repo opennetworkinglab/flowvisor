@@ -54,8 +54,12 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 			}
 			
 		}
-		
 		this.setStatistics(newStatsList);
+		if (newStatsList.size() == 0) {
+			FVLog.log(LogLevel.WARN, fvClassifier, "dropping empty stats reply: "
+					+ this);
+			return;
+		}
 		fvSlicer.sendMsg(this, fvClassifier);
 		
 	}
