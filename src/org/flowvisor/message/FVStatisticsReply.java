@@ -24,7 +24,6 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
-		FVLog.log(LogLevel.DEBUG, fvClassifier, "classifying reply : ", this);
 		XidPairWithMessage pair = FVMessageUtil
 				.untranslateXidMsg(this, fvClassifier);
 		FVSlicer fvSlicer = pair.getSlicer();
@@ -45,6 +44,7 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 			OFStatistics stat = it.next();
 			assert (stat instanceof ClassifiableStatistic);
 			try {
+				FVLog.log(LogLevel.DEBUG, fvSlicer, "Classifying inner stat : ", stat);
 				((ClassifiableStatistic) stat).classifyFromSwitch(original, newStatsList, fvClassifier,
 						fvSlicer);
 				
