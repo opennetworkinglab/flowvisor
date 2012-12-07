@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.flowvisor.classifier.FVClassifier;
+import org.flowvisor.classifier.XidPairWithMessage;
 import org.flowvisor.exceptions.StatDisallowedException;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
@@ -12,6 +13,7 @@ import org.flowvisor.message.statistics.ClassifiableStatistic;
 import org.flowvisor.message.statistics.FVDescriptionStatistics;
 import org.flowvisor.ofswitch.TopologyConnection;
 import org.flowvisor.slicer.FVSlicer;
+import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFStatisticsMessageBase;
 import org.openflow.protocol.OFStatisticsReply;
 import org.openflow.protocol.statistics.OFDescriptionStatistics;
@@ -23,23 +25,28 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
 
-		FVSlicer fvSlicer = FVMessageUtil
-				.untranslateXid(this, fvClassifier);
+		XidPairWithMessage pair = FVMessageUtil
+				.untranslateXidMsg(this, fvClassifier);
+		FVSlicer fvSlicer = pair.getSlicer();
+		OFMessage original = pair.getOFMessage();
 		if (fvSlicer == null) {
 			FVLog.log(LogLevel.WARN, fvClassifier,
-					"dropping unclassifiable stats reply: " + this);
+					"dropping unclassifiable stats reply: ", this);
 			return;
 		}
-		boolean hasBody = false;
+		if (this.getStatistics().size() == 0) {
+			FVLog.log(LogLevel.WARN, fvClassifier, "Dropping empty stats reply: ", this);
+			return;
+		}
 		List<OFStatistics> newStatsList = new LinkedList<OFStatistics>();
 		Iterator<OFStatistics> it = this.getStatistics().iterator();
 		while (it.hasNext()) {
 			OFStatistics stat = it.next();
 			assert (stat instanceof ClassifiableStatistic);
 			try {
-				((ClassifiableStatistic) stat).classifyFromSwitch(newStatsList, fvClassifier,
+				((ClassifiableStatistic) stat).classifyFromSwitch(original, newStatsList, fvClassifier,
 						fvSlicer);
-				hasBody = true;
+				
 			} catch (StatDisallowedException e) {
 				it.remove();
 				this.setLengthU(this.getLengthU() - stat.getLength());
@@ -47,16 +54,10 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 			}
 			
 		}
-		if (!hasBody)
-			fvSlicer.sendMsg(this, fvClassifier);
-		else {
-			this.setLengthU(OFStatisticsMessageBase.MINIMUM_LENGTH);
-			for (OFStatistics stat : newStatsList) {
-				this.setLengthU(this.getLengthU() + stat.getLength());
-				this.setStatistics(newStatsList);
-			}
-			fvSlicer.sendMsg(this, fvClassifier);
-		}
+		
+		this.setStatistics(newStatsList);
+		fvSlicer.sendMsg(this, fvClassifier);
+		
 	}
 
 	@Override

@@ -12,6 +12,7 @@ import org.flowvisor.openflow.protocol.FVMatch;
 import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFError.OFBadRequestCode;
 import org.openflow.protocol.OFMatch;
+import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.statistics.OFStatistics;
 
@@ -76,7 +77,7 @@ public class FVAggregateStatisticsRequest extends
     }
 
 	@Override
-	public void classifyFromSwitch(List<OFStatistics> approvedStats,
+	public void classifyFromSwitch(OFMessage original, List<OFStatistics> approvedStats,
 			FVClassifier fvClassifier, FVSlicer fvSlicer)
 			throws StatDisallowedException {
 		FVLog.log(LogLevel.WARN, fvClassifier, "dropping unexpected msg: "

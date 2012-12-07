@@ -17,13 +17,14 @@ import org.openflow.protocol.statistics.OFStatistics;
  */
 public interface ClassifiableStatistic {
 	/**
-	 * Given this msg and classifier, figure out which slice this message is
+	 * Given this stat and the slicer and classifier, figure out which slice this message is
 	 * for, rewrite anything as necessary, and send it onto the slice's
 	 * controller
 	 *
-	 * @param msg
+	 * @param approuvedStats
 	 * @param fvClassifier
+	 * @param fvSlicer
 	 */
-	public void classifyFromSwitch(List<OFStatistics> approvedStats, FVClassifier fvClassifier,
+	public void classifyFromSwitch(OFMessage original, List<OFStatistics> approvedStats, FVClassifier fvClassifier,
 			FVSlicer fvSlicer) throws StatDisallowedException;
 }

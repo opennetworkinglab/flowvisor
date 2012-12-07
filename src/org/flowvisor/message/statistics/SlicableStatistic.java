@@ -8,7 +8,6 @@ import java.util.List;
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.exceptions.StatDisallowedException;
 import org.flowvisor.slicer.FVSlicer;
-import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.statistics.OFStatistics;
 
 /**
@@ -18,10 +17,10 @@ import org.openflow.protocol.statistics.OFStatistics;
 public interface SlicableStatistic {
 
 	/**
-	 * Given this msg, classifier, and slicer decide how this statistic should
+	 * Given this stat, classifier, and slicer decide how this statistic should
 	 * be rewritten coming from the controller
 	 *
-	 * @param msg
+	 * @param approuvedStats
 	 * @param fvClassifier
 	 * @param fvSlicer
 	 */

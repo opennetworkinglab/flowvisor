@@ -121,7 +121,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		this.doneID = false;
 		this.floodPermsSlice = ""; // disabled, at first
 		this.slicerMap = new HashMap<String, FVSlicer>();
-		this.xidTranslator = new XidTranslator();
+		this.xidTranslator = new XidTranslatorWithMessage();
 		this.missSendLength = 128;
 		this.switchFlowMap = null;
 		this.activePorts = new HashSet<Short>();

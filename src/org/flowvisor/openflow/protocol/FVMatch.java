@@ -1,6 +1,7 @@
 package org.flowvisor.openflow.protocol;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -394,6 +395,65 @@ public class FVMatch extends OFMatch {
     
     public void setForcedQueue(long queue) {
     	this.force_queue = queue;
+    }
+    
+    public boolean equals(FVMatch other) {
+    	if (this == other)
+    		return true;
+    	if (other == null)
+    		return false;
+    	
+    	if (canonicalizeWildcards(this.wildcards) != 
+    			canonicalizeWildcards(other.wildcards))
+    		return false;
+    	
+    	 if ((wildcards & OFPFW_IN_PORT) == 0 && this.inputPort != other.inputPort)
+             return false;
+
+         // l2
+         if ((wildcards & OFPFW_DL_DST) == 0 && 
+        		 !Arrays.equals(dataLayerDestination, other.dataLayerDestination))
+            return false;
+         
+         if ((wildcards & OFPFW_DL_SRC) == 0 && 
+        		 !Arrays.equals(dataLayerSource, other.dataLayerSource))
+             return false;
+             
+         if ((wildcards & OFPFW_DL_TYPE) == 0 && 
+        		 this.dataLayerType != other.dataLayerType)
+             return false;
+         
+         if ((wildcards & OFPFW_DL_VLAN) == 0 && 
+        		 this.dataLayerVirtualLan != other.dataLayerVirtualLan)
+             return false;
+         
+         if ((wildcards & OFPFW_DL_VLAN_PCP) == 0 && 
+        		 this.dataLayerVirtualLanPriorityCodePoint != other.dataLayerVirtualLanPriorityCodePoint)
+             return false;                
+
+         // l3
+      
+         if ((wildcards & OFPFW_NW_PROTO) == 0 && 
+        		 this.networkProtocol != other.networkProtocol)
+             return false;
+         
+         if ((wildcards & OFPFW_NW_TOS) == 0 && 
+        		 this.networkTypeOfService != other.networkTypeOfService)
+        	 return false;
+         
+         // l4
+         if ((wildcards & OFPFW_TP_DST) == 0 && 
+        		 this.transportDestination != other.transportDestination)
+        	 return false;
+         
+         
+         if ((wildcards & OFPFW_TP_SRC) == 0 && 
+         	this.transportSource != other.transportSource)
+             return false;
+             
+         
+    	
+    	return true;
     }
     
 }

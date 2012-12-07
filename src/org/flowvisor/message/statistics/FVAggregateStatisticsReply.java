@@ -7,6 +7,7 @@ import org.flowvisor.exceptions.StatDisallowedException;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.slicer.FVSlicer;
+import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.statistics.OFAggregateStatisticsReply;
 import org.openflow.protocol.statistics.OFStatistics;
 
@@ -23,7 +24,7 @@ public class FVAggregateStatisticsReply extends OFAggregateStatisticsReply
 	}
 
 	@Override
-	public void classifyFromSwitch(List<OFStatistics> approvedStats,
+	public void classifyFromSwitch(OFMessage original, List<OFStatistics> approvedStats,
 			FVClassifier fvClassifier, FVSlicer fvSlicer)
 			throws StatDisallowedException {
 		/*
@@ -31,6 +32,7 @@ public class FVAggregateStatisticsReply extends OFAggregateStatisticsReply
 		 * number of flowmods the controller actually sent and not the 
 		 * expansions.
 		 */
+		
 		this.setFlowCount(fvClassifier.getCurrentFlowModCounter(fvSlicer.getSliceName()));
 		approvedStats.add(this);
 	}

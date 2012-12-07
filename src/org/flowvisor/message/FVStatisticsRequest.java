@@ -13,9 +13,10 @@ import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFStatisticsMessageBase;
 import org.openflow.protocol.OFStatisticsRequest;
 import org.openflow.protocol.statistics.OFStatistics;
+import org.openflow.protocol.statistics.OFStatisticsType;
 
 public class FVStatisticsRequest extends OFStatisticsRequest implements
-		Classifiable, Slicable, SanityCheckable {
+		Classifiable, Slicable, SanityCheckable, Cloneable {
 
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
@@ -25,7 +26,18 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 
 	@Override
 	public void sliceFromController(FVClassifier fvClassifier, FVSlicer fvSlicer) {
-		boolean hasBody = false;
+		
+		
+		FVStatisticsRequest original = (FVStatisticsRequest) this.clone();
+		
+		if (this.statisticType == OFStatisticsType.DESC
+				|| this.statisticType == OFStatisticsType.TABLE
+				|| this.statisticType == OFStatisticsType.VENDOR) {
+			assert (this.getStatistics().size() == 0);
+			FVMessageUtil.translateXidAndSend(this, fvClassifier, fvSlicer);
+			return;
+		}
+		
 		List<OFStatistics> newStatsList = new LinkedList<OFStatistics>();
 		Iterator<OFStatistics> it = this.getStatistics().iterator();
 		while (it.hasNext()) {
@@ -34,7 +46,6 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 			try {
 				((SlicableStatistic) stat).sliceFromController(newStatsList, fvClassifier,
 						fvSlicer);
-				hasBody = true;
 			} catch (StatDisallowedException e) {
 				it.remove();
 				this.setLengthU(this.getLengthU() - stat.getLength());
@@ -45,18 +56,22 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 			
 		}
 	
-		if (!hasBody)
-			// else just slice by xid and hope for the best
-			FVMessageUtil.translateXidAndSend(this, fvClassifier, fvSlicer);
-		else {
-			this.setLengthU(OFStatisticsMessageBase.MINIMUM_LENGTH);
-			for (OFStatistics stat : newStatsList) {
-				this.setLengthU(this.getLengthU() + stat.getLength());
-				this.setStatistics(newStatsList);
-			}
-			FVMessageUtil.translateXidAndSend(this, fvClassifier, fvSlicer);
-		}
+		this.setStatistics(newStatsList);
+		FVMessageUtil.translateXidMsgAndSend(original, this, fvClassifier, fvSlicer);
+		
 	
+	}
+	
+	public FVStatisticsRequest clone() {
+		FVStatisticsRequest clone = new FVStatisticsRequest();
+		clone.setFlags(this.flags);
+		clone.setLength(this.getLength());
+		clone.setStatistics(this.getStatistics());
+		clone.setStatisticType(this.statisticType);
+		clone.setType(this.type);
+		clone.setVersion(this.getVersion());
+		clone.setXid(this.getXid());
+		return clone;
 	}
 
 	@Override
@@ -80,7 +95,7 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 		if (count == msgLen)
 			return true;
 		else {
-			FVLog.log(LogLevel.WARN, null, "msg failed sanity check: " + this);
+			FVLog.log(LogLevel.WARN, null, "msg failed sanity check: ", this);
 			return false;
 		}
 	}
