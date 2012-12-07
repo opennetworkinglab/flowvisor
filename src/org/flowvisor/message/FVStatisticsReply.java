@@ -24,7 +24,7 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
-
+		FVLog.log(LogLevel.DEBUG, fvClassifier, "classifying reply : ", this);
 		XidPairWithMessage pair = FVMessageUtil
 				.untranslateXidMsg(this, fvClassifier);
 		FVSlicer fvSlicer = pair.getSlicer();
@@ -38,6 +38,7 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 			FVLog.log(LogLevel.WARN, fvClassifier, "Dropping empty stats reply: ", this);
 			return;
 		}
+		FVLog.log(LogLevel.DEBUG, fvSlicer, "Processing reply : ", this);
 		List<OFStatistics> newStatsList = new LinkedList<OFStatistics>();
 		Iterator<OFStatistics> it = this.getStatistics().iterator();
 		while (it.hasNext()) {
