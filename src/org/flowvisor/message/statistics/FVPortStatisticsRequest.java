@@ -24,6 +24,7 @@ public class FVPortStatisticsRequest extends OFPortStatisticsRequest implements
 			FVClassifier fvClassifier, FVSlicer fvSlicer)
 			throws StatDisallowedException {
 	
+	
 		
 		if (!fvSlicer.isAllowAllPorts() && this.portNumber == OFPort.OFPP_NONE.ordinal()) {
 			Set<Short> ports = fvSlicer.getPorts();
@@ -34,7 +35,7 @@ public class FVPortStatisticsRequest extends OFPortStatisticsRequest implements
 			}
 			return;
 		}
-		FVLog.log(LogLevel.DEBUG, fvSlicer, "Slice ", fvSlicer.getSliceName(), " has access to all ports -> ", fvSlicer.isAllowAllPorts());
+		FVLog.log(LogLevel.DEBUG, fvSlicer, OFPort.OFPP_NONE.ordinal()," Slice ", fvSlicer.getSliceName(), " has access to all ports -> ", fvSlicer.isAllowAllPorts());
 		if (fvSlicer.portInSlice(this.portNumber) || this.portNumber == OFPort.OFPP_NONE.ordinal()) {
 			approvedStats.add(this);
 			return;
