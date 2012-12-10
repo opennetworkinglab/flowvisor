@@ -65,6 +65,7 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 		
 		LinkedList<OFStatistics> stats = new LinkedList<OFStatistics>();
 		for (OFStatistics s : newStatsList) {
+			stats.clear();
 			FVStatisticsRequest statsReq = this.clone();
 			stats.add(s);
 			statsReq.setStatistics(stats);
