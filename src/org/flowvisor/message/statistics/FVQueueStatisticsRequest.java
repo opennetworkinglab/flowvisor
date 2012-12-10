@@ -73,8 +73,10 @@ public class FVQueueStatisticsRequest extends OFQueueStatisticsRequest
 				}
 			}
 		}
-		throw new StatDisallowedException("QueueId " + this.queueId + 
-				" is not in slice " + fvSlicer.getSliceName(), OFBadRequestCode.OFPBRC_EPERM);
+		if (approvedStats.size() == 0) {
+			throw new StatDisallowedException("QueueId " + this.queueId + 
+					" is not in slice " + fvSlicer.getSliceName(), OFBadRequestCode.OFPBRC_EPERM);
+		}
 	}
 
 	@Override

@@ -25,7 +25,6 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
 			FVClassifier fvClassifier, FVSlicer fvSlicer)
 			throws StatDisallowedException {
 		FVLog.log(LogLevel.WARN, fvSlicer, "dropping unexpected msg: " + this);
-		
 	}
 
 	@Override
@@ -52,13 +51,15 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
 				for (OFAction act : inter.getFlowEntry().getActionsList()) {
 					assert(act instanceof SliceAction);
 					SliceAction sa = (SliceAction) act;
-					if (sa.getSliceName().equals(fvSlicer.getSliceName()))
+					if (sa.getSliceName().equals(fvSlicer.getSliceName())) 
 							approvedStats.add(this);
+					
 				}
 			}
 		}
-		throw new StatDisallowedException("QueueId " + this.queueId + 
-				" is not in slice " + fvSlicer.getSliceName(), OFBadRequestCode.OFPBRC_EPERM);
+		if (approvedStats.size() == 0)
+			throw new StatDisallowedException("QueueId " + this.queueId + 
+					" is not in slice " + fvSlicer.getSliceName(), OFBadRequestCode.OFPBRC_EPERM);
 	}
 
 }

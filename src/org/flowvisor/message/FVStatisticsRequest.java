@@ -10,6 +10,8 @@ import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.message.statistics.SlicableStatistic;
 import org.flowvisor.slicer.FVSlicer;
+import org.openflow.protocol.OFError.OFBadRequestCode;
+import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFStatisticsMessageBase;
 import org.openflow.protocol.OFStatisticsRequest;
 import org.openflow.protocol.statistics.OFStatistics;
@@ -17,7 +19,12 @@ import org.openflow.protocol.statistics.OFStatisticsType;
 
 public class FVStatisticsRequest extends OFStatisticsRequest implements
 		Classifiable, Slicable, SanityCheckable, Cloneable {
-
+	
+	
+	private int expansions = -1;
+	private OFMessage reply = null;
+	private int responses = 0;;
+	
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
 		FVLog.log(LogLevel.WARN, fvClassifier, "dropping unexpected msg: "
@@ -27,7 +34,12 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 	@Override
 	public void sliceFromController(FVClassifier fvClassifier, FVSlicer fvSlicer) {
 		
-		
+		if (this.getStatistics().size() > 1) {
+			FVLog.log(LogLevel.INFO, fvSlicer, "Stats request can only have one sub request in body; ", this);
+			fvSlicer.sendMsg(FVMessageUtil.makeErrorMsg(
+					OFBadRequestCode.OFPBRC_EPERM, this), fvSlicer);
+		}
+			
 		FVStatisticsRequest original = (FVStatisticsRequest) this.clone();
 		
 		if (this.statisticType == OFStatisticsType.DESC
@@ -39,31 +51,27 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 		}
 		
 		List<OFStatistics> newStatsList = new LinkedList<OFStatistics>();
-		Iterator<OFStatistics> it = this.getStatistics().iterator();
-		while (it.hasNext()) {
-			OFStatistics stat = it.next();
-			assert (stat instanceof SlicableStatistic);
-			try {
-				((SlicableStatistic) stat).sliceFromController(newStatsList, fvClassifier,
-						fvSlicer);
-			} catch (StatDisallowedException e) {
-				it.remove();
-				FVLog.log(LogLevel.WARN, fvSlicer, e.getMessage());
-				fvSlicer.sendMsg(FVMessageUtil.makeErrorMsg(
-						e.getError(), this), fvSlicer);
-			}
+		OFStatistics stat = this.getStatistics().get(0);
+		
+		assert (stat instanceof SlicableStatistic);
+		try {
+			((SlicableStatistic) stat).sliceFromController(newStatsList, fvClassifier,
+					fvSlicer);
+		} catch (StatDisallowedException e) {
+			FVLog.log(LogLevel.WARN, fvSlicer, e.getMessage());
+			fvSlicer.sendMsg(FVMessageUtil.makeErrorMsg(
+					e.getError(), this), fvSlicer);
+				return;
+		}
+			
+		
+		
+		for (OFStatistics s : newStatsList) {
+			
+			this.setLengthU(this.getLengthU() + stat.computeLength());
 			
 		}
-		
-		this.setStatistics(newStatsList);
-		if (newStatsList.size() == 0) {
-			FVLog.log(LogLevel.WARN, fvClassifier, "dropping empty stats request: "
-					+ this);
-			return;
-		}
-		this.setLengthU(FVStatisticsRequest.MINIMUM_LENGTH);
-		for (OFStatistics stat : newStatsList) 
-			this.setLengthU(this.getLengthU() + stat.computeLength());
+		original.setExpansion(newStatsList.size()); 
 		FVMessageUtil.translateXidMsgAndSend(original, this, fvClassifier, fvSlicer);
 		
 	
@@ -105,6 +113,30 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 			FVLog.log(LogLevel.WARN, null, "msg failed sanity check: ", this);
 			return false;
 		}
+	}
+	
+	public void setExpansion(int expansions) {
+		this.expansions = expansions;
+	}
+	
+	public int getExpansions() {
+		return this.expansions;
+	}
+	
+	public void incReplies() {
+		this.responses++;
+	}
+	
+	public boolean readyToSend() {
+		return this.responses == this.expansions;
+	}
+	
+	public void setReply(OFMessage msg) {
+		this.reply = msg;
+	}
+	
+	public OFMessage getReply() {
+		return reply;
 	}
 
 }

@@ -41,6 +41,7 @@ public class FVDescriptionStatistics extends OFDescriptionStatistics implements
 		}
 		approvedStats.add(this);
 		
+		
 	}
 
 	@Override
@@ -49,7 +50,7 @@ public class FVDescriptionStatistics extends OFDescriptionStatistics implements
 			throws StatDisallowedException {
 		
 		FVLog.log(LogLevel.INFO, fvSlicer, "FVDescriptions requests have no body; message is illegal. Dropping: ", this);
-		return;
+		
 		
 	}
 }
