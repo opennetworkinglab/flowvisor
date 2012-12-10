@@ -26,7 +26,7 @@ public class FVPortStatisticsRequest extends OFPortStatisticsRequest implements
 	
 	
 		
-		if (!fvSlicer.isAllowAllPorts() && this.portNumber == OFPort.OFPP_NONE.ordinal()) {
+		if (!fvSlicer.isAllowAllPorts() && this.portNumber == OFPort.OFPP_NONE.getValue()) {
 			Set<Short> ports = fvSlicer.getPorts();
 			for (Short port : ports) {
 				FVPortStatisticsRequest portReq = this.clone();
@@ -35,8 +35,8 @@ public class FVPortStatisticsRequest extends OFPortStatisticsRequest implements
 			}
 			return;
 		}
-		FVLog.log(LogLevel.DEBUG, fvSlicer, OFPort.OFPP_NONE.ordinal()," Slice ", fvSlicer.getSliceName(), " has access to all ports -> ", fvSlicer.isAllowAllPorts());
-		if (fvSlicer.portInSlice(this.portNumber) || this.portNumber == OFPort.OFPP_NONE.ordinal()) {
+		FVLog.log(LogLevel.DEBUG, fvSlicer, OFPort.OFPP_NONE.getValue()," Slice ", fvSlicer.getSliceName(), " has access to all ports -> ", fvSlicer.isAllowAllPorts());
+		if (fvSlicer.portInSlice(this.portNumber) || this.portNumber == OFPort.OFPP_NONE.getValue()) {
 			approvedStats.add(this);
 			return;
 		}
