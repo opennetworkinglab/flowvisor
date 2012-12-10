@@ -21,7 +21,7 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 	
 	private int expansions = -1;
 	private OFStatistics reply = null;
-	private int responses = 0;;
+	private int responses = 0;
 	
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
@@ -69,6 +69,7 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 			stats.add(s);
 			statsReq.setStatistics(stats);
 			statsReq.setLengthU(FVStatisticsRequest.MINIMUM_LENGTH + s.computeLength());
+			FVLog.log(LogLevel.DEBUG, fvSlicer, "Sending Stats request; ", statsReq);
 			FVMessageUtil.translateXidMsgAndSend(original, statsReq, fvClassifier, fvSlicer);
 		}
 		original.setExpansion(newStatsList.size()); 
