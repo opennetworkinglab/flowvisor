@@ -1,18 +1,12 @@
 package org.flowvisor.message.statistics;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.exceptions.StatDisallowedException;
-import org.flowvisor.flows.FlowIntersect;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
-import org.flowvisor.message.FVStatisticsRequest;
-import org.flowvisor.openflow.protocol.FVMatch;
 import org.flowvisor.slicer.FVSlicer;
-import org.openflow.protocol.OFError.OFBadRequestCode;
-import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.statistics.OFFlowStatisticsReply;
 import org.openflow.protocol.statistics.OFStatistics;
@@ -35,7 +29,7 @@ public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 		 * new one. In both cases, replace match with the original
 		 * match in the original request.
 		 */
-		assert(original instanceof FVStatisticsRequest);
+		/*assert(original instanceof FVStatisticsRequest);
 		List<OFStatistics> origStats = ((FVStatisticsRequest) original).getStatistics();
 		for (OFStatistics origStat : origStats) {
 			assert(origStat instanceof FVFlowStatisticsRequest);
@@ -51,17 +45,18 @@ public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 						alreadyApprouved.packetCount += this.packetCount;
 						approvedStats.add(alreadyApprouved);
 					} else {
-						this.setMatch(origReq.getMatch());
+						//this.setMatch(origReq.getMatch());
 						approvedStats.add(this);
 					}
 					return;
 				}
 			}
 		}
-		throw new StatDisallowedException("Unknown FlowStatsReply: " + this, OFBadRequestCode.OFPBRC_BAD_STAT);
+		throw new StatDisallowedException("Unknown FlowStatsReply: " + this, OFBadRequestCode.OFPBRC_BAD_STAT);*/
+		approvedStats.add(this);
 	}
 
-	private FVFlowStatisticsReply searchApprovedStats(
+/*	private FVFlowStatisticsReply searchApprovedStats(
 			List<OFStatistics> approvedStats, OFMatch match) {
 		
 		Iterator<OFStatistics> it = approvedStats.iterator();
@@ -78,6 +73,7 @@ public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 		}
 		return null;
 	}
+	*/
 
 	@Override
 	public void sliceFromController(List<OFStatistics> approvedStats,

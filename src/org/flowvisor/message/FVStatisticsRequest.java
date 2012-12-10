@@ -1,6 +1,5 @@
 package org.flowvisor.message;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,7 +10,6 @@ import org.flowvisor.log.LogLevel;
 import org.flowvisor.message.statistics.SlicableStatistic;
 import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFError.OFBadRequestCode;
-import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFStatisticsMessageBase;
 import org.openflow.protocol.OFStatisticsRequest;
 import org.openflow.protocol.statistics.OFStatistics;
@@ -22,7 +20,7 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 	
 	
 	private int expansions = -1;
-	private OFMessage reply = null;
+	private OFStatistics reply = null;
 	private int responses = 0;;
 	
 	@Override
@@ -65,16 +63,15 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 		}
 			
 		
-		
+		LinkedList<OFStatistics> stats = new LinkedList<OFStatistics>();
 		for (OFStatistics s : newStatsList) {
-			
-			this.setLengthU(this.getLengthU() + stat.computeLength());
-			
+			FVStatisticsRequest statsReq = this.clone();
+			stats.add(s);
+			statsReq.setStatistics(stats);
+			statsReq.setLengthU(FVStatisticsRequest.MINIMUM_LENGTH + s.computeLength());
+			FVMessageUtil.translateXidMsgAndSend(original, statsReq, fvClassifier, fvSlicer);
 		}
 		original.setExpansion(newStatsList.size()); 
-		FVMessageUtil.translateXidMsgAndSend(original, this, fvClassifier, fvSlicer);
-		
-	
 	}
 	
 	public FVStatisticsRequest clone() {
@@ -128,14 +125,16 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 	}
 	
 	public boolean readyToSend() {
-		return this.responses == this.expansions;
+		if (expansions == -1)
+			return true;
+		return this.responses >= this.expansions;
 	}
 	
-	public void setReply(OFMessage msg) {
+	public void setReply(OFStatistics msg) {
 		this.reply = msg;
 	}
 	
-	public OFMessage getReply() {
+	public OFStatistics getReply() {
 		return reply;
 	}
 

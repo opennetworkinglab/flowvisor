@@ -6,6 +6,7 @@ import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.exceptions.StatDisallowedException;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
+import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.statistics.OFAggregateStatisticsReply;
@@ -32,8 +33,20 @@ public class FVAggregateStatisticsReply extends OFAggregateStatisticsReply
 		 * number of flowmods the controller actually sent and not the 
 		 * expansions.
 		 */
+		assert(original instanceof FVStatisticsRequest);
+		FVStatisticsRequest orig = (FVStatisticsRequest) original;
+		FVAggregateStatisticsReply reply = (FVAggregateStatisticsReply) orig.getReply();
+		if (reply == null) {
+			reply = this;
+			orig.setReply(this);
+			reply.setFlowCount(fvClassifier.getCurrentFlowModCounter(fvSlicer.getSliceName()));
+			approvedStats.add(reply);
+			return;
+		} else {
+			reply.byteCount += this.byteCount;
+			reply.packetCount += this.packetCount;
+		}
 		
-		this.setFlowCount(fvClassifier.getCurrentFlowModCounter(fvSlicer.getSliceName()));
-		approvedStats.add(this);
+		
 	}
 }

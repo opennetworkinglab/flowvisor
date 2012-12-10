@@ -62,7 +62,11 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 			return;
 		}
 		FVLog.log(LogLevel.DEBUG, fvSlicer, "Sending msg : ", this);
-		fvSlicer.sendMsg(this, fvClassifier);
+		assert(original instanceof FVStatisticsRequest);
+		FVStatisticsRequest orig = (FVStatisticsRequest) original;
+		orig.incReplies();
+		if (orig.readyToSend())
+			fvSlicer.sendMsg(this, fvClassifier);
 		
 	}
 
