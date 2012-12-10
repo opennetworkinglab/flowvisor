@@ -32,14 +32,15 @@ public class FVPortStatisticsRequest extends OFPortStatisticsRequest implements
 				portReq.portNumber = port;
 				approvedStats.add(portReq);
 			}
+			return;
 		}
-		
-		if (fvSlicer.portInSlice(this.portNumber)) {
+		FVLog.log(LogLevel.DEBUG, fvSlicer, "Slice ", fvSlicer.getSliceName(), " has access to all ports -> ", fvSlicer.isAllowAllPorts());
+		if (fvSlicer.portInSlice(this.portNumber) || this.portNumber == OFPort.OFPP_NONE.ordinal()) {
 			approvedStats.add(this);
+			return;
 		}
-		if (approvedStats.size() == 0)
-			throw new StatDisallowedException("Port " + this.portNumber + 
-					" is not in slice " + fvSlicer.getSliceName(), OFBadRequestCode.OFPBRC_EPERM);
+		throw new StatDisallowedException("Port " + this.portNumber + 
+				" is not in slice " + fvSlicer.getSliceName(), OFBadRequestCode.OFPBRC_EPERM);
 		
 	}
 	
