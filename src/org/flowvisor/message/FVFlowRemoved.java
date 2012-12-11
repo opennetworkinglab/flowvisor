@@ -34,6 +34,7 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 	 */
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
+		FVLog.log(LogLevel.DEBUG, fvClassifier, "Starting flowremoved message processing");
 		FlowMap flowSpace = fvClassifier.getSwitchFlowMap();
 		Set<String> slicesToUpdate = new HashSet<String>();
 
