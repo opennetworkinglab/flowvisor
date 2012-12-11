@@ -96,7 +96,7 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 		CookiePair pair = cookieTrans.untranslate(this.cookie);
 		if (pair == null)
 			return null;
-		this.setCookie(pair.getCookie());
+		//this.setCookie(pair.getCookie());
 		return pair.getSliceName();
 	}
 	
