@@ -38,12 +38,12 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 		FlowMap flowSpace = fvClassifier.getSwitchFlowMap();
 		Set<String> slicesToUpdate = new HashSet<String>();
 		
+		String sliceName = fvClassifier.getFlowDB().processFlowRemoved(this,
+				fvClassifier.getDPID());
+		
 		FVLog.log(LogLevel.DEBUG, fvClassifier, "Starting flowremoved message processing");
 		String slicerFromCookie = untanslateCookie(fvClassifier);
 		FVLog.log(LogLevel.DEBUG, fvClassifier, slicerFromCookie);
-		
-		String sliceName = fvClassifier.getFlowDB().processFlowRemoved(this,
-				fvClassifier.getDPID());
 		
 		if (sliceName != null)
 			slicesToUpdate.add(sliceName);
@@ -96,7 +96,7 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 		CookiePair pair = cookieTrans.untranslate(this.cookie);
 		if (pair == null)
 			return null;
-		//this.setCookie(pair.getCookie());
+		this.setCookie(pair.getCookie());
 		return pair.getSliceName();
 	}
 	
