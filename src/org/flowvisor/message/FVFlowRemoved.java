@@ -43,7 +43,7 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 		
 		FVLog.log(LogLevel.DEBUG, fvClassifier, "Starting flowremoved message processing");
 		String slicerFromCookie = untanslateCookie(fvClassifier);
-		FVLog.log(LogLevel.DEBUG, fvClassifier, slicerFromCookie);
+		//FVLog.log(LogLevel.DEBUG, fvClassifier, slicerFromCookie);
 		
 		if (sliceName != null)
 			slicesToUpdate.add(sliceName);
