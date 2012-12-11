@@ -160,6 +160,7 @@ public class LinearFlowDB implements FlowDB, Serializable {
 				break;
 			}
 		}
+		FVLog.log(LogLevel.DEBUG, null, "FlowDB: " + sliceName);
 		if (sliceName == null)
 			FVLog.log(LogLevel.INFO, this.fvEventHandler,
 					"flowDB: ignoring unmatched flowRemoved: ", flowRemoved);
