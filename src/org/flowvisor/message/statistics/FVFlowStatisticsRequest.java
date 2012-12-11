@@ -51,6 +51,8 @@ public final class FVFlowStatisticsRequest extends OFFlowStatisticsRequest
 					fvSlicer.getSliceName(), SliceAction.WRITE) || 
 					intersect.getFlowEntry().hasPermissions(
 							fvSlicer.getSliceName(), SliceAction.READ)) {
+				if (checkDuplicate(intersect.getMatch(), approvedStats))
+					continue;
 				expansions++;
 				FVFlowStatisticsRequest newFlowStatsReq = (FVFlowStatisticsRequest) this.clone();
 			
@@ -68,6 +70,18 @@ public final class FVFlowStatisticsRequest extends OFFlowStatisticsRequest
 			FVLog.log(LogLevel.DEBUG, fvSlicer, "expanded AggregateStatsRequest ", expansions,
 					" times: ", this);
 		
+	}
+	
+	
+	private boolean checkDuplicate(FVMatch match, List<OFStatistics> statsList) {
+		for (OFStatistics stat : statsList) {
+			assert(stat instanceof FVFlowStatisticsRequest);
+			FVFlowStatisticsRequest statsReq = (FVFlowStatisticsRequest) stat;
+			if (match.equals(statsReq.getMatch())) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/* (non-Javadoc)
