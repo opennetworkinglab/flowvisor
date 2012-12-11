@@ -3,6 +3,7 @@ package org.flowvisor.classifier;
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,6 +31,7 @@ import org.flowvisor.events.FVEventHandler;
 import org.flowvisor.events.FVEventLoop;
 import org.flowvisor.events.FVIOEvent;
 import org.flowvisor.events.FVRequestTimeoutEvent;
+import org.flowvisor.events.FVStatsTimer;
 import org.flowvisor.events.OFKeepAlive;
 import org.flowvisor.events.TearDownEvent;
 import org.flowvisor.exceptions.BufferFull;
@@ -48,7 +50,12 @@ import org.flowvisor.log.SendRecvDropStats.FVStatsType;
 import org.flowvisor.message.Classifiable;
 import org.flowvisor.message.FVError;
 import org.flowvisor.message.FVMessageFactory;
+import org.flowvisor.message.FVStatisticsReply;
+import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.message.SanityCheckable;
+import org.flowvisor.message.statistics.FVFlowStatisticsReply;
+import org.flowvisor.message.statistics.FVFlowStatisticsRequest;
+import org.flowvisor.openflow.protocol.FVMatch;
 import org.flowvisor.resources.SlicerLimits;
 import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFEchoReply;
@@ -62,6 +69,8 @@ import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFType;
 import org.openflow.protocol.OFError.OFHelloFailedCode;
+import org.openflow.protocol.statistics.OFStatistics;
+import org.openflow.protocol.statistics.OFStatisticsType;
 
 /**
  * Map OF messages from the switch to the appropriate slice
@@ -85,6 +94,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	OFFeaturesReply switchInfo;
 	Map<String, FVSlicer> slicerMap;
 	XidTranslator xidTranslator;
+	CookieTranslator cookieTranslator;
 	short missSendLength;
 	FlowMap switchFlowMap;
 	private boolean shutdown;
@@ -101,7 +111,11 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	private HashMap<String, Integer> fmlimits = new HashMap<String, Integer>();
 	private HashMap<String, Integer> currfmlimits = new HashMap<String, Integer>();
 	private SlicerLimits slicerLimits;
-
+	
+	
+	private boolean statsWindowOpen = true;
+	private HashMap<String, ArrayList<FVFlowStatisticsReply>> flowStats = 
+			new HashMap<String, ArrayList<FVFlowStatisticsReply>>();
 	// OFPP_FLOOD
 
 	public FVClassifier(FVEventLoop loop, SocketChannel sock) {
@@ -122,6 +136,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		this.floodPermsSlice = ""; // disabled, at first
 		this.slicerMap = new HashMap<String, FVSlicer>();
 		this.xidTranslator = new XidTranslatorWithMessage();
+		this.cookieTranslator = new CookieTranslator();
 		this.missSendLength = 128;
 		this.switchFlowMap = null;
 		this.activePorts = new HashSet<Short>();
@@ -226,6 +241,14 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	public void setXidTranslator(XidTranslator xidTranslator) {
 		this.xidTranslator = xidTranslator;
 	}
+	
+	public CookieTranslator getCookieTranslator() {
+		return this.cookieTranslator;
+	}
+	
+	public void setCookieTranslator(CookieTranslator cookieTranslator) {
+		this.cookieTranslator = cookieTranslator;
+	}
 
 	/**
 	 * on init, send HELLO, delete all flow entries, and send features request
@@ -253,7 +276,9 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		FVRequestTimeoutEvent requestTimeoutEvent = new FVRequestTimeoutEvent(this);
 		requestTimeoutEvent.setExpireTime(System.currentTimeMillis() + FVRequestTimeoutEvent.WAIT_TIME);
 		loop.addTimer(requestTimeoutEvent);
-
+		
+		pollFlowTableStats();
+		
 		int ops = SelectionKey.OP_READ;
 		if (msgStream.needsFlush())
 			ops |= SelectionKey.OP_WRITE;
@@ -286,6 +311,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	 * Check "switches.$dpid.flood_perms" if we know $dpid, else check
 	 * "switches.default.flood_perms" also add it to the watch list
 	 */
+
+	
 
 	void updateFloodPerms() {
 		Long dpid = null;
@@ -345,6 +372,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			this.tearDown();
 		else if (e instanceof FVRequestTimeoutEvent)
 			handleRequestTimeout();
+		else if (e instanceof FVStatsTimer)
+			this.statsWindowOpen = true;
 		else
 			throw new UnhandledEvent(e);
 	}
@@ -632,6 +661,30 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		for (String deleteSlice : deletelist)
 			slicerMap.remove(deleteSlice);
 	}
+	
+	public boolean pollFlowTableStats() {
+		if (!this.statsWindowOpen )
+			return this.statsWindowOpen;
+		this.statsWindowOpen = false;
+		FVStatisticsRequest request = new FVStatisticsRequest();
+		request.setStatisticType(OFStatisticsType.FLOW);
+		request.setType(OFType.STATS_REQUEST);
+		
+		FVFlowStatisticsRequest statsReq = new FVFlowStatisticsRequest();
+		statsReq.setMatch(new FVMatch());
+		statsReq.setOutPort(OFPort.OFPP_NONE.getValue());
+		statsReq.setTableId((byte) 0xFF);
+		List<OFStatistics> stats = new LinkedList<OFStatistics>();
+		stats.add(statsReq);
+		request.setStatistics(stats);
+		
+		this.sendMsg(request, this);
+		
+		FVStatsTimer statsTimer = new FVStatsTimer(this);
+		statsTimer.setExpireTime(System.currentTimeMillis() + FVStatsTimer.WAIT_TIME);
+		loop.addTimer(statsTimer);
+		return !this.statsWindowOpen;
+	}
 
 	public FlowMap getSwitchFlowMap() {
 		return switchFlowMap;
@@ -849,6 +902,49 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	
 	public SlicerLimits getSlicerLimits() {
 		return this.slicerLimits;
+	}
+
+	public void sendFlowStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original) {
+		FVFlowStatisticsReply orig = (FVFlowStatisticsReply) original.getStatistics().get(0);
+		ArrayList<FVFlowStatisticsReply> replies = flowStats.get(fvSlicer.getSliceName());
+		List<OFStatistics> stats = new LinkedList<OFStatistics>();
+		FVStatisticsReply statsReply = new FVStatisticsReply();
+		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
+		for (FVFlowStatisticsReply reply : replies) {
+			if (new FVMatch(orig.getMatch()).equals(new FVMatch(reply.getMatch()))) {
+				stats.add(reply);
+				statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
+			}
+		}
+		statsReply.setXid(original.getXid());
+		statsReply.setStatistics(stats);
+		statsReply.setVersion(original.getVersion());
+		statsReply.setStatisticType(original.getStatisticType());
+		statsReply.setType(original.getType());
+	
+		fvSlicer.sendMsg(statsReply, this);
+		
+	}
+
+	
+	public void classifyFlowStats(FVStatisticsReply fvStatisticsReply) {
+		flowStats.clear();
+		List<OFStatistics> stats = fvStatisticsReply.getStatistics();
+		for (OFStatistics s : stats) {
+			FVFlowStatisticsReply stat = (FVFlowStatisticsReply) s;
+			CookiePair pair = getCookieTranslator().untranslate(stat.getCookie());
+			stat.setCookie(pair.getCookie());
+			addToFlowStats(stat, pair.getSliceName());
+		}
+		
+	}
+	
+	private void addToFlowStats(FVFlowStatisticsReply stat, String sliceName) {
+		ArrayList<FVFlowStatisticsReply> stats = flowStats.get(sliceName);
+		if (stats == null) 
+			stats = new ArrayList<FVFlowStatisticsReply>();
+		stats.add(stat);
+		flowStats.put(sliceName, stats);
 	}
 
 }

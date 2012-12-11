@@ -18,12 +18,14 @@ import org.openflow.protocol.OFStatisticsMessageBase;
 import org.openflow.protocol.OFStatisticsReply;
 import org.openflow.protocol.statistics.OFDescriptionStatistics;
 import org.openflow.protocol.statistics.OFStatistics;
+import org.openflow.protocol.statistics.OFStatisticsType;
 
 public class FVStatisticsReply extends OFStatisticsReply implements
 		Classifiable, Slicable, TopologyControllable, SanityCheckable {
 
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
+		
 		XidPairWithMessage pair = FVMessageUtil
 				.untranslateXidMsg(this, fvClassifier);
 		FVSlicer fvSlicer = pair.getSlicer();
@@ -33,11 +35,16 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 					"dropping unclassifiable stats reply: ", this);
 			return;
 		}
+		if (this.getStatisticType() == OFStatisticsType.FLOW) {
+			fvClassifier.classifyFlowStats(this);
+			fvClassifier.sendFlowStatsResp(fvSlicer, (FVStatisticsRequest) original);
+			return;
+		}
 		if (this.getStatistics().size() == 0) {
 			FVLog.log(LogLevel.WARN, fvClassifier, "Dropping empty stats reply: ", this);
 			return;
 		}
-		FVLog.log(LogLevel.DEBUG, fvSlicer, "Processing reply : ", this);
+
 		List<OFStatistics> newStatsList = new LinkedList<OFStatistics>();
 		Iterator<OFStatistics> it = this.getStatistics().iterator();
 		while (it.hasNext()) {

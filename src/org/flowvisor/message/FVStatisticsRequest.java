@@ -48,6 +48,13 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 			return;
 		}
 		
+		if (this.statisticType == OFStatisticsType.FLOW) {
+			if (fvClassifier.pollFlowTableStats())
+				return;
+			else
+				fvClassifier.sendFlowStatsResp(fvSlicer, this);
+		}
+		
 		List<OFStatistics> newStatsList = new LinkedList<OFStatistics>();
 		OFStatistics stat = this.getStatistics().get(0);
 		

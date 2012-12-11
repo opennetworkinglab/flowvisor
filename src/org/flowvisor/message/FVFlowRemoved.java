@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.flowvisor.classifier.CookiePair;
+import org.flowvisor.classifier.CookieTranslator;
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.flows.FlowEntry;
 import org.flowvisor.flows.FlowMap;
@@ -35,10 +37,15 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 		FlowMap flowSpace = fvClassifier.getSwitchFlowMap();
 		Set<String> slicesToUpdate = new HashSet<String>();
 
+		String slicerFromCookie = untanslateCookie(fvClassifier);
+		
 		String sliceName = fvClassifier.getFlowDB().processFlowRemoved(this,
 				fvClassifier.getDPID());
+		
 		if (sliceName != null)
 			slicesToUpdate.add(sliceName);
+		else if (slicerFromCookie != null) 
+			slicesToUpdate.add(slicerFromCookie);
 		else {
 			// flow tracking either disabled or broken
 			// just fall back to everyone who *could* have inserted this flow
@@ -78,6 +85,13 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 	public FVFlowRemoved setMatch(FVMatch match) {
 		this.match = match;
 		return this;
+	}
+	
+	private String untanslateCookie(FVClassifier fvClassifier) {
+		CookieTranslator cookieTrans = fvClassifier.getCookieTranslator();
+		CookiePair pair = cookieTrans.untranslate(this.cookie);
+		this.setCookie(pair.getCookie());
+		return pair.getSliceName();
 	}
 	
 	@Override

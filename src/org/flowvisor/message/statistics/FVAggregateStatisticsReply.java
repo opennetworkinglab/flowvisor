@@ -40,12 +40,11 @@ public class FVAggregateStatisticsReply extends OFAggregateStatisticsReply
 			reply = this;
 			orig.setReply(this);
 			reply.setFlowCount(fvClassifier.getCurrentFlowModCounter(fvSlicer.getSliceName()));
-			approvedStats.add(reply);
-			return;
 		} else {
 			reply.byteCount += this.byteCount;
 			reply.packetCount += this.packetCount;
 		}
+		approvedStats.add(reply);
 		
 		
 	}
