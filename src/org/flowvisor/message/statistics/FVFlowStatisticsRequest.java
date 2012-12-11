@@ -77,7 +77,9 @@ public final class FVFlowStatisticsRequest extends OFFlowStatisticsRequest
 		for (OFStatistics stat : statsList) {
 			assert(stat instanceof FVFlowStatisticsRequest);
 			FVFlowStatisticsRequest statsReq = (FVFlowStatisticsRequest) stat;
-			if (match.equals(new FVMatch(statsReq.getMatch()))) {
+			FVMatch tmp = new FVMatch(statsReq.getMatch());
+			tmp.setInputPort(match.getInputPort());
+			if (match.equals(tmp)) {
 				return true;
 			}
 		}
