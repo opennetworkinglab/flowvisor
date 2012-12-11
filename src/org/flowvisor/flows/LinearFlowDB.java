@@ -149,6 +149,8 @@ public class LinearFlowDB implements FlowDB, Serializable {
 		for (Iterator<FlowDBEntry> it = this.db.iterator(); it.hasNext();) {
 			FlowDBEntry flowDBEntry = it.next();
 			FVLog.log(LogLevel.DEBUG, null, flowDBEntry.toString());
+			FVLog.log(LogLevel.DEBUG, null, "FV " + flowDBEntry.getCookie());
+			
 			if (flowDBEntry.getRuleMatch().equals(flowRemoved.getMatch())
 					&& flowDBEntry.getPriority() == flowRemoved.getPriority()
 					&& flowDBEntry.getCookie() == flowRemoved.getCookie()
