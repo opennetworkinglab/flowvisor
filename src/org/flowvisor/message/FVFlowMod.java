@@ -171,7 +171,7 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 	private void translateCookie(FVClassifier fvClassifier, FVSlicer fvSlicer) {
 		CookieTranslator cookieTrans = fvClassifier.getCookieTranslator();
 		long newCookie = cookieTrans.translate(this.cookie, fvSlicer);
-		this.cookie = newCookie;
+		this.setCookie(newCookie);
 	}
 	
 	
