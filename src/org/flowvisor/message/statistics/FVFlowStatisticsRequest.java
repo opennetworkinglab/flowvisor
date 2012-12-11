@@ -34,7 +34,7 @@ public final class FVFlowStatisticsRequest extends OFFlowStatisticsRequest
 	public void sliceFromController(List<OFStatistics> approvedStats,
 			FVClassifier fvClassifier, FVSlicer fvSlicer)
 			throws StatDisallowedException {
-		if (this.getOutPort() != OFPort.OFPP_NONE.ordinal() && 
+		if (this.getOutPort() != OFPort.OFPP_NONE.getValue() && 
 				!fvSlicer.portInSlice(this.getOutPort())) {
 			throw new StatDisallowedException(
 					"Dropping stat " + this + 
