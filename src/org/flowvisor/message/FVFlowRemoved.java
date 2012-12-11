@@ -93,6 +93,7 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 	
 	private String untanslateCookie(FVClassifier fvClassifier) {
 		CookieTranslator cookieTrans = fvClassifier.getCookieTranslator();
+		FVLog.log(LogLevel.DEBUG, fvClassifier, "cookieTrans is " + cookieTrans);
 		CookiePair pair = cookieTrans.untranslate(this.cookie);
 		if (pair == null)
 			return null;
