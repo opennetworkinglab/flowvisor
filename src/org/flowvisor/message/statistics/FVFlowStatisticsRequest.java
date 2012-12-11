@@ -64,11 +64,11 @@ public final class FVFlowStatisticsRequest extends OFFlowStatisticsRequest
 		}
 		if (expansions == 0) {
 			throw new StatDisallowedException(
-					"dropping illegal AggregateStatsRequest: " + this, 
+					"dropping illegal FlowStatsRequest: " + this, 
 					OFBadRequestCode.OFPBRC_EPERM);
 		} else
-			FVLog.log(LogLevel.DEBUG, fvSlicer, "expanded AggregateStatsRequest ", expansions,
-					" times: ", this);
+			FVLog.log(LogLevel.DEBUG, fvSlicer, "expanded FlowStatsRequest ", expansions,
+					" times");
 		
 	}
 	
@@ -77,7 +77,7 @@ public final class FVFlowStatisticsRequest extends OFFlowStatisticsRequest
 		for (OFStatistics stat : statsList) {
 			assert(stat instanceof FVFlowStatisticsRequest);
 			FVFlowStatisticsRequest statsReq = (FVFlowStatisticsRequest) stat;
-			if (match.equals(statsReq.getMatch())) {
+			if (match.equals(new FVMatch(statsReq.getMatch()))) {
 				return true;
 			}
 		}
