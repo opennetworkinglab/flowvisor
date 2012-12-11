@@ -277,7 +277,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		requestTimeoutEvent.setExpireTime(System.currentTimeMillis() + FVRequestTimeoutEvent.WAIT_TIME);
 		loop.addTimer(requestTimeoutEvent);
 		
-		//pollFlowTableStats();
+		pollFlowTableStats();
 		
 		int ops = SelectionKey.OP_READ;
 		if (msgStream.needsFlush())
