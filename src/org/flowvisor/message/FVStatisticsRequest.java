@@ -44,7 +44,7 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 				|| this.statisticType == OFStatisticsType.TABLE
 				|| this.statisticType == OFStatisticsType.VENDOR) {
 			assert (this.getStatistics().size() == 0);
-			FVMessageUtil.translateXidAndSend(this, fvClassifier, fvSlicer);
+			FVMessageUtil.translateXidMsgAndSend(original, this, fvClassifier, fvSlicer);
 			return;
 		}
 		
