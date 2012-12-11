@@ -38,6 +38,7 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 		Set<String> slicesToUpdate = new HashSet<String>();
 
 		String slicerFromCookie = untanslateCookie(fvClassifier);
+		FVLog.log(LogLevel.DEBUG, fvClassifier, slicerFromCookie);
 		
 		String sliceName = fvClassifier.getFlowDB().processFlowRemoved(this,
 				fvClassifier.getDPID());
