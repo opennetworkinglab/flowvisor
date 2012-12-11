@@ -63,6 +63,7 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 			}
 		}
 		// forward this msg to each of them
+		FVLog.log(LogLevel.DEBUG, fvClassifier, slicesToUpdate.toString());
 		for (String slice : slicesToUpdate) {
 			FVSlicer fvSlicer = fvClassifier.getSlicerByName(slice);
 			if (fvSlicer == null) {
