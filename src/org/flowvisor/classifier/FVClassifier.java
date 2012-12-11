@@ -670,6 +670,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		request.setStatisticType(OFStatisticsType.FLOW);
 		request.setType(OFType.STATS_REQUEST);
 		
+		
 		FVFlowStatisticsRequest statsReq = new FVFlowStatisticsRequest();
 		statsReq.setMatch(new FVMatch());
 		statsReq.setOutPort(OFPort.OFPP_NONE.getValue());
@@ -677,6 +678,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		List<OFStatistics> stats = new LinkedList<OFStatistics>();
 		stats.add(statsReq);
 		request.setStatistics(stats);
+		request.setLengthU(FVStatisticsRequest.MINIMUM_LENGTH + statsReq.computeLength());
 		
 		this.sendMsg(request, this);
 		
