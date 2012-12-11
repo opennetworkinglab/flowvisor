@@ -38,12 +38,12 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 		FlowMap flowSpace = fvClassifier.getSwitchFlowMap();
 		Set<String> slicesToUpdate = new HashSet<String>();
 		
-		String slicerFromCookie = untanslateCookie(fvClassifier);
+		
 		
 		String sliceName = fvClassifier.getFlowDB().processFlowRemoved(this,
 				fvClassifier.getDPID());
 		
-		
+		String slicerFromCookie = untanslateCookie(fvClassifier);
 		
 		FVLog.log(LogLevel.DEBUG, fvClassifier, "Starting flowremoved message processing");
 		
