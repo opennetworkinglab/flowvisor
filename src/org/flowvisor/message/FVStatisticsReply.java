@@ -25,7 +25,7 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
-		
+		FVLog.log(LogLevel.WARN, fvClassifier, "START Processing stats reply ", this);
 		XidPairWithMessage pair = FVMessageUtil
 				.untranslateXidMsg(this, fvClassifier);
 		if (pair == null) {
