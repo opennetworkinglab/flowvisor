@@ -52,7 +52,7 @@ public class FVMessageUtil {
 	
 	
 	
-	private static void translateXidMsg(OFMessage original, OFMessage msg,
+	static void translateXidMsg(OFMessage original, OFMessage msg,
 			FVClassifier fvClassifier, FVSlicer fvSlicer) {
 		XidTranslatorWithMessage xidTranslator = (XidTranslatorWithMessage) fvClassifier.getXidTranslator();
 		int newXid = xidTranslator.translate(original, msg.getXid(), fvSlicer);

@@ -50,6 +50,7 @@ import org.flowvisor.log.SendRecvDropStats.FVStatsType;
 import org.flowvisor.message.Classifiable;
 import org.flowvisor.message.FVError;
 import org.flowvisor.message.FVMessageFactory;
+import org.flowvisor.message.FVMessageUtil;
 import org.flowvisor.message.FVStatisticsReply;
 import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.message.SanityCheckable;
@@ -662,7 +663,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			slicerMap.remove(deleteSlice);
 	}
 	
-	public boolean pollFlowTableStats() {
+	public boolean pollFlowTableStats(FVStatisticsRequest orig) {
 		if (!this.statsWindowOpen )
 			return this.statsWindowOpen;
 		this.statsWindowOpen = false;
@@ -679,7 +680,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		stats.add(statsReq);
 		request.setStatistics(stats);
 		request.setLengthU(FVStatisticsRequest.MINIMUM_LENGTH + statsReq.computeLength());
-		
+		request.setXid(orig.getXid());
 		this.sendMsg(request, this);
 		
 		FVStatsTimer statsTimer = new FVStatsTimer(this);
@@ -924,6 +925,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		statsReply.setStatisticType(original.getStatisticType());
 		statsReply.setType(original.getType());
 	
+		FVMessageUtil.untranslateXidMsg(statsReply, this);
 		fvSlicer.sendMsg(statsReply, this);
 		
 	}

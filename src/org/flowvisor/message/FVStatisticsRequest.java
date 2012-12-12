@@ -49,7 +49,8 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 		}
 		
 		if (this.statisticType == OFStatisticsType.FLOW) {
-			if (fvClassifier.pollFlowTableStats())
+			FVMessageUtil.translateXidMsg(original, this,fvClassifier, fvSlicer);
+			if (fvClassifier.pollFlowTableStats(this))
 				return;
 			else
 				fvClassifier.sendFlowStatsResp(fvSlicer, this);
