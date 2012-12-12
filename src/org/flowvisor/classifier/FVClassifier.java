@@ -38,6 +38,7 @@ import org.flowvisor.exceptions.BufferFull;
 import org.flowvisor.exceptions.MalformedOFMessage;
 import org.flowvisor.exceptions.UnhandledEvent;
 import org.flowvisor.flows.FlowDB;
+import org.flowvisor.flows.FlowEntry;
 import org.flowvisor.flows.FlowMap;
 import org.flowvisor.flows.FlowSpaceUtil;
 import org.flowvisor.flows.LinearFlowDB;
@@ -914,7 +915,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		FVStatisticsReply statsReply = new FVStatisticsReply();
 		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
 		for (FVFlowStatisticsReply reply : replies) {
-			if (new FVMatch(orig.getMatch()).equals(new FVMatch(reply.getMatch()))) {
+			if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
 				FVLog.log(LogLevel.DEBUG, this, "Appending FlowStats reply: ", reply);
 				stats.add(reply);
 				statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
