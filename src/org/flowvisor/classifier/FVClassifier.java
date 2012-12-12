@@ -915,6 +915,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
 		for (FVFlowStatisticsReply reply : replies) {
 			if (new FVMatch(orig.getMatch()).equals(new FVMatch(reply.getMatch()))) {
+				FVLog.log(LogLevel.DEBUG, this, "Appending FlowStats reply: ", reply);
 				stats.add(reply);
 				statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
 			}
