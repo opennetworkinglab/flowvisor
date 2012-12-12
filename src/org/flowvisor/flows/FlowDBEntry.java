@@ -136,9 +136,9 @@ public class FlowDBEntry extends FlowEntry {
 
 	public FlowIntersect matches(long dpid, FVMatch fvMatch, long cookie,
 			short priority) {
-		if (cookie != this.cookie || priority != this.priority)
+		/*if (cookie != this.cookie || priority != this.priority)
 			return new FlowIntersect(this).setMatchType(MatchType.NONE);
-		else
+		else*/
 			return super.matches(dpid, fvMatch);
 	}
 }
