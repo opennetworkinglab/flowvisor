@@ -28,13 +28,14 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 		
 		XidPairWithMessage pair = FVMessageUtil
 				.untranslateXidMsg(this, fvClassifier);
-		FVSlicer fvSlicer = pair.getSlicer();
-		OFMessage original = pair.getOFMessage();
-		if (fvSlicer == null) {
+		if (pair == null) {
 			FVLog.log(LogLevel.WARN, fvClassifier,
 					"dropping unclassifiable stats reply: ", this);
 			return;
 		}
+		FVSlicer fvSlicer = pair.getSlicer();
+		OFMessage original = pair.getOFMessage();
+		
 		if (this.getStatisticType() == OFStatisticsType.FLOW) {
 			fvClassifier.classifyFlowStats(this);
 			fvClassifier.sendFlowStatsResp(fvSlicer, (FVStatisticsRequest) original);
