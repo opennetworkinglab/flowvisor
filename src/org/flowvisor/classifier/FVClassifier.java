@@ -930,6 +930,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 
 	
 	public void classifyFlowStats(FVStatisticsReply fvStatisticsReply) {
+		FVLog.log(LogLevel.DEBUG, this, "Classifying stats...");
 		flowStats.clear();
 		List<OFStatistics> stats = fvStatisticsReply.getStatistics();
 		for (OFStatistics s : stats) {
