@@ -39,6 +39,7 @@ import org.flowvisor.exceptions.MalformedOFMessage;
 import org.flowvisor.exceptions.UnhandledEvent;
 import org.flowvisor.flows.FlowDB;
 import org.flowvisor.flows.FlowEntry;
+import org.flowvisor.flows.FlowIntersect;
 import org.flowvisor.flows.FlowMap;
 import org.flowvisor.flows.FlowSpaceUtil;
 import org.flowvisor.flows.LinearFlowDB;
@@ -910,15 +911,18 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 
 	public void sendFlowStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original) {
 		FVFlowStatisticsRequest orig = (FVFlowStatisticsRequest) original.getStatistics().get(0);
+		List<FlowIntersect> intersections = this.getSwitchFlowMap().intersects(this.getDPID(), new FVMatch(orig.getMatch()));
 		ArrayList<FVFlowStatisticsReply> replies = flowStats.get(fvSlicer.getSliceName());
 		List<OFStatistics> stats = new LinkedList<OFStatistics>();
 		FVStatisticsReply statsReply = new FVStatisticsReply();
 		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
 		for (FVFlowStatisticsReply reply : replies) {
-			if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
-				FVLog.log(LogLevel.DEBUG, this, "Appending FlowStats reply: ", reply);
-				stats.add(reply);
-				statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
+			for (FlowIntersect inter : intersections) {
+				if (new FVMatch(inter.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
+					FVLog.log(LogLevel.DEBUG, this, "Appending FlowStats reply: ", reply);
+					stats.add(reply);
+					statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
+				}
 			}
 		}
 		statsReply.setXid(original.getXid());
