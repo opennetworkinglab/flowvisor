@@ -925,7 +925,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		statsReply.setStatisticType(original.getStatisticType());
 		statsReply.setType(original.getType());
 	
-		FVMessageUtil.untranslateXidMsg(statsReply, this);
+		//FVMessageUtil.untranslateXidMsg(statsReply, this);
 		fvSlicer.sendMsg(statsReply, this);
 		
 	}
