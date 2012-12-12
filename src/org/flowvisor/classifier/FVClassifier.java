@@ -908,7 +908,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	}
 
 	public void sendFlowStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original) {
-		FVFlowStatisticsReply orig = (FVFlowStatisticsReply) original.getStatistics().get(0);
+		FVFlowStatisticsRequest orig = (FVFlowStatisticsRequest) original.getStatistics().get(0);
 		ArrayList<FVFlowStatisticsReply> replies = flowStats.get(fvSlicer.getSliceName());
 		List<OFStatistics> stats = new LinkedList<OFStatistics>();
 		FVStatisticsReply statsReply = new FVStatisticsReply();
