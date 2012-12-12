@@ -35,7 +35,7 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 		}
 		FVSlicer fvSlicer = pair.getSlicer();
 		OFMessage original = pair.getOFMessage();
-		
+		FVLog.log(LogLevel.WARN, fvClassifier, "Processing stats reply ", this);
 		if (this.getStatisticType() == OFStatisticsType.FLOW) {
 			fvClassifier.classifyFlowStats(this);
 			fvClassifier.sendFlowStatsResp(fvSlicer, (FVStatisticsRequest) original);
