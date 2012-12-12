@@ -41,16 +41,14 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 		String sliceName = fvClassifier.getFlowDB().processFlowRemoved(this,
 				fvClassifier.getDPID());
 		
-		String slicerFromCookie = untanslateCookie(fvClassifier);
-		
-		FVLog.log(LogLevel.DEBUG, fvClassifier, "Starting flowremoved message processing " + sliceName + " " + slicerFromCookie);
+		CookiePair pair = untanslateCookie(fvClassifier);
 		
 		//FVLog.log(LogLevel.DEBUG, fvClassifier, slicerFromCookie);
 		
 		if (sliceName != null)
 			slicesToUpdate.add(sliceName);
-		else if (slicerFromCookie != null) 
-			slicesToUpdate.add(slicerFromCookie);
+		else if (pair != null) 
+			slicesToUpdate.add(pair.getSliceName());
 		else {
 			// flow tracking either disabled or broken
 			// just fall back to everyone who *could* have inserted this flow
@@ -79,6 +77,8 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 			}
 			fvSlicer.decrementFlowRules();
 			fvSlicer.getFlowRewriteDB().processFlowRemoved(this);
+			if (pair != null)
+				this.setCookie(pair.getCookie());
 			fvSlicer.sendMsg(this, fvClassifier);
 		}
 	}
@@ -93,16 +93,13 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 		return this;
 	}
 	
-	private String untanslateCookie(FVClassifier fvClassifier) {
+	private CookiePair untanslateCookie(FVClassifier fvClassifier) {
 		CookieTranslator cookieTrans = fvClassifier.getCookieTranslator();
 		CookiePair pair = cookieTrans.untranslate(this.cookie);
 		if (pair == null) {
-			FVLog.log(LogLevel.DEBUG, fvClassifier, "Returning null");
 			return null;
 		}
-		this.setCookie(pair.getCookie());
-		FVLog.log(LogLevel.DEBUG, fvClassifier, pair.getSliceName());
-		return pair.getSliceName();
+		return pair;
 	}
 	
 	@Override
