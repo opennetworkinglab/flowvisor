@@ -149,13 +149,14 @@ public class LinearFlowDB implements FlowDB, Serializable {
 		for (Iterator<FlowDBEntry> it = this.db.iterator(); it.hasNext();) {
 			FlowDBEntry flowDBEntry = it.next();
 			FVLog.log(LogLevel.DEBUG, null, flowDBEntry.toString());
-			FVLog.log(LogLevel.DEBUG, null, "FV " + flowDBEntry.getCookie());
+			FVLog.log(LogLevel.DEBUG, null, "FV " + flowDBEntry.getCookie() + " == " + flowRemoved.getCookie());
 			
 			if (flowDBEntry.getRuleMatch().equals(flowRemoved.getMatch())
 					&& flowDBEntry.getPriority() == flowRemoved.getPriority()
 					&& flowDBEntry.getCookie() == flowRemoved.getCookie()
 					&& flowDBEntry.getDpid() == dpid) {
 				it.remove();
+				
 				sliceName = flowDBEntry.getSliceName();
 				FVLog.log(LogLevel.DEBUG, this.fvEventHandler,
 						"flowDB: removing flow '", flowDBEntry,
