@@ -100,6 +100,7 @@ public class LinearFlowDB implements FlowDB, Serializable {
 			FlowDBEntry flowDBEntry = it.next();
 			MatchType matchType = flowDBEntry.matches(dpid, new FVMatch(flowMod.getMatch()),
 					flowMod.getCookie(), flowMod.getPriority()).getMatchType();
+			FVLog.log(LogLevel.DEBUG, null, flowDBEntry.getCookie() + " == " + flowMod.getCookie());
 			if (matchType == MatchType.EQUAL || matchType == MatchType.SUPERSET) {
 				FVLog.log(LogLevel.DEBUG, fvEventHandler,
 						"flowDB: del by non-strict: ", flowDBEntry);
