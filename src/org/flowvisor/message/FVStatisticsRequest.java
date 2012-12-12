@@ -38,20 +38,6 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 					OFBadRequestCode.OFPBRC_EPERM, this), fvSlicer);
 			return;
 		}
-			
-//		FVStatisticsRequest original = (FVStatisticsRequest) this.clone();
-//		
-
-//		
-//		if (this.statisticType == OFStatisticsType.FLOW) {
-//			FVMessageUtil.translateXidMsg(original, this,fvClassifier, fvSlicer);
-//			if (fvClassifier.pollFlowTableStats(this))
-//				return;
-//			else
-//				fvClassifier.sendFlowStatsResp(fvSlicer, this);
-//		}
-		
-//		List<OFStatistics> newStatsList = new LinkedList<OFStatistics>();
 		
 		
 		OFStatistics stat = this.getStatistics().get(0);
