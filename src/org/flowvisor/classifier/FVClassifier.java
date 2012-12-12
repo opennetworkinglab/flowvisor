@@ -935,9 +935,14 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		for (OFStatistics s : stats) {
 			FVFlowStatisticsReply stat = (FVFlowStatisticsReply) s;
 			CookiePair pair = getCookieTranslator().untranslate(stat.getCookie());
+			if (pair == null) {
+				FVLog.log(LogLevel.WARN, this, "Unable to classify stats - ignoring - ", stat);
+				continue;
+			}
 			stat.setCookie(pair.getCookie());
 			addToFlowStats(stat, pair.getSliceName());
 		}
+		FVLog.log(LogLevel.DEBUG, this, flowStats.toString());
 		
 	}
 	
