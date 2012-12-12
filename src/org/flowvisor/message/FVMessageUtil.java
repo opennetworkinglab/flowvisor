@@ -52,10 +52,10 @@ public class FVMessageUtil {
 	
 	
 	
-	static void translateXidMsg(OFMessage original, OFMessage msg,
+	public static void translateXidMsg(FVStatisticsRequest msg,
 			FVClassifier fvClassifier, FVSlicer fvSlicer) {
 		XidTranslatorWithMessage xidTranslator = (XidTranslatorWithMessage) fvClassifier.getXidTranslator();
-		int newXid = xidTranslator.translate(original, msg.getXid(), fvSlicer);
+		int newXid = xidTranslator.translate(msg.clone(), msg.getXid(), fvSlicer);
 		msg.setXid(newXid);
 	}
 
@@ -130,10 +130,10 @@ public class FVMessageUtil {
 		fvClassifier.sendMsg(msg, fvSlicer);
 	}
 	
-	public static void translateXidMsgAndSend(OFMessage original,
-			OFMessage msg, FVClassifier fvClassifier,
+	public static void translateXidMsgAndSend(
+			FVStatisticsRequest msg, FVClassifier fvClassifier,
 			FVSlicer fvSlicer) {
-		FVMessageUtil.translateXidMsg(original, msg, fvClassifier, fvSlicer);
+		FVMessageUtil.translateXidMsg(msg, fvClassifier, fvSlicer);
 		fvClassifier.sendMsg(msg, fvSlicer);
 	}
 

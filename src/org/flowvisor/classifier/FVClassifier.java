@@ -38,8 +38,6 @@ import org.flowvisor.exceptions.BufferFull;
 import org.flowvisor.exceptions.MalformedOFMessage;
 import org.flowvisor.exceptions.UnhandledEvent;
 import org.flowvisor.flows.FlowDB;
-import org.flowvisor.flows.FlowEntry;
-import org.flowvisor.flows.FlowIntersect;
 import org.flowvisor.flows.FlowMap;
 import org.flowvisor.flows.FlowSpaceUtil;
 import org.flowvisor.flows.LinearFlowDB;
@@ -52,7 +50,6 @@ import org.flowvisor.log.SendRecvDropStats.FVStatsType;
 import org.flowvisor.message.Classifiable;
 import org.flowvisor.message.FVError;
 import org.flowvisor.message.FVMessageFactory;
-import org.flowvisor.message.FVMessageUtil;
 import org.flowvisor.message.FVStatisticsReply;
 import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.message.SanityCheckable;
@@ -72,6 +69,8 @@ import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFType;
 import org.openflow.protocol.OFError.OFHelloFailedCode;
+import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionOutput;
 import org.openflow.protocol.statistics.OFStatistics;
 import org.openflow.protocol.statistics.OFStatisticsType;
 
@@ -665,31 +664,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			slicerMap.remove(deleteSlice);
 	}
 	
-	public boolean pollFlowTableStats(FVStatisticsRequest orig) {
-		if (!this.statsWindowOpen )
-			return this.statsWindowOpen;
-		this.statsWindowOpen = false;
-		FVStatisticsRequest request = new FVStatisticsRequest();
-		request.setStatisticType(OFStatisticsType.FLOW);
-		request.setType(OFType.STATS_REQUEST);
-		
-		
-		FVFlowStatisticsRequest statsReq = new FVFlowStatisticsRequest();
-		statsReq.setMatch(new FVMatch());
-		statsReq.setOutPort(OFPort.OFPP_NONE.getValue());
-		statsReq.setTableId((byte) 0xFF);
-		List<OFStatistics> stats = new LinkedList<OFStatistics>();
-		stats.add(statsReq);
-		request.setStatistics(stats);
-		request.setLengthU(FVStatisticsRequest.MINIMUM_LENGTH + statsReq.computeLength());
-		request.setXid(orig.getXid());
-		this.sendMsg(request, this);
-		
-		FVStatsTimer statsTimer = new FVStatsTimer(this);
-		statsTimer.setExpireTime(System.currentTimeMillis() + FVStatsTimer.WAIT_TIME);
-		loop.addTimer(statsTimer);
-		return !this.statsWindowOpen;
-	}
+	
 
 	public FlowMap getSwitchFlowMap() {
 		return switchFlowMap;
@@ -908,37 +883,69 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	public SlicerLimits getSlicerLimits() {
 		return this.slicerLimits;
 	}
+	
+	private synchronized ArrayList<FVFlowStatisticsReply> getFlowStats(String sliceName) {
+		return new ArrayList<FVFlowStatisticsReply>(flowStats.get(sliceName));
+	}
 
 	public void sendFlowStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original) {
 		FVFlowStatisticsRequest orig = (FVFlowStatisticsRequest) original.getStatistics().get(0);
-		List<FlowIntersect> intersections = this.getSwitchFlowMap().intersects(this.getDPID(), new FVMatch(orig.getMatch()));
-		ArrayList<FVFlowStatisticsReply> replies = flowStats.get(fvSlicer.getSliceName());
+		
+	
+		// Don't think this is required as we only return whatever THAT slice pushed. Thanks to cookies!
+	//	List<FlowIntersect> intersections = this.getSwitchFlowMap().intersects(this.getDPID(), new FVMatch(orig.getMatch()));
+	
+		ArrayList<FVFlowStatisticsReply> replies = getFlowStats(fvSlicer.getSliceName());
+		
 		List<OFStatistics> stats = new LinkedList<OFStatistics>();
 		FVStatisticsReply statsReply = new FVStatisticsReply();
 		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
 		for (FVFlowStatisticsReply reply : replies) {
-			for (FlowIntersect inter : intersections) {
-				if (new FVMatch(inter.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
+	//		for (FlowIntersect inter : intersections) {
+				if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
 					FVLog.log(LogLevel.DEBUG, this, "Appending FlowStats reply: ", reply);
 					stats.add(reply);
 					statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
 				}
+		//	}
+		}
+		if (orig.getOutPort() == OFPort.OFPP_NONE.getValue()) {
+			statsReply.setStatistics(stats);
+		} else {
+			boolean found = false;
+			Iterator<OFStatistics> it = stats.iterator();
+			while (it.hasNext()) {
+				FVFlowStatisticsReply rep = (FVFlowStatisticsReply) it.next();
+				for (OFAction act : rep.getActions()) {
+					found = false;
+					if (act instanceof OFActionOutput) {
+						OFActionOutput outact = (OFActionOutput) act;
+						if (found = outact.getPort() == orig.getOutPort())
+							break;
+					}
+				}
+				if (!found) {
+					it.remove();
+					statsReply.setLengthU(statsReply.getLengthU() - rep.computeLength());
+				}
 			}
+			statsReply.setStatistics(stats);
 		}
 		statsReply.setXid(original.getXid());
-		statsReply.setStatistics(stats);
+		
 		statsReply.setVersion(original.getVersion());
 		statsReply.setStatisticType(original.getStatisticType());
-		//statsReply.setType(original.getType());
 	
-		//FVMessageUtil.untranslateXidMsg(statsReply, this);
-		fvSlicer.sendMsg(statsReply, this);
+		if (statsReply.getStatistics().size() == 0) 
+			FVLog.log(LogLevel.WARN, fvSlicer, "Stats request resulted in an empty set ", original);
 		
+		fvSlicer.sendMsg(statsReply, this);
+	
 	}
 
 	
-	public void classifyFlowStats(FVStatisticsReply fvStatisticsReply) {
-		FVLog.log(LogLevel.DEBUG, this, "Classifying stats...");
+	public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply) {
+		
 		flowStats.clear();
 		List<OFStatistics> stats = fvStatisticsReply.getStatistics();
 		for (OFStatistics s : stats) {
@@ -951,7 +958,6 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			stat.setCookie(pair.getCookie());
 			addToFlowStats(stat, pair.getSliceName());
 		}
-		FVLog.log(LogLevel.DEBUG, this, flowStats.toString());
 		
 	}
 	
@@ -961,6 +967,32 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			stats = new ArrayList<FVFlowStatisticsReply>();
 		stats.add(stat);
 		flowStats.put(sliceName, stats);
+	}
+	
+	public boolean pollFlowTableStats(FVStatisticsRequest orig) {
+		if (!this.statsWindowOpen )
+			return this.statsWindowOpen;
+		this.statsWindowOpen = false;
+		FVStatisticsRequest request = new FVStatisticsRequest();
+		request.setStatisticType(OFStatisticsType.FLOW);
+		request.setType(OFType.STATS_REQUEST);
+		
+		
+		FVFlowStatisticsRequest statsReq = new FVFlowStatisticsRequest();
+		statsReq.setMatch(new FVMatch());
+		statsReq.setOutPort(OFPort.OFPP_NONE.getValue());
+		statsReq.setTableId((byte) 0xFF);
+		List<OFStatistics> stats = new LinkedList<OFStatistics>();
+		stats.add(statsReq);
+		request.setStatistics(stats);
+		request.setLengthU(FVStatisticsRequest.MINIMUM_LENGTH + statsReq.computeLength());
+		request.setXid(orig.getXid());
+		this.sendMsg(request, this);
+		
+		FVStatsTimer statsTimer = new FVStatsTimer(this);
+		statsTimer.setExpireTime(System.currentTimeMillis() + FVStatsTimer.WAIT_TIME);
+		loop.addTimer(statsTimer);
+		return !this.statsWindowOpen;
 	}
 
 }

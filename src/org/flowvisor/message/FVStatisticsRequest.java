@@ -1,10 +1,6 @@
 package org.flowvisor.message;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.flowvisor.classifier.FVClassifier;
-import org.flowvisor.exceptions.StatDisallowedException;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.message.statistics.SlicableStatistic;
@@ -19,10 +15,6 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 		Classifiable, Slicable, SanityCheckable, Cloneable {
 	
 	
-	private int expansions = -1;
-	private OFStatistics reply = null;
-	private int responses = 0;
-	
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
 		FVLog.log(LogLevel.WARN, fvClassifier, "dropping unexpected msg: "
@@ -32,56 +24,44 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 	@Override
 	public void sliceFromController(FVClassifier fvClassifier, FVSlicer fvSlicer) {
 		
-		if (this.getStatistics().size() > 1) {
-			FVLog.log(LogLevel.INFO, fvSlicer, "Stats request can only have one sub request in body; ", this);
-			fvSlicer.sendMsg(FVMessageUtil.makeErrorMsg(
-					OFBadRequestCode.OFPBRC_EPERM, this), fvSlicer);
-		}
-			
-		FVStatisticsRequest original = (FVStatisticsRequest) this.clone();
-		
 		if (this.statisticType == OFStatisticsType.DESC
 				|| this.statisticType == OFStatisticsType.TABLE
 				|| this.statisticType == OFStatisticsType.VENDOR) {
 			assert (this.getStatistics().size() == 0);
-			FVMessageUtil.translateXidMsgAndSend(original, this, fvClassifier, fvSlicer);
+			FVMessageUtil.translateXidAndSend(this, fvClassifier, fvSlicer);
 			return;
 		}
-		
-		if (this.statisticType == OFStatisticsType.FLOW) {
-			FVMessageUtil.translateXidMsg(original, this,fvClassifier, fvSlicer);
-			if (fvClassifier.pollFlowTableStats(this))
-				return;
-			else
-				fvClassifier.sendFlowStatsResp(fvSlicer, this);
-		}
-		
-		List<OFStatistics> newStatsList = new LinkedList<OFStatistics>();
-		OFStatistics stat = this.getStatistics().get(0);
-		
-		assert (stat instanceof SlicableStatistic);
-		try {
-			((SlicableStatistic) stat).sliceFromController(newStatsList, fvClassifier,
-					fvSlicer);
-		} catch (StatDisallowedException e) {
-			FVLog.log(LogLevel.WARN, fvSlicer, e.getMessage());
+
+		if (this.getStatistics().size() != 1) {
+			FVLog.log(LogLevel.INFO, fvSlicer, "Stats request can only have one sub request in body; ", this);
 			fvSlicer.sendMsg(FVMessageUtil.makeErrorMsg(
-					e.getError(), this), fvSlicer);
-				return;
+					OFBadRequestCode.OFPBRC_EPERM, this), fvSlicer);
+			return;
 		}
 			
+//		FVStatisticsRequest original = (FVStatisticsRequest) this.clone();
+//		
+
+//		
+//		if (this.statisticType == OFStatisticsType.FLOW) {
+//			FVMessageUtil.translateXidMsg(original, this,fvClassifier, fvSlicer);
+//			if (fvClassifier.pollFlowTableStats(this))
+//				return;
+//			else
+//				fvClassifier.sendFlowStatsResp(fvSlicer, this);
+//		}
 		
-		LinkedList<OFStatistics> stats = new LinkedList<OFStatistics>();
-		for (OFStatistics s : newStatsList) {
-			stats.clear();
-			FVStatisticsRequest statsReq = this.clone();
-			stats.add(s);
-			statsReq.setStatistics(stats);
-			statsReq.setLengthU(FVStatisticsRequest.MINIMUM_LENGTH + s.computeLength());
-			FVLog.log(LogLevel.DEBUG, fvSlicer, "Sending Stats request; ", statsReq);
-			FVMessageUtil.translateXidMsgAndSend(original, statsReq, fvClassifier, fvSlicer);
-		}
-		original.setExpansion(newStatsList.size()); 
+//		List<OFStatistics> newStatsList = new LinkedList<OFStatistics>();
+		
+		
+		OFStatistics stat = this.getStatistics().get(0);
+		assert (stat instanceof SlicableStatistic);
+		
+		((SlicableStatistic) stat).sliceFromController(this, fvClassifier,
+					fvSlicer);
+		
+		
+		 
 	}
 	
 	public FVStatisticsRequest clone() {
@@ -121,31 +101,6 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 			return false;
 		}
 	}
-	
-	public void setExpansion(int expansions) {
-		this.expansions = expansions;
-	}
-	
-	public int getExpansions() {
-		return this.expansions;
-	}
-	
-	public void incReplies() {
-		this.responses++;
-	}
-	
-	public boolean readyToSend() {
-		if (expansions == -1)
-			return true;
-		return this.responses >= this.expansions;
-	}
-	
-	public void setReply(OFStatistics msg) {
-		this.reply = msg;
-	}
-	
-	public OFStatistics getReply() {
-		return reply;
-	}
+
 
 }

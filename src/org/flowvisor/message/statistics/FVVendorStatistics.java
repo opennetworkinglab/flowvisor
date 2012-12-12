@@ -1,14 +1,10 @@
 package org.flowvisor.message.statistics;
 
-import java.util.List;
-
 import org.flowvisor.classifier.FVClassifier;
-import org.flowvisor.exceptions.StatDisallowedException;
-import org.flowvisor.log.FVLog;
-import org.flowvisor.log.LogLevel;
+import org.flowvisor.message.FVMessageUtil;
+import org.flowvisor.message.FVStatisticsReply;
+import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.slicer.FVSlicer;
-import org.openflow.protocol.OFMessage;
-import org.openflow.protocol.statistics.OFStatistics;
 import org.openflow.protocol.statistics.OFVendorStatistics;
 
 public class FVVendorStatistics extends OFVendorStatistics implements
@@ -17,18 +13,16 @@ public class FVVendorStatistics extends OFVendorStatistics implements
 
 
 	@Override
-	public void classifyFromSwitch(OFMessage original,
-			List<OFStatistics> approvedStats, FVClassifier fvClassifier,
-			FVSlicer fvSlicer) throws StatDisallowedException {
-		approvedStats.add(this);
+	public void classifyFromSwitch(FVStatisticsReply msg,
+			FVClassifier fvClassifier) {
+		FVMessageUtil.untranslateXidAndSend(msg, fvClassifier);
 	}
 
 	@Override
-	public void sliceFromController(List<OFStatistics> approvedStats,
-			FVClassifier fvClassifier, FVSlicer fvSlicer)
-			throws StatDisallowedException {
-		FVLog.log(LogLevel.WARN, fvClassifier, "dropping unexpected msg: "
-				+ this);
+	public void sliceFromController(FVStatisticsRequest msg,
+			FVClassifier fvClassifier, FVSlicer fvSlicer) {
+		FVMessageUtil.translateXidAndSend(msg, fvClassifier, fvSlicer);
+		
 	}
 
 }
