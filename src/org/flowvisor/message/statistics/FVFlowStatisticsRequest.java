@@ -25,10 +25,10 @@ public final class FVFlowStatisticsRequest extends OFFlowStatisticsRequest
 	public void sliceFromController(FVStatisticsRequest msg, FVClassifier fvClassifier,
 			FVSlicer fvSlicer) {
 		FVMessageUtil.translateXidMsg(msg,fvClassifier, fvSlicer);
-		if (fvClassifier.pollFlowTableStats((FVStatisticsRequest) msg))
+		if (fvClassifier.pollFlowTableStats(msg))
 			return;
 		else
-			fvClassifier.sendFlowStatsResp(fvSlicer, (FVStatisticsRequest) msg);
+			fvClassifier.sendFlowStatsResp(fvSlicer, msg);
 		
 	}
 	

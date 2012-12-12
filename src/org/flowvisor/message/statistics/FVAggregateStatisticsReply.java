@@ -15,26 +15,15 @@ public class FVAggregateStatisticsReply extends OFAggregateStatisticsReply
 
 	@Override
 	public void classifyFromSwitch(FVStatisticsReply msg, FVClassifier fvClassifier) {
-		// TODO Auto-generated method stub
-//		assert(original instanceof FVStatisticsRequest);
-//		FVStatisticsRequest orig = (FVStatisticsRequest) original;
-//		FVAggregateStatisticsReply reply = (FVAggregateStatisticsReply) orig.getReply();
-//		if (reply == null) {
-//			reply = this;
-//			orig.setReply(this);
-//			reply.setFlowCount(fvClassifier.getCurrentFlowModCounter(fvSlicer.getSliceName()));
-//		} else {
-//			reply.byteCount += this.byteCount;
-//			reply.packetCount += this.packetCount;
-//		}
-//		approvedStats.add(reply);
+		FVLog.log(LogLevel.WARN, fvClassifier, "dropping unexpected msg: "
+				+ msg);
 	}
 
 	@Override
 	public void sliceFromController(FVStatisticsRequest msg, FVClassifier fvClassifier,
 			FVSlicer fvSlicer) {
 		FVLog.log(LogLevel.WARN, fvClassifier, "dropping unexpected msg: "
-				+ this);
+				+ msg);
 		
 	}
 }

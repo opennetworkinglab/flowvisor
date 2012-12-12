@@ -3,6 +3,7 @@ package org.flowvisor.message.statistics;
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
+import org.flowvisor.message.FVMessageUtil;
 import org.flowvisor.message.FVStatisticsReply;
 import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.slicer.FVSlicer;
@@ -23,6 +24,12 @@ public class FVAggregateStatisticsRequest extends
 	@Override
 	public void sliceFromController(FVStatisticsRequest msg, FVClassifier fvClassifier,
 			FVSlicer fvSlicer) {
+		FVMessageUtil.translateXidMsg(msg,fvClassifier, fvSlicer);
+		if (fvClassifier.pollFlowTableStats(msg))
+			return;
+		else
+			fvClassifier.sendAggStatsResp(fvSlicer, msg);
+		
 //		if (this.getOutPort() != OFPort.OFPP_NONE.ordinal() && 
 //				!fvSlicer.portInSlice(this.getOutPort())) {
 //			throw new StatDisallowedException(

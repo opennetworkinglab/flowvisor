@@ -9,6 +9,7 @@ import org.flowvisor.message.FVStatisticsReply;
 import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.statistics.OFFlowStatisticsReply;
+import org.openflow.protocol.statistics.OFStatisticsType;
 
 public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 		SlicableStatistic, ClassifiableStatistic {
@@ -16,6 +17,7 @@ public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 	
 	@Override
 	public void classifyFromSwitch(FVStatisticsReply msg, FVClassifier fvClassifier) {
+		fvClassifier.classifyFlowStats(msg);
 		XidPairWithMessage pair = FVMessageUtil
 				.untranslateXidMsg(msg, fvClassifier);
 		if (pair == null) {
@@ -23,8 +25,11 @@ public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 					"dropping unclassifiable stats reply: ", this);
 			return;
 		}
-		fvClassifier.classifyFlowStats(msg);
-		fvClassifier.sendFlowStatsResp(pair.getSlicer(), (FVStatisticsRequest) pair.getOFMessage());
+		FVStatisticsRequest original = (FVStatisticsRequest) pair.getOFMessage();
+		if (original.getStatisticType() == OFStatisticsType.FLOW)
+			fvClassifier.sendFlowStatsResp(pair.getSlicer(), original);
+		else if (original.getStatisticType() == OFStatisticsType.AGGREGATE)
+			fvClassifier.sendAggStatsResp(pair.getSlicer(), original);
 	}
 
 

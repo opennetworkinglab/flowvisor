@@ -53,6 +53,7 @@ import org.flowvisor.message.FVMessageFactory;
 import org.flowvisor.message.FVStatisticsReply;
 import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.message.SanityCheckable;
+import org.flowvisor.message.statistics.FVAggregateStatisticsReply;
 import org.flowvisor.message.statistics.FVFlowStatisticsReply;
 import org.flowvisor.message.statistics.FVFlowStatisticsRequest;
 import org.flowvisor.openflow.protocol.FVMatch;
@@ -887,6 +888,65 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	private synchronized ArrayList<FVFlowStatisticsReply> getFlowStats(String sliceName) {
 		return new ArrayList<FVFlowStatisticsReply>(flowStats.get(sliceName));
 	}
+	
+	public void sendAggStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original) {
+		boolean found = false;
+		FVFlowStatisticsRequest orig = (FVFlowStatisticsRequest) original.getStatistics().get(0);
+	
+		ArrayList<FVFlowStatisticsReply> replies = getFlowStats(fvSlicer.getSliceName());
+		
+		List<OFStatistics> stats = new LinkedList<OFStatistics>();
+		FVStatisticsReply statsReply = new FVStatisticsReply();
+		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
+		FVAggregateStatisticsReply rep = new FVAggregateStatisticsReply();
+		LinkedList<Long> cookieTracker = new LinkedList<Long>();
+		int flowCount = 0;
+		for (FVFlowStatisticsReply reply : replies) {
+			if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
+				if (orig.getOutPort() == OFPort.OFPP_NONE.getValue() || 
+						matchContainsPort(reply, orig.getOutPort())) {
+					if (!cookieTracker.contains(reply.getCookie())) {
+						flowCount++;
+						cookieTracker.add(reply.getCookie());
+					}
+					rep.setByteCount(rep.getByteCount() + reply.getByteCount());
+					rep.setPacketCount(rep.getPacketCount() + reply.getPacketCount());
+					found = true;
+				}
+			}
+		}
+		if (!found) {
+			FVLog.log(LogLevel.WARN, fvSlicer, "Stats request resulted in an empty set ", original);
+			return;
+		}
+		/*
+		 * FIXME: These need to be collapsed
+		 */
+		rep.setFlowCount(flowCount);
+		stats.add(rep);
+		statsReply.setStatistics(stats);
+		statsReply.setXid(original.getXid());
+		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH + rep.computeLength());
+		statsReply.setVersion(original.getVersion());
+		statsReply.setStatisticType(original.getStatisticType());
+	
+		if (statsReply.getStatistics().size() == 0) 
+			FVLog.log(LogLevel.WARN, fvSlicer, "Stats request resulted in an empty set ", original);
+		
+		fvSlicer.sendMsg(statsReply, this);
+		
+	}
+
+	private boolean matchContainsPort(FVFlowStatisticsReply reply, short outPort) {
+		for (OFAction act : reply.getActions()) {
+			if (act instanceof OFActionOutput) {
+				OFActionOutput outact = (OFActionOutput) act;
+				if (outact.getPort() == outPort)
+					return true;
+			}
+		}
+		return false;
+	}
 
 	public void sendFlowStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original) {
 		FVFlowStatisticsRequest orig = (FVFlowStatisticsRequest) original.getStatistics().get(0);
@@ -994,5 +1054,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		loop.addTimer(statsTimer);
 		return !this.statsWindowOpen;
 	}
+
+	
 
 }
