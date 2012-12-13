@@ -901,6 +901,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		List<OFStatistics> stats = new LinkedList<OFStatistics>();
 		FVStatisticsReply statsReply = new FVStatisticsReply();
 		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
+		HashSet<Long> cookieTracker = new HashSet<Long>();
 		FVAggregateStatisticsReply rep = new FVAggregateStatisticsReply();
 		for (FVFlowStatisticsReply reply : replies) {
 			if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
@@ -908,6 +909,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 						matchContainsPort(reply, orig.getOutPort())) {
 					rep.setByteCount(rep.getByteCount() + reply.getByteCount());
 					rep.setPacketCount(rep.getPacketCount() + reply.getPacketCount());
+					cookieTracker.add(reply.getTransCookie());
 					found = true;
 				}
 			}
@@ -917,7 +919,10 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			return;
 		}
 		
-		rep.setFlowCount(cookieTracker.get(fvSlicer.getSliceName()).size());
+		
+		
+		rep.setFlowCount(cookieTracker.size());
+		
 		stats.add(rep);
 		statsReply.setStatistics(stats);
 		statsReply.setXid(original.getXid());
@@ -993,19 +998,11 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 				FVLog.log(LogLevel.WARN, this, "Unable to classify stats - ignoring - ", stat);
 				continue;
 			}
-			addToCookieTracker(stat.getCookie(), pair.getSliceName());
+			stat.setTransCookie(stat.getCookie());
 			stat.setCookie(pair.getCookie());
 			addToFlowStats(stat, pair.getSliceName());
 		}
 		
-	}
-	
-	private void addToCookieTracker(Long cookie, String sliceName) {
-		HashSet<Long> cookies = cookieTracker.get(sliceName);
-		if (cookies == null) 
-			cookies = new HashSet<Long>();
-		cookies.add(cookie);
-		cookieTracker.put(sliceName, cookies);
 	}
 	
 	private void addToFlowStats(FVFlowStatisticsReply stat, String sliceName) {

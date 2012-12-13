@@ -14,6 +14,13 @@ import org.openflow.protocol.statistics.OFStatisticsType;
 public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 		SlicableStatistic, ClassifiableStatistic {
 
+	/*
+	 * Stupid hack to return the correct number of 
+	 * flows for an agg stats reply.
+	 * 
+	 * There may be a better way to do this... but meh.
+	 */
+	private long trans_cookie;
 	
 	@Override
 	public void classifyFromSwitch(FVStatisticsReply msg, FVClassifier fvClassifier) {
@@ -39,6 +46,14 @@ public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 			FVSlicer fvSlicer) {
 		FVLog.log(LogLevel.WARN, fvSlicer, "dropping unexpected msg: " + this);
 		
+	}
+	
+	public long getTransCookie() {
+		return this.trans_cookie;
+	}
+	
+	public void setTransCookie(long cookie) {
+		this.trans_cookie = cookie;
 	}
 
 }
