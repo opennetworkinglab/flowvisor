@@ -120,8 +120,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	private boolean statsWindowOpen = true;
 	private HashMap<String, ArrayList<FVFlowStatisticsReply>> flowStats = 
 			new HashMap<String, ArrayList<FVFlowStatisticsReply>>();
-	private HashMap<String, HashSet<Long>> cookieTracker = 
-			new HashMap<String, HashSet<Long>>();
+
 	// OFPP_FLOOD
 
 	public FVClassifier(FVEventLoop loop, SocketChannel sock) {
@@ -989,7 +988,6 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply) {
 		
 		flowStats.clear();
-		cookieTracker.clear();
 		List<OFStatistics> stats = fvStatisticsReply.getStatistics();
 		for (OFStatistics s : stats) {
 			FVFlowStatisticsReply stat = (FVFlowStatisticsReply) s;
