@@ -25,25 +25,20 @@ public class FVPortStatisticsReply extends OFPortStatisticsReply implements
                                 "dropping unclassifiable port stats reply: " + this);
                 return;
         }
-        boolean changed = false;
         for (Iterator<OFStatistics> it = msg.getStatistics().iterator(); it
                         .hasNext();) {
                 OFStatistics stat = it.next();
                 if (stat instanceof OFPortStatisticsReply) {
                         OFPortStatisticsReply portStat = (OFPortStatisticsReply) stat;
                         if (!fvSlicer.portInSlice(portStat.getPortNumber())) {
+                        		FVLog.log(LogLevel.DEBUG, fvClassifier, "Dropping ", portStat, 
+                        				" because port not in slice.");
                                 it.remove();
-                                changed = true;
+                                msg.setLengthU(msg.getLengthU() - portStat.computeLength());
                         }
                 }
         }
-        if (changed) { // removed a stat; rebuild packet
-                int statsLen = 0;
-                for (OFStatistics stat : msg.getStatistics()) {
-                        statsLen += stat.getLength();
-                }
-                msg.setLengthU(statsLen + FVStatisticsReply.MINIMUM_LENGTH);
-        }
+       
         fvSlicer.sendMsg(msg, fvClassifier);
 		
 	}
