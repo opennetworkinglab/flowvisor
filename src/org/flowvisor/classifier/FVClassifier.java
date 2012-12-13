@@ -966,23 +966,15 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		if (orig.getOutPort() == OFPort.OFPP_NONE.getValue()) {
 			statsReply.setStatistics(stats);
 		} else {
-			boolean found = false;
+			
 			Iterator<OFStatistics> it = stats.iterator();
-			while (it.hasNext()) {
-				found = false;
+			while (it.hasNext()) {	
 				FVFlowStatisticsReply rep = (FVFlowStatisticsReply) it.next();
-				for (OFAction act : rep.getActions()) {
-					found = false;
-					if (act instanceof OFActionOutput) {
-						OFActionOutput outact = (OFActionOutput) act;
-						if (found = outact.getPort() == orig.getOutPort())
-							break;
-					}
-				}
-				if (!found) {
+				if (!matchContainsPort(rep, orig.getOutPort())) {
 					it.remove();
 					statsReply.setLengthU(statsReply.getLengthU() - rep.computeLength());
 				}
+				
 			}
 			statsReply.setStatistics(stats);
 		}
