@@ -31,8 +31,8 @@ public class FVPortStatisticsReply extends OFPortStatisticsReply implements
                 if (stat instanceof OFPortStatisticsReply) {
                         OFPortStatisticsReply portStat = (OFPortStatisticsReply) stat;
                         if (!fvSlicer.portInSlice(portStat.getPortNumber())) {
-                        		FVLog.log(LogLevel.DEBUG, fvClassifier, "Dropping ", portStat, 
-                        				" because port not in slice.");
+                        		FVLog.log(LogLevel.DEBUG, fvClassifier, "Dropping port ", portStat.getPortNumber(), 
+                        				" because it is not in slice ", fvSlicer.getSliceName());
                                 it.remove();
                                 msg.setLengthU(msg.getLengthU() - portStat.computeLength());
                         }
