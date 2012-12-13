@@ -120,6 +120,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	private boolean statsWindowOpen = true;
 	private HashMap<String, ArrayList<FVFlowStatisticsReply>> flowStats = 
 			new HashMap<String, ArrayList<FVFlowStatisticsReply>>();
+	private HashMap<String, HashSet<Long>> cookieTracker = 
+			new HashMap<String, HashSet<Long>>();
 	// OFPP_FLOOD
 
 	public FVClassifier(FVEventLoop loop, SocketChannel sock) {
@@ -900,12 +902,10 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		FVStatisticsReply statsReply = new FVStatisticsReply();
 		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
 		FVAggregateStatisticsReply rep = new FVAggregateStatisticsReply();
-		HashSet<Long> cookieTracker = new HashSet<Long>();
 		for (FVFlowStatisticsReply reply : replies) {
 			if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
 				if (orig.getOutPort() == OFPort.OFPP_NONE.getValue() || 
 						matchContainsPort(reply, orig.getOutPort())) {
-					cookieTracker.add(reply.getCookie());
 					rep.setByteCount(rep.getByteCount() + reply.getByteCount());
 					rep.setPacketCount(rep.getPacketCount() + reply.getPacketCount());
 					found = true;
@@ -917,7 +917,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			return;
 		}
 		
-		rep.setFlowCount(cookieTracker.size());
+		rep.setFlowCount(cookieTracker.get(fvSlicer.getSliceName()).size());
 		stats.add(rep);
 		statsReply.setStatistics(stats);
 		statsReply.setXid(original.getXid());
@@ -984,6 +984,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply) {
 		
 		flowStats.clear();
+		cookieTracker.clear();
 		List<OFStatistics> stats = fvStatisticsReply.getStatistics();
 		for (OFStatistics s : stats) {
 			FVFlowStatisticsReply stat = (FVFlowStatisticsReply) s;
@@ -992,10 +993,19 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 				FVLog.log(LogLevel.WARN, this, "Unable to classify stats - ignoring - ", stat);
 				continue;
 			}
+			addToCookieTracker(pair.getCookie(), pair.getSliceName());
 			stat.setCookie(pair.getCookie());
 			addToFlowStats(stat, pair.getSliceName());
 		}
 		
+	}
+	
+	private void addToCookieTracker(Long cookie, String sliceName) {
+		HashSet<Long> cookies = cookieTracker.get(sliceName);
+		if (cookies == null) 
+			cookies = new HashSet<Long>();
+		cookies.add(cookie);
+		cookieTracker.put(sliceName, cookies);
 	}
 	
 	private void addToFlowStats(FVFlowStatisticsReply stat, String sliceName) {
