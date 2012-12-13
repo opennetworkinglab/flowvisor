@@ -24,7 +24,7 @@ public final class FVFlowStatisticsRequest extends OFFlowStatisticsRequest
 	@Override
 	public void sliceFromController(FVStatisticsRequest msg, FVClassifier fvClassifier,
 			FVSlicer fvSlicer) {
-		FVLog.log(LogLevel.DEBUG, fvSlicer, this.toString());
+		FVLog.log(LogLevel.DEBUG, fvSlicer, this.outPort);
 		FVMessageUtil.translateXidMsg(msg,fvClassifier, fvSlicer);
 		if (!fvClassifier.pollFlowTableStats(msg))
 			fvClassifier.sendFlowStatsResp(fvSlicer, msg);
