@@ -26,7 +26,7 @@ public class FVTableStatistics extends OFTableStatistics implements
 		if (currentMax != -1)
 			this.setMaximumEntries(currentMax);
 		this.setActiveCount(currentFMs);
-		
+		fvSlicer.sendMsg(msg, fvClassifier);
 		
 	}
 
