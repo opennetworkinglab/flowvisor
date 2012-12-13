@@ -957,16 +957,18 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		for (FVFlowStatisticsReply reply : replies) {
 	//		for (FlowIntersect inter : intersections) {
 				if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
+					if (orig.getOutPort() == OFPort.OFPP_NONE.getValue() ||
+							matchContainsPort(reply, orig.getOutPort()))	
 					FVLog.log(LogLevel.DEBUG, this, "Appending FlowStats reply: ", reply);
 					stats.add(reply);
 					statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
 				}
 		//	}
 		}
-		FVLog.log(LogLevel.DEBUG, this, "Outport filter is " + orig.getOutPort()); 
-		if (orig.getOutPort() == OFPort.OFPP_NONE.getValue()) {
+		//FVLog.log(LogLevel.DEBUG, this, "Outport filter is " + orig.getOutPort()); 
+		//if (orig.getOutPort() == OFPort.OFPP_NONE.getValue()) {
 			statsReply.setStatistics(stats);
-		} else {
+		/*} else {
 			
 			Iterator<OFStatistics> it = stats.iterator();
 			while (it.hasNext()) {	
@@ -978,7 +980,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 				
 			}
 			statsReply.setStatistics(stats);
-		}
+		}*/
 		statsReply.setXid(original.getXid());
 		
 		statsReply.setVersion(original.getVersion());
