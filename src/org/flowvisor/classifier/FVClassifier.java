@@ -969,6 +969,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			boolean found = false;
 			Iterator<OFStatistics> it = stats.iterator();
 			while (it.hasNext()) {
+				found = false;
 				FVFlowStatisticsReply rep = (FVFlowStatisticsReply) it.next();
 				for (OFAction act : rep.getActions()) {
 					found = false;
