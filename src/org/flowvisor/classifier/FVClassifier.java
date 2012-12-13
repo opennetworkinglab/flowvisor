@@ -54,6 +54,7 @@ import org.flowvisor.message.FVStatisticsReply;
 import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.message.SanityCheckable;
 import org.flowvisor.message.statistics.FVAggregateStatisticsReply;
+import org.flowvisor.message.statistics.FVAggregateStatisticsRequest;
 import org.flowvisor.message.statistics.FVFlowStatisticsReply;
 import org.flowvisor.message.statistics.FVFlowStatisticsRequest;
 import org.flowvisor.openflow.protocol.FVMatch;
@@ -891,7 +892,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	
 	public void sendAggStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original) {
 		boolean found = false;
-		FVFlowStatisticsRequest orig = (FVFlowStatisticsRequest) original.getStatistics().get(0);
+		FVAggregateStatisticsRequest orig = (FVAggregateStatisticsRequest) original.getStatistics().get(0);
 	
 		ArrayList<FVFlowStatisticsReply> replies = getFlowStats(fvSlicer.getSliceName());
 		
@@ -955,34 +956,17 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		FVStatisticsReply statsReply = new FVStatisticsReply();
 		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
 		for (FVFlowStatisticsReply reply : replies) {
-	//		for (FlowIntersect inter : intersections) {
-				if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
-					if (orig.getOutPort() == OFPort.OFPP_NONE.getValue() ||
-							matchContainsPort(reply, orig.getOutPort())) {	 
-						FVLog.log(LogLevel.DEBUG, this, "Appending FlowStats reply: ", reply);
-						stats.add(reply);
-						statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
-					}
+			if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
+				if (orig.getOutPort() == OFPort.OFPP_NONE.getValue() ||
+						matchContainsPort(reply, orig.getOutPort())) {	 
+					FVLog.log(LogLevel.DEBUG, this, "Appending FlowStats reply: ", reply);
+					stats.add(reply);
+					statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
 				}
-		//	}
-		}
-		//FVLog.log(LogLevel.DEBUG, this, "Outport filter is " + orig.getOutPort()); 
-		//if (orig.getOutPort() == OFPort.OFPP_NONE.getValue()) {
-			statsReply.setStatistics(stats);
-		/*} else {
-			
-			Iterator<OFStatistics> it = stats.iterator();
-			while (it.hasNext()) {	
-				FVFlowStatisticsReply rep = (FVFlowStatisticsReply) it.next();
-				if (!matchContainsPort(rep, orig.getOutPort())) {
-					it.remove();
-					statsReply.setLengthU(statsReply.getLengthU() - rep.computeLength());
-				}
-				
 			}
-			statsReply.setStatistics(stats);
-		}*/
-			
+
+		}
+		statsReply.setStatistics(stats);
 			
 		statsReply.setXid(original.getXid());
 		
