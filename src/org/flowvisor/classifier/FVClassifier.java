@@ -899,16 +899,12 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		FVStatisticsReply statsReply = new FVStatisticsReply();
 		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
 		FVAggregateStatisticsReply rep = new FVAggregateStatisticsReply();
-		LinkedList<Long> cookieTracker = new LinkedList<Long>();
-		int flowCount = 0;
+		HashSet<Long> cookieTracker = new HashSet<Long>();
 		for (FVFlowStatisticsReply reply : replies) {
 			if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
 				if (orig.getOutPort() == OFPort.OFPP_NONE.getValue() || 
 						matchContainsPort(reply, orig.getOutPort())) {
-					if (!cookieTracker.contains(reply.getCookie())) {
-						flowCount++;
-						cookieTracker.add(reply.getCookie());
-					}
+					cookieTracker.add(reply.getCookie());
 					rep.setByteCount(rep.getByteCount() + reply.getByteCount());
 					rep.setPacketCount(rep.getPacketCount() + reply.getPacketCount());
 					found = true;
@@ -919,10 +915,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			FVLog.log(LogLevel.WARN, fvSlicer, "Stats request resulted in an empty set ", original);
 			return;
 		}
-		/*
-		 * FIXME: These need to be collapsed
-		 */
-		rep.setFlowCount(flowCount);
+		
+		rep.setFlowCount(cookieTracker.size());
 		stats.add(rep);
 		statsReply.setStatistics(stats);
 		statsReply.setXid(original.getXid());

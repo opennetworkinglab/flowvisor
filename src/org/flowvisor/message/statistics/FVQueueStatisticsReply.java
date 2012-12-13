@@ -55,24 +55,26 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
     		testMatch.setInputPort(reply.portNumber);
     		List<FlowIntersect> intersections = 
     				fvSlicer.getFlowSpace().intersects(fvClassifier.getDPID(), testMatch);
+    		boolean found = false;
     		for (FlowIntersect inter : intersections) {
-    			if (!inter.getFlowEntry().getRuleMatch().getQueues().contains(reply.queueId)) {
+    			if (inter.getFlowEntry().getRuleMatch().getQueues().contains(reply.queueId)) {
     				for (OFAction act : inter.getFlowEntry().getActionsList()) {
     					assert(act instanceof SliceAction);
     					SliceAction sa = (SliceAction) act;
-    					if (!sa.getSliceName().equals(fvSlicer.getSliceName())) {
-    						it.remove();
-    						msg.setLengthU(msg.getLengthU() - reply.computeLength());
-    						FVLog.log(LogLevel.WARN, fvClassifier, "QueueId " + reply.queueId + 
-    								" is not in slice " + fvSlicer.getSliceName());
+    					if (sa.getSliceName().equals(fvSlicer.getSliceName())) {
+    						found = true;
+    						break;
     					}
     				}
-    			} else {
-    				it.remove();
-					msg.setLengthU(msg.getLengthU() - reply.computeLength());
-					FVLog.log(LogLevel.WARN, fvClassifier, "QueueId " + reply.queueId + 
-							" is not in slice " + fvSlicer.getSliceName());
-    			}
+    				if (found)
+    					break;
+    			} 
+    		}
+    		if (!found) {
+    			it.remove();
+    			msg.setLengthU(msg.getLengthU() - reply.computeLength());
+    			FVLog.log(LogLevel.WARN, fvClassifier, "QueueId " + reply.queueId + 
+						" is not in slice " + fvSlicer.getSliceName());
     		}
     	}
     	if (msg.getStatistics().size() > 0) {

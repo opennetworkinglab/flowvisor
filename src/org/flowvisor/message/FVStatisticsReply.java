@@ -18,25 +18,7 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 		Classifiable, Slicable, TopologyControllable, SanityCheckable {
 
 	@Override
-	public void classifyFromSwitch(FVClassifier fvClassifier) {
-//		FVLog.log(LogLevel.WARN, fvClassifier, "START Processing stats reply ", this.getXid(), this);
-//		XidPairWithMessage pair = FVMessageUtil
-//				.untranslateXidMsg(this, fvClassifier);
-//		if (pair == null) {
-//			FVLog.log(LogLevel.WARN, fvClassifier,
-//					"dropping unclassifiable stats reply: ", this);
-//			return;
-//		}
-//		FVSlicer fvSlicer = pair.getSlicer();
-//		OFMessage original = pair.getOFMessage();
-//		FVLog.log(LogLevel.WARN, fvClassifier, "Processing stats reply ", this);
-//		if (this.getStatisticType() == OFStatisticsType.FLOW) {
-//			fvClassifier.classifyFlowStats(this);
-//			fvClassifier.sendFlowStatsResp(fvSlicer, (FVStatisticsRequest) original);
-//			return;
-//		}
-	
-		
+	public void classifyFromSwitch(FVClassifier fvClassifier) {	
 		
 		if (this.getStatistics().size() < 1) {
 			FVLog.log(LogLevel.WARN, fvClassifier, "Dropping empty stats reply: ", this);
