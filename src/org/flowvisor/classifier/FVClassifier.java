@@ -963,6 +963,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 				}
 		//	}
 		}
+		FVLog.log(LogLevel.DEBUG, this, "Outport filter is " + orig.getOutPort()); 
 		if (orig.getOutPort() == OFPort.OFPP_NONE.getValue()) {
 			statsReply.setStatistics(stats);
 		} else {
