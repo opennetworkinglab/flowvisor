@@ -958,10 +958,11 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	//		for (FlowIntersect inter : intersections) {
 				if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
 					if (orig.getOutPort() == OFPort.OFPP_NONE.getValue() ||
-							matchContainsPort(reply, orig.getOutPort()))	
-					FVLog.log(LogLevel.DEBUG, this, "Appending FlowStats reply: ", reply);
-					stats.add(reply);
-					statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
+							matchContainsPort(reply, orig.getOutPort())) {	 
+						FVLog.log(LogLevel.DEBUG, this, "Appending FlowStats reply: ", reply);
+						stats.add(reply);
+						statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
+					}
 				}
 		//	}
 		}
