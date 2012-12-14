@@ -121,7 +121,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		this.doneID = false;
 		this.floodPermsSlice = ""; // disabled, at first
 		this.slicerMap = new HashMap<String, FVSlicer>();
-		this.xidTranslator = new XidTranslator();
+		this.xidTranslator = new XidTranslatorWithMessage();
 		this.missSendLength = 128;
 		this.switchFlowMap = null;
 		this.activePorts = new HashSet<Short>();
@@ -812,7 +812,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	public boolean permitFlowMod(String sliceName) {
 		Integer limit = fmlimits.get(sliceName);
 		Integer curr = currfmlimits.get(sliceName);
-		FVLog.log(LogLevel.DEBUG,null, "Overall limit is " + limit + " current value is " + curr);
+		FVLog.log(LogLevel.DEBUG,this, "Overall limit is " + limit + 
+				" current value is " + curr);
 		if (curr == null)
 			curr = 0;
 		currfmlimits.put(sliceName, curr);
@@ -832,7 +833,14 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	}
 
 	public Integer getCurrentFlowModCounter(String sliceName) {
-		return currfmlimits.get(sliceName);
+		Integer curr = currfmlimits.get(sliceName);
+		if (curr == null)
+			return 0;
+		return curr;
+	}
+	
+	public Integer getMaxAllowedFlowMods(String sliceName) {
+		return fmlimits.get(sliceName);
 	}
 
 	public void setSlicerLimits(SlicerLimits slicerLimits) {

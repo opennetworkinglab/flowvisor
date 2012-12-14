@@ -3,8 +3,13 @@
  */
 package org.flowvisor.message.statistics;
 
+import java.util.List;
+
 import org.flowvisor.classifier.FVClassifier;
+import org.flowvisor.exceptions.StatDisallowedException;
+import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFMessage;
+import org.openflow.protocol.statistics.OFStatistics;
 
 /**
  * @author capveg
@@ -12,12 +17,14 @@ import org.openflow.protocol.OFMessage;
  */
 public interface ClassifiableStatistic {
 	/**
-	 * Given this msg and classifier, figure out which slice this message is
+	 * Given this stat and the slicer and classifier, figure out which slice this message is
 	 * for, rewrite anything as necessary, and send it onto the slice's
 	 * controller
 	 *
-	 * @param msg
+	 * @param approuvedStats
 	 * @param fvClassifier
+	 * @param fvSlicer
 	 */
-	public void classifyFromSwitch(OFMessage msg, FVClassifier fvClassifier);
+	public void classifyFromSwitch(OFMessage original, List<OFStatistics> approvedStats, FVClassifier fvClassifier,
+			FVSlicer fvSlicer) throws StatDisallowedException;
 }

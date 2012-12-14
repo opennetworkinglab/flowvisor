@@ -1,14 +1,19 @@
 package org.flowvisor.message;
 
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.flowvisor.classifier.FVClassifier;
+import org.flowvisor.classifier.XidPairWithMessage;
+import org.flowvisor.exceptions.StatDisallowedException;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.message.statistics.ClassifiableStatistic;
 import org.flowvisor.message.statistics.FVDescriptionStatistics;
 import org.flowvisor.ofswitch.TopologyConnection;
 import org.flowvisor.slicer.FVSlicer;
+import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFStatisticsMessageBase;
 import org.openflow.protocol.OFStatisticsReply;
 import org.openflow.protocol.statistics.OFDescriptionStatistics;
@@ -19,24 +24,46 @@ public class FVStatisticsReply extends OFStatisticsReply implements
 
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
-		// TODO: come back and retool FV stats handling to make this less fugly
-		List<OFStatistics> statsList = this.getStatistics();
-		if (statsList.size() > 0) { // if there is a body, do body specific
-			// parsing
-			OFStatistics stat = statsList.get(0);
-			assert (stat instanceof ClassifiableStatistic);
-			((ClassifiableStatistic) stat).classifyFromSwitch(this,
-					fvClassifier);
-		} else {
-			// else just classify by xid and hope for the best
-			FVSlicer fvSlicer = FVMessageUtil
-					.untranslateXid(this, fvClassifier);
-			if (fvSlicer == null)
-				FVLog.log(LogLevel.WARN, fvClassifier,
-						"dropping unclassifiable msg: " + this);
-			else
-				fvSlicer.sendMsg(this, fvClassifier);
+		XidPairWithMessage pair = FVMessageUtil
+				.untranslateXidMsg(this, fvClassifier);
+		FVSlicer fvSlicer = pair.getSlicer();
+		OFMessage original = pair.getOFMessage();
+		if (fvSlicer == null) {
+			FVLog.log(LogLevel.WARN, fvClassifier,
+					"dropping unclassifiable stats reply: ", this);
+			return;
 		}
+		if (this.getStatistics().size() == 0) {
+			FVLog.log(LogLevel.WARN, fvClassifier, "Dropping empty stats reply: ", this);
+			return;
+		}
+		FVLog.log(LogLevel.DEBUG, fvSlicer, "Processing reply : ", this);
+		List<OFStatistics> newStatsList = new LinkedList<OFStatistics>();
+		Iterator<OFStatistics> it = this.getStatistics().iterator();
+		while (it.hasNext()) {
+			OFStatistics stat = it.next();
+			assert (stat instanceof ClassifiableStatistic);
+			try {
+
+				((ClassifiableStatistic) stat).classifyFromSwitch(original, newStatsList, fvClassifier,
+						fvSlicer);
+				
+			} catch (StatDisallowedException e) {
+				it.remove();
+				this.setLengthU(this.getLengthU() - stat.getLength());
+				FVLog.log(LogLevel.WARN, fvSlicer, e.getMessage());
+			}
+			
+		}
+		this.setStatistics(newStatsList);
+		if (newStatsList.size() == 0) {
+			FVLog.log(LogLevel.WARN, fvClassifier, "dropping empty stats reply: "
+					+ this);
+			return;
+		}
+		FVLog.log(LogLevel.DEBUG, fvSlicer, "Sending msg : ", this);
+		fvSlicer.sendMsg(this, fvClassifier);
+		
 	}
 
 	@Override
