@@ -219,6 +219,8 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		this.ruleMatch.setQueues(qids);
 	}
 	
+	
+	
 	public List<Integer> getQueueId() {
 		if (this.ruleMatch.getQueues() == null) {
 			return new LinkedList<Integer>();
