@@ -57,7 +57,6 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
     				fvSlicer.getFlowSpace().intersects(fvClassifier.getDPID(), testMatch);
     		boolean found = false;
     		for (FlowIntersect inter : intersections) {
-    			FVLog.log(LogLevel.DEBUG, fvClassifier, inter.getFlowEntry().toString());
     			if (inter.getFlowEntry().getRuleMatch().getQueues().contains(reply.queueId)) {
     				for (OFAction act : inter.getFlowEntry().getActionsList()) {
     					assert(act instanceof SliceAction);
