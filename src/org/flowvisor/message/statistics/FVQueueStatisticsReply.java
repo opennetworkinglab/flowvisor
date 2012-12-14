@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.flowvisor.classifier.FVClassifier;
+import org.flowvisor.flows.FlowEntry;
 import org.flowvisor.flows.FlowIntersect;
 import org.flowvisor.flows.SliceAction;
 import org.flowvisor.log.FVLog;
@@ -54,19 +55,19 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
     		FVMatch testMatch = new FVMatch();
     		FVLog.log(LogLevel.DEBUG, null, "Intersecting with port " + reply.portNumber);
     		testMatch.setInputPort(reply.portNumber);
-    		List<FlowIntersect> intersections = 
-    				fvSlicer.getFlowSpace().intersects(fvClassifier.getDPID(), testMatch);
-    		FVLog.log(LogLevel.DEBUG, null, "Intersections " + intersections);
+    		List<FlowEntry> matches = 
+    				fvSlicer.getFlowSpace().matches(fvClassifier.getDPID(), testMatch);
+    		FVLog.log(LogLevel.DEBUG, null, "matches " + matches);
     		
     		boolean found = false;
-    		for (FlowIntersect inter : intersections) {
+    		for (FlowEntry fe : matches) {
     		
-    			if (inter.getFlowEntry().getRuleMatch().getQueues().contains(reply.queueId)) {
-    				for (OFAction act : inter.getFlowEntry().getActionsList()) {
+    			if (fe.getRuleMatch().getQueues().contains(reply.queueId)) {
+    				for (OFAction act : fe.getActionsList()) {
     					assert(act instanceof SliceAction);
     					SliceAction sa = (SliceAction) act;
     					if (sa.getSliceName().equals(fvSlicer.getSliceName())) {
-    						FVLog.log(LogLevel.DEBUG, fvClassifier, inter.getFlowEntry().toString());
+    						FVLog.log(LogLevel.DEBUG, fvClassifier, fe.toString());
     						found = true;
     						break;
     					}
