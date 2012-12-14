@@ -106,9 +106,11 @@ public class FVActionOutput extends OFActionOutput implements SlicableAction,
 			if (!fvClassifier.isPortActive(fPort))
 				continue; // don't expand to inactive ports
 			try {
-				FVActionOutput neoOut = this.clone();
-				neoOut.setPort(fPort);
-				approvedActions.add(neoOut);
+				if (fvSlicer.getFloodPortStatus(fPort)) {
+					FVActionOutput neoOut = this.clone();
+					neoOut.setPort(fPort);
+					approvedActions.add(neoOut);
+				}
 			} catch (CloneNotSupportedException e) {
 				throw new RuntimeException(
 						"silly java... I *do* implement cloneable");
