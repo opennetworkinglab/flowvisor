@@ -103,6 +103,7 @@ public class LinearFlowRewriteDB implements FlowRewriteDB {
 			MatchType matchType = flowDBEntry.matches(dpid,
 					new FVMatch(original.getMatch()), original.getCookie(),
 					original.getPriority()).getMatchType();
+			FVLog.log(LogLevel.DEBUG, null,"flowrewritedb: " + original.getCookie() + " == " + rewrite.getCookie());
 			if (matchType == MatchType.EQUAL || matchType == MatchType.SUPERSET) {
 				found = true;
 				FlowDB flowDB = this.map.get(flowDBEntry);

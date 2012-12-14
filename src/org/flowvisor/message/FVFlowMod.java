@@ -3,6 +3,7 @@ package org.flowvisor.message;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.flowvisor.classifier.CookieTranslator;
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.exceptions.ActionDisallowedException;
 import org.flowvisor.flows.FlowEntry;
@@ -41,7 +42,8 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 	public void sliceFromController(FVClassifier fvClassifier, FVSlicer fvSlicer) {
 		FVLog.log(LogLevel.DEBUG, fvSlicer, "recv from controller: ", this);
 		FVMessageUtil.translateXid(this, fvClassifier, fvSlicer);
-
+		translateCookie(fvClassifier, fvSlicer);
+		
 		// make sure that this slice can access this bufferID
 		if ((this.command != OFFlowMod.OFPFC_DELETE 
 				&& this.command != OFFlowMod.OFPFC_DELETE_STRICT) 
@@ -164,6 +166,15 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 		newFlowMod.setActions(neoActions);
 		newFlowMod.setLengthU(FVFlowMod.MINIMUM_LENGTH + length);
 	}
+	
+	
+	private void translateCookie(FVClassifier fvClassifier, FVSlicer fvSlicer) {
+		CookieTranslator cookieTrans = fvClassifier.getCookieTranslator();
+		long newCookie = cookieTrans.translate(this.cookie, fvSlicer);
+		this.setCookie(newCookie);
+	}
+	
+	
 
 	public FVFlowMod setMatch(FVMatch match) {
 		this.match = match;

@@ -29,8 +29,9 @@ public class FVActionVirtualLanPriorityCodePoint extends
 		for (FlowEntry fe : flowEntries) {
 			Iterator<OFAction> it = fe.getActionsList().iterator();
 			while (it.hasNext()) {
-				if (it.next() instanceof SliceAction) {
-					SliceAction action = (SliceAction) it.next();
+				OFAction act = it.next();
+				if (act instanceof SliceAction) {
+					SliceAction action = (SliceAction) act;
 					if (action.getSliceName().equals(fvSlicer.getSliceName())) {
 						FVLog.log(LogLevel.DEBUG, fvSlicer, "Approving " + this + 
 								" for " + match);

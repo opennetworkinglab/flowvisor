@@ -100,6 +100,7 @@ public class LinearFlowDB implements FlowDB, Serializable {
 			FlowDBEntry flowDBEntry = it.next();
 			MatchType matchType = flowDBEntry.matches(dpid, new FVMatch(flowMod.getMatch()),
 					flowMod.getCookie(), flowMod.getPriority()).getMatchType();
+			FVLog.log(LogLevel.DEBUG, null, "flowdb " + flowDBEntry.getCookie() + " == " + flowMod.getCookie());
 			if (matchType == MatchType.EQUAL || matchType == MatchType.SUPERSET) {
 				FVLog.log(LogLevel.DEBUG, fvEventHandler,
 						"flowDB: del by non-strict: ", flowDBEntry);
@@ -148,11 +149,15 @@ public class LinearFlowDB implements FlowDB, Serializable {
 		String sliceName = null;
 		for (Iterator<FlowDBEntry> it = this.db.iterator(); it.hasNext();) {
 			FlowDBEntry flowDBEntry = it.next();
+			FVLog.log(LogLevel.DEBUG, null, flowDBEntry.toString());
+			FVLog.log(LogLevel.DEBUG, null, "FV " + flowDBEntry.getCookie() + " == " + flowRemoved.getCookie());
+			
 			if (flowDBEntry.getRuleMatch().equals(flowRemoved.getMatch())
 					&& flowDBEntry.getPriority() == flowRemoved.getPriority()
 					&& flowDBEntry.getCookie() == flowRemoved.getCookie()
 					&& flowDBEntry.getDpid() == dpid) {
 				it.remove();
+				
 				sliceName = flowDBEntry.getSliceName();
 				FVLog.log(LogLevel.DEBUG, this.fvEventHandler,
 						"flowDB: removing flow '", flowDBEntry,

@@ -3,6 +3,7 @@ package org.flowvisor.classifier;
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,6 +31,7 @@ import org.flowvisor.events.FVEventHandler;
 import org.flowvisor.events.FVEventLoop;
 import org.flowvisor.events.FVIOEvent;
 import org.flowvisor.events.FVRequestTimeoutEvent;
+import org.flowvisor.events.FVStatsTimer;
 import org.flowvisor.events.OFKeepAlive;
 import org.flowvisor.events.TearDownEvent;
 import org.flowvisor.exceptions.BufferFull;
@@ -48,7 +50,14 @@ import org.flowvisor.log.SendRecvDropStats.FVStatsType;
 import org.flowvisor.message.Classifiable;
 import org.flowvisor.message.FVError;
 import org.flowvisor.message.FVMessageFactory;
+import org.flowvisor.message.FVStatisticsReply;
+import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.message.SanityCheckable;
+import org.flowvisor.message.statistics.FVAggregateStatisticsReply;
+import org.flowvisor.message.statistics.FVAggregateStatisticsRequest;
+import org.flowvisor.message.statistics.FVFlowStatisticsReply;
+import org.flowvisor.message.statistics.FVFlowStatisticsRequest;
+import org.flowvisor.openflow.protocol.FVMatch;
 import org.flowvisor.resources.SlicerLimits;
 import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFEchoReply;
@@ -62,6 +71,10 @@ import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFType;
 import org.openflow.protocol.OFError.OFHelloFailedCode;
+import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionOutput;
+import org.openflow.protocol.statistics.OFStatistics;
+import org.openflow.protocol.statistics.OFStatisticsType;
 
 /**
  * Map OF messages from the switch to the appropriate slice
@@ -85,6 +98,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	OFFeaturesReply switchInfo;
 	Map<String, FVSlicer> slicerMap;
 	XidTranslator xidTranslator;
+	CookieTranslator cookieTranslator;
 	short missSendLength;
 	FlowMap switchFlowMap;
 	private boolean shutdown;
@@ -101,6 +115,11 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	private HashMap<String, Integer> fmlimits = new HashMap<String, Integer>();
 	private HashMap<String, Integer> currfmlimits = new HashMap<String, Integer>();
 	private SlicerLimits slicerLimits;
+	
+	
+	private boolean statsWindowOpen = true;
+	private HashMap<String, ArrayList<FVFlowStatisticsReply>> flowStats = 
+			new HashMap<String, ArrayList<FVFlowStatisticsReply>>();
 
 	// OFPP_FLOOD
 
@@ -122,6 +141,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		this.floodPermsSlice = ""; // disabled, at first
 		this.slicerMap = new HashMap<String, FVSlicer>();
 		this.xidTranslator = new XidTranslatorWithMessage();
+		this.cookieTranslator = new CookieTranslator();
 		this.missSendLength = 128;
 		this.switchFlowMap = null;
 		this.activePorts = new HashSet<Short>();
@@ -226,6 +246,14 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	public void setXidTranslator(XidTranslator xidTranslator) {
 		this.xidTranslator = xidTranslator;
 	}
+	
+	public CookieTranslator getCookieTranslator() {
+		return this.cookieTranslator;
+	}
+	
+	public void setCookieTranslator(CookieTranslator cookieTranslator) {
+		this.cookieTranslator = cookieTranslator;
+	}
 
 	/**
 	 * on init, send HELLO, delete all flow entries, and send features request
@@ -253,7 +281,9 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		FVRequestTimeoutEvent requestTimeoutEvent = new FVRequestTimeoutEvent(this);
 		requestTimeoutEvent.setExpireTime(System.currentTimeMillis() + FVRequestTimeoutEvent.WAIT_TIME);
 		loop.addTimer(requestTimeoutEvent);
-
+		
+		
+		
 		int ops = SelectionKey.OP_READ;
 		if (msgStream.needsFlush())
 			ops |= SelectionKey.OP_WRITE;
@@ -286,6 +316,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	 * Check "switches.$dpid.flood_perms" if we know $dpid, else check
 	 * "switches.default.flood_perms" also add it to the watch list
 	 */
+
+	
 
 	void updateFloodPerms() {
 		Long dpid = null;
@@ -345,6 +377,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			this.tearDown();
 		else if (e instanceof FVRequestTimeoutEvent)
 			handleRequestTimeout();
+		else if (e instanceof FVStatsTimer)
+			this.statsWindowOpen = true;
 		else
 			throw new UnhandledEvent(e);
 	}
@@ -632,6 +666,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		for (String deleteSlice : deletelist)
 			slicerMap.remove(deleteSlice);
 	}
+	
+	
 
 	public FlowMap getSwitchFlowMap() {
 		return switchFlowMap;
@@ -850,5 +886,157 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	public SlicerLimits getSlicerLimits() {
 		return this.slicerLimits;
 	}
+	
+	private synchronized ArrayList<FVFlowStatisticsReply> getFlowStats(String sliceName) {
+		return new ArrayList<FVFlowStatisticsReply>(flowStats.get(sliceName));
+	}
+	
+	public void sendAggStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original) {
+		boolean found = false;
+		FVAggregateStatisticsRequest orig = (FVAggregateStatisticsRequest) original.getStatistics().get(0);
+	
+		ArrayList<FVFlowStatisticsReply> replies = getFlowStats(fvSlicer.getSliceName());
+		
+		List<OFStatistics> stats = new LinkedList<OFStatistics>();
+		FVStatisticsReply statsReply = new FVStatisticsReply();
+		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
+		HashSet<Long> cookieTracker = new HashSet<Long>();
+		FVAggregateStatisticsReply rep = new FVAggregateStatisticsReply();
+		for (FVFlowStatisticsReply reply : replies) {
+			if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
+				if (orig.getOutPort() == OFPort.OFPP_NONE.getValue() || 
+						matchContainsPort(reply, orig.getOutPort())) {
+					rep.setByteCount(rep.getByteCount() + reply.getByteCount());
+					rep.setPacketCount(rep.getPacketCount() + reply.getPacketCount());
+					cookieTracker.add(reply.getTransCookie());
+					found = true;
+				}
+			}
+		}
+		if (!found) {
+			FVLog.log(LogLevel.WARN, fvSlicer, "Stats request resulted in an empty set ", original);
+			return;
+		}
+		
+		
+		
+		rep.setFlowCount(cookieTracker.size());
+		
+		stats.add(rep);
+		statsReply.setStatistics(stats);
+		statsReply.setXid(original.getXid());
+		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH + rep.computeLength());
+		statsReply.setVersion(original.getVersion());
+		statsReply.setStatisticType(original.getStatisticType());
+	
+		if (statsReply.getStatistics().size() == 0) 
+			FVLog.log(LogLevel.WARN, fvSlicer, "Stats request resulted in an empty set ", original);
+		
+		fvSlicer.sendMsg(statsReply, this);
+		
+	}
+
+	private boolean matchContainsPort(FVFlowStatisticsReply reply, short outPort) {
+		for (OFAction act : reply.getActions()) {
+			if (act instanceof OFActionOutput) {
+				OFActionOutput outact = (OFActionOutput) act;
+				if (outact.getPort() == outPort)
+					return true;
+			}
+		}
+		return false;
+	}
+
+	public void sendFlowStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original) {
+		FVFlowStatisticsRequest orig = (FVFlowStatisticsRequest) original.getStatistics().get(0);
+		
+	
+		// Don't think this is required as we only return whatever THAT slice pushed. Thanks to cookies!
+	//	List<FlowIntersect> intersections = this.getSwitchFlowMap().intersects(this.getDPID(), new FVMatch(orig.getMatch()));
+	
+		ArrayList<FVFlowStatisticsReply> replies = getFlowStats(fvSlicer.getSliceName());
+		
+		List<OFStatistics> stats = new LinkedList<OFStatistics>();
+		FVStatisticsReply statsReply = new FVStatisticsReply();
+		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
+		for (FVFlowStatisticsReply reply : replies) {
+			if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
+				if (orig.getOutPort() == OFPort.OFPP_NONE.getValue() ||
+						matchContainsPort(reply, orig.getOutPort())) {	 
+					FVLog.log(LogLevel.DEBUG, this, "Appending FlowStats reply: ", reply);
+					stats.add(reply);
+					statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
+				}
+			}
+
+		}
+		statsReply.setStatistics(stats);
+			
+		statsReply.setXid(original.getXid());
+		
+		statsReply.setVersion(original.getVersion());
+		statsReply.setStatisticType(original.getStatisticType());
+	
+		if (statsReply.getStatistics().size() == 0) 
+			FVLog.log(LogLevel.WARN, fvSlicer, "Stats request resulted in an empty set ", original);
+		
+		fvSlicer.sendMsg(statsReply, this);
+	
+	}
+
+	
+	public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply) {
+		
+		flowStats.clear();
+		List<OFStatistics> stats = fvStatisticsReply.getStatistics();
+		for (OFStatistics s : stats) {
+			FVFlowStatisticsReply stat = (FVFlowStatisticsReply) s;
+			CookiePair pair = getCookieTranslator().untranslate(stat.getCookie());
+			if (pair == null) {
+				FVLog.log(LogLevel.WARN, this, "Unable to classify stats - ignoring - ", stat);
+				continue;
+			}
+			stat.setTransCookie(stat.getCookie());
+			stat.setCookie(pair.getCookie());
+			addToFlowStats(stat, pair.getSliceName());
+		}
+		
+	}
+	
+	private void addToFlowStats(FVFlowStatisticsReply stat, String sliceName) {
+		ArrayList<FVFlowStatisticsReply> stats = flowStats.get(sliceName);
+		if (stats == null) 
+			stats = new ArrayList<FVFlowStatisticsReply>();
+		stats.add(stat);
+		flowStats.put(sliceName, stats);
+	}
+	
+	public boolean pollFlowTableStats(FVStatisticsRequest orig) {
+		if (!this.statsWindowOpen )
+			return this.statsWindowOpen;
+		this.statsWindowOpen = false;
+		FVStatisticsRequest request = new FVStatisticsRequest();
+		request.setStatisticType(OFStatisticsType.FLOW);
+		request.setType(OFType.STATS_REQUEST);
+		
+		
+		FVFlowStatisticsRequest statsReq = new FVFlowStatisticsRequest();
+		statsReq.setMatch(new FVMatch());
+		statsReq.setOutPort(OFPort.OFPP_NONE.getValue());
+		statsReq.setTableId((byte) 0xFF);
+		List<OFStatistics> stats = new LinkedList<OFStatistics>();
+		stats.add(statsReq);
+		request.setStatistics(stats);
+		request.setLengthU(FVStatisticsRequest.MINIMUM_LENGTH + statsReq.computeLength());
+		request.setXid(orig.getXid());
+		this.sendMsg(request, this);
+		
+		FVStatsTimer statsTimer = new FVStatsTimer(this);
+		statsTimer.setExpireTime(System.currentTimeMillis() + FVStatsTimer.WAIT_TIME);
+		loop.addTimer(statsTimer);
+		return !this.statsWindowOpen;
+	}
+
+	
 
 }

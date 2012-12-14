@@ -1,58 +1,29 @@
 package org.flowvisor.message.statistics;
 
-import java.util.List;
-import java.util.Set;
-
 import org.flowvisor.classifier.FVClassifier;
-import org.flowvisor.exceptions.StatDisallowedException;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
+import org.flowvisor.message.FVMessageUtil;
+import org.flowvisor.message.FVStatisticsReply;
+import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.slicer.FVSlicer;
-import org.openflow.protocol.OFMessage;
-import org.openflow.protocol.OFPort;
-import org.openflow.protocol.OFError.OFBadRequestCode;
 import org.openflow.protocol.statistics.OFPortStatisticsRequest;
-import org.openflow.protocol.statistics.OFStatistics;
 
 public class FVPortStatisticsRequest extends OFPortStatisticsRequest implements
-		ClassifiableStatistic, SlicableStatistic, Cloneable {
+		ClassifiableStatistic, SlicableStatistic {
 
 
 
 	@Override
-	public void sliceFromController(List<OFStatistics> approvedStats,
-			FVClassifier fvClassifier, FVSlicer fvSlicer)
-			throws StatDisallowedException {
-	
-		
-		if (!fvSlicer.isAllowAllPorts() && this.portNumber == OFPort.OFPP_NONE.ordinal()) {
-			Set<Short> ports = fvSlicer.getPorts();
-			for (Short port : ports) {
-				FVPortStatisticsRequest portReq = this.clone();
-				portReq.portNumber = port;
-				approvedStats.add(portReq);
-			}
-		}
-		
-		if (fvSlicer.portInSlice(this.portNumber)) {
-			approvedStats.add(this);
-		}
-		if (approvedStats.size() == 0)
-			throw new StatDisallowedException("Port " + this.portNumber + 
-					" is not in slice " + fvSlicer.getSliceName(), OFBadRequestCode.OFPBRC_EPERM);
-		
-	}
-	
-	public FVPortStatisticsRequest clone() {
-		FVPortStatisticsRequest req = new FVPortStatisticsRequest();
-		req.portNumber = this.portNumber;
-		return req;
+	public void sliceFromController(FVStatisticsRequest msg,
+			FVClassifier fvClassifier, FVSlicer fvSlicer) {
+		//TODO: implement port stats
+		FVMessageUtil.translateXidAndSend(msg, fvClassifier, fvSlicer);
 	}
 
 	@Override
-	public void classifyFromSwitch(OFMessage original,
-			List<OFStatistics> approvedStats, FVClassifier fvClassifier,
-			FVSlicer fvSlicer) throws StatDisallowedException {
+	public void classifyFromSwitch(FVStatisticsReply msg,
+			FVClassifier fvClassifier) {
 		FVLog.log(LogLevel.WARN, fvClassifier, "dropping unexpected msg: "
 				+ this);
 		

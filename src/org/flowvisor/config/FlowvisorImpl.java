@@ -927,8 +927,10 @@ public class FlowvisorImpl implements Flowvisor {
 			if (set.next()) 
 				return set.getInt(DB_VERSION);
 			else {
-				System.err.println("Failed fetching DB version, exiting");
-				System.exit(1);
+				System.err.println("You must be running in batch mode");
+				return FlowVisor.FLOWVISOR_DB_VERSION;
+				/*
+				System.exit(1);*/
 			}
 				
 		} catch (SQLException e) {
