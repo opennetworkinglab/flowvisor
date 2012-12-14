@@ -52,6 +52,7 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
     			continue;
     		}
     		FVMatch testMatch = new FVMatch();
+    		FVLog.log(LogLevel.DEBUG, null, "Intersecting with port " + reply.portNumber);
     		testMatch.setInputPort(reply.portNumber);
     		List<FlowIntersect> intersections = 
     				fvSlicer.getFlowSpace().intersects(fvClassifier.getDPID(), testMatch);
