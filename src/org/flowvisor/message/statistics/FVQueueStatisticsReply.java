@@ -53,6 +53,7 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
     		}
     		FVMatch testMatch = new FVMatch();
     		testMatch.setInputPort(reply.portNumber);
+    		FVLog.log(LogLevel.DEBUG, fvClassifier, fvSlicer.getFlowSpace().getRules());
     		List<FlowIntersect> intersections = 
     				fvSlicer.getFlowSpace().intersects(fvClassifier.getDPID(), testMatch);
     		boolean found = false;
