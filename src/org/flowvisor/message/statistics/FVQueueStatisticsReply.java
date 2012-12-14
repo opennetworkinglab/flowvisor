@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.flows.FlowEntry;
-import org.flowvisor.flows.FlowIntersect;
 import org.flowvisor.flows.SliceAction;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
@@ -53,7 +52,6 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
     			continue;
     		}
     		FVMatch testMatch = new FVMatch();
-    		FVLog.log(LogLevel.DEBUG, null, "Intersecting with port " + reply.portNumber);
     		testMatch.setInputPort(reply.portNumber);
     		testMatch.setWildcards(testMatch.getWildcards() & ~FVMatch.OFPFW_IN_PORT);
     		List<FlowEntry> matches = 
@@ -68,7 +66,6 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
     					assert(act instanceof SliceAction);
     					SliceAction sa = (SliceAction) act;
     					if (sa.getSliceName().equals(fvSlicer.getSliceName())) {
-    						FVLog.log(LogLevel.DEBUG, fvClassifier, fe.toString());
     						found = true;
     						break;
     					}
