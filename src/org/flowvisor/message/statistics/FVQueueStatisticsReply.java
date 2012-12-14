@@ -55,6 +55,7 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
     		FVMatch testMatch = new FVMatch();
     		FVLog.log(LogLevel.DEBUG, null, "Intersecting with port " + reply.portNumber);
     		testMatch.setInputPort(reply.portNumber);
+    		testMatch.setWildcards(testMatch.getWildcards() & ~FVMatch.OFPFW_IN_PORT);
     		List<FlowEntry> matches = 
     				fvSlicer.getFlowSpace().matches(fvClassifier.getDPID(), testMatch);
     		FVLog.log(LogLevel.DEBUG, null, "matches " + matches);
