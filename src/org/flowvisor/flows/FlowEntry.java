@@ -219,8 +219,6 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		this.ruleMatch.setQueues(qids);
 	}
 	
-	
-	
 	public List<Integer> getQueueId() {
 		if (this.ruleMatch.getQueues() == null) {
 			return new LinkedList<Integer>();
@@ -547,8 +545,8 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 				this.priority, actionsList); // fixme
 		ret.setId(this.id);
 		ret.setActionsList(new LinkedList<OFAction>(actionsList));
-		FVLog.log(LogLevel.DEBUG, null, "cloning " + this.queue_ids + " match has " + this.ruleMatch.getQueues());
-		ret.setQueueId(new LinkedList<Integer>(this.queue_ids));
+		/*FVLog.log(LogLevel.DEBUG, null, "cloning " + this.queue_ids + " match has " + this.ruleMatch.getQueues());
+		ret.setQueueId(new LinkedList<Integer>(this.ruleMatch.getQueues()));*/
 		return ret;
 	}
 

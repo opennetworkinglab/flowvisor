@@ -22,7 +22,7 @@ public class FVMatch extends OFMatch {
 	private static final String STR_QUEUE = "queues";
 	private static final String STR_FORCE = "force_enqueue";
 	
-	private List<Integer> queues = null;
+	private List<Integer> queues = new LinkedList<Integer>();
 	private long force_queue = -1;
 	 
 
@@ -368,6 +368,7 @@ public class FVMatch extends OFMatch {
             FVMatch ret = (FVMatch) super.clone();
             ret.dataLayerDestination = this.dataLayerDestination.clone();
             ret.dataLayerSource = this.dataLayerSource.clone();
+            ret.queues = new LinkedList<Integer>(this.queues);
             return ret;
     }
     
