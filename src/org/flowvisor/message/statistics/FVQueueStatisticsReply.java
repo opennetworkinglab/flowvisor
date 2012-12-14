@@ -53,12 +53,11 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
     		}
     		FVMatch testMatch = new FVMatch();
     		testMatch.setInputPort(reply.portNumber);
-    		FVLog.log(LogLevel.DEBUG, fvClassifier, fvSlicer.getFlowSpace().getRules());
     		List<FlowIntersect> intersections = 
     				fvSlicer.getFlowSpace().intersects(fvClassifier.getDPID(), testMatch);
     		boolean found = false;
     		for (FlowIntersect inter : intersections) {
-    			FVLog.log(LogLevel.DEBUG, fvClassifier, inter.getFlowEntry().getRuleMatch().toString());
+    			FVLog.log(LogLevel.DEBUG, fvClassifier, inter.getFlowEntry().toString());
     			if (inter.getFlowEntry().getRuleMatch().getQueues().contains(reply.queueId)) {
     				for (OFAction act : inter.getFlowEntry().getActionsList()) {
     					assert(act instanceof SliceAction);
