@@ -30,7 +30,6 @@ public class FVPortStatisticsReply extends OFPortStatisticsReply implements
                 OFStatistics stat = it.next();
                 if (stat instanceof OFPortStatisticsReply) {
                         OFPortStatisticsReply portStat = (OFPortStatisticsReply) stat;
-                        FVLog.log(LogLevel.DEBUG, fvClassifier, fvSlicer.getPorts().toString());
                         if (!fvSlicer.portInSlice(portStat.getPortNumber())) {
                         		FVLog.log(LogLevel.DEBUG, fvClassifier, "Dropping port ", portStat.getPortNumber(), 
                         				" because it is not in slice ", fvSlicer.getSliceName());
@@ -39,6 +38,11 @@ public class FVPortStatisticsReply extends OFPortStatisticsReply implements
                         }
                 }
         }
+        if (msg.getStatistics().size() == 0) {
+        	FVLog.log(LogLevel.DEBUG, fvClassifier, "Dropping emptied port stats reply");
+        	return;
+        }
+        	
        
         fvSlicer.sendMsg(msg, fvClassifier);
 		

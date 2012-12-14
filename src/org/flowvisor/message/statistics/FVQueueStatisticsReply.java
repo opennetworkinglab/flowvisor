@@ -74,7 +74,8 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
     			it.remove();
     			msg.setLengthU(msg.getLengthU() - reply.computeLength());
     			FVLog.log(LogLevel.WARN, fvClassifier, "QueueId " + reply.queueId + 
-						" is not in slice " + fvSlicer.getSliceName());
+						" is not associtated to port " + reply.getPortNumber() + 
+						" in slice " + fvSlicer.getSliceName());
     		}
     	}
     	if (msg.getStatistics().size() > 0) {
