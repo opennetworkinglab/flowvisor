@@ -545,6 +545,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 				this.priority, actionsList); // fixme
 		ret.setId(this.id);
 		ret.setActionsList(new LinkedList<OFAction>(actionsList));
+		FVLog.log(LogLevel.DEBUG, null, "cloning " + this.queue_ids + " match has " + this.ruleMatch.getQueues());
 		ret.setQueueId(new LinkedList<Integer>(this.queue_ids));
 		return ret;
 	}
