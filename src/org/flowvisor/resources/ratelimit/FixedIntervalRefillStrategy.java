@@ -21,7 +21,6 @@ public class FixedIntervalRefillStrategy implements RefillStrategy {
 	public synchronized long refill() {
 		
 		long now = System.nanoTime();
-		FVLog.log(LogLevel.DEBUG, null, "now is ", now, " nextrefilltime is ", nextRefillTime);
 		if (now < nextRefillTime) {
 			return 0;
 		}
