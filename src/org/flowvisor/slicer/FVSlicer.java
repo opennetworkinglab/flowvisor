@@ -577,7 +577,8 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 						FVLog.log(LogLevel.WARN, this,
 								"dropping msg because slice", this.getSliceName(), " is rate limited: ",
 								msg);
-						FVMessageUtil.makeErrorMsg(OFBadRequestCode.OFPBRC_EPERM, msg);
+						this.sendMsg(FVMessageUtil.makeErrorMsg(OFBadRequestCode.OFPBRC_EPERM, msg), this);
+						
 						continue;
 					}
 					((Slicable) msg).sliceFromController(fvClassifier, this);
