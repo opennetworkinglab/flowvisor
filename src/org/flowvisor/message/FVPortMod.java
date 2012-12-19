@@ -6,7 +6,6 @@ import org.flowvisor.log.LogLevel;
 import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPortMod;
-import org.openflow.protocol.OFError.OFBadRequestCode;
 import org.openflow.protocol.OFError.OFPortModFailedCode;
 
 public class FVPortMod extends OFPortMod implements Classifiable, Slicable {

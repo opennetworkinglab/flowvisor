@@ -1,8 +1,6 @@
 package org.flowvisor.message;
 
 import org.flowvisor.classifier.FVClassifier;
-import org.flowvisor.log.FVLog;
-import org.flowvisor.log.LogLevel;
 import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFError.OFBadRequestCode;
 import org.openflow.protocol.OFQueueConfigRequest;

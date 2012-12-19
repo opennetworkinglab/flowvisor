@@ -908,6 +908,7 @@ public class FVUserAPIImpl extends BasicJSONRPCService implements FVUserAPI {
 			try {
 				SwitchImpl.getProxy().setRateLimit(sliceName, classifier.getDPID(), limit);
 			} catch (ConfigError e) {
+				e.printStackTrace();
 				FVLog.log(LogLevel.DEBUG, null, "Unable to set rate limit; " + e.getMessage());
 				return false;
 			}
