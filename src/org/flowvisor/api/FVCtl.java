@@ -70,6 +70,8 @@ public class FVCtl {
 		
 		new APICmd("getCurrentFlowMods", 2, "<slice> <dpid>"),
 		
+		new APICmd("setRateLimit", 2,"<slice> <msgs_per_second>"),
+		
 		new APICmd("getSliceStats", 1, "<slicename>"),
 		new APICmd("getSwitchStats", 1, "<dpid>"),
 		new APICmd("getSwitchFlowDB", 1, "<dpid>"),
@@ -832,6 +834,22 @@ public class FVCtl {
 		}
 		System.out.println("The current limit for slice " + sliceName + " on " 
 							+ dpidStr + " : " + reply);
+	}
+	
+	
+	public void run_setRateLimit(String sliceName, 
+			String strRateLimit) throws IOException, XmlRpcException, 
+			MalformedURLException {
+		Boolean reply = (Boolean) this.client.execute(
+				"api.setRateLimit", new Object[] {sliceName, strRateLimit});
+		if (reply == null) {
+			System.err.println("Got 'null' for reply :-(");
+			System.exit(-1);
+		}
+		if (reply)
+			System.out.println("success!");
+		else
+			System.err.println("failed!");	
 	}
 	
 	private static void usage(String string) {

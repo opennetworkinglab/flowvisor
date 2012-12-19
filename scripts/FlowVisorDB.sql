@@ -118,6 +118,7 @@ CREATE TABLE jSliceSwitchLimits (
     slice_id INT NOT NULL,
     switch_id INT NOT NULL,
     maximum_flow_mods INT NOT NULL DEFAULT -1,
+    rate_limit INT NOT NULL DEFAULT -1,
     PRIMARY KEY (id));
 
 CREATE INDEX slice_limit_index ON jSliceSwitchLimits (slice_id ASC);

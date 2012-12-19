@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 
 import org.flowvisor.config.ConfigError;
@@ -59,6 +60,8 @@ import org.flowvisor.message.statistics.FVFlowStatisticsReply;
 import org.flowvisor.message.statistics.FVFlowStatisticsRequest;
 import org.flowvisor.openflow.protocol.FVMatch;
 import org.flowvisor.resources.SlicerLimits;
+import org.flowvisor.resources.ratelimit.FixedIntervalRefillStrategy;
+import org.flowvisor.resources.ratelimit.TokenBucket;
 import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFEchoReply;
 import org.openflow.protocol.OFFeaturesReply;
@@ -831,6 +834,21 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		fmlimits.put((String) in.get(Slice.SLICE), (Integer) in.get("LIMIT")); 
 	}
 	
+	@Override
+	public void setRateLimit(HashMap<String, Object> in) {
+		Integer rateLimit = (Integer) in.get("RATELIMIT");
+		if (rateLimit == -1) {
+			slicerLimits.setRateLimiter(FlowSpaceUtil.dpidToString(this.getDPID()) + in.get(Slice.SLICE), 
+					new TokenBucket());
+		} else {
+			slicerLimits.setRateLimiter(FlowSpaceUtil.dpidToString(this.getDPID()) + in.get(Slice.SLICE), 
+					new TokenBucket(200, new FixedIntervalRefillStrategy(rateLimit, 1, TimeUnit.SECONDS)));
+		}
+		
+	}
+	
+	
+	
 	public void incrementFlowMod(String sliceName) {
 		Integer curr = currfmlimits.get(sliceName);
 		if (curr == null)
@@ -867,6 +885,22 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		}
 		fmlimits.put(sliceName, limit);
 	}
+	
+	public void loadRateLimit(String sliceName) {
+		int limit = -1;
+		try {
+			limit = SwitchImpl.getProxy().getRateLimit(sliceName, this.getDPID());
+		} catch (ConfigError e) {
+			FVLog.log(LogLevel.WARN, this, "Disabling dpid limits because I can't load it from the db.");
+		}
+		if (limit == -1) {
+			slicerLimits.setRateLimiter(FlowSpaceUtil.dpidToString(this.getDPID()) + sliceName, 
+					new TokenBucket());
+		} else {
+			slicerLimits.setRateLimiter(FlowSpaceUtil.dpidToString(this.getDPID()) + sliceName, 
+					new TokenBucket(200, new FixedIntervalRefillStrategy(limit, 1, TimeUnit.SECONDS)));
+		}
+	}
 
 	public Integer getCurrentFlowModCounter(String sliceName) {
 		Integer curr = currfmlimits.get(sliceName);
@@ -885,6 +919,10 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	
 	public SlicerLimits getSlicerLimits() {
 		return this.slicerLimits;
+	}
+	
+	public boolean isRateLimited(String sliceName) {
+		return slicerLimits.getRateLimiter(FlowSpaceUtil.dpidToString(this.getDPID()) + sliceName).consume();
 	}
 	
 	private synchronized ArrayList<FVFlowStatisticsReply> getFlowStats(String sliceName) {
@@ -1036,6 +1074,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		loop.addTimer(statsTimer);
 		return !this.statsWindowOpen;
 	}
+
+	
 
 	
 

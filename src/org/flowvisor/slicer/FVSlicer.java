@@ -46,16 +46,19 @@ import org.flowvisor.log.LogLevel;
 import org.flowvisor.log.SendRecvDropStats;
 import org.flowvisor.log.SendRecvDropStats.FVStatsType;
 import org.flowvisor.message.FVMessageFactory;
+import org.flowvisor.message.FVMessageUtil;
 import org.flowvisor.message.FVPacketOut;
 import org.flowvisor.message.FVPortStatus;
 import org.flowvisor.message.SanityCheckable;
 import org.flowvisor.message.Slicable;
 import org.flowvisor.ofswitch.TopologyController;
+import org.openflow.protocol.OFError.OFBadRequestCode;
 import org.openflow.protocol.OFHello;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
+import org.openflow.protocol.OFType;
 import org.openflow.util.LRULinkedHashMap;
 
 
@@ -160,10 +163,11 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 		this.keepAlive = new OFKeepAlive(this, this, loop);
 		this.keepAlive.scheduleNextCheck();
 		fvClassifier.loadLimit(sliceName);
+		fvClassifier.loadRateLimit(sliceName);
 		try {
 			this.fmlimit = SliceImpl.getProxy().getMaxFlowMods(sliceName);
 		} catch (ConfigError e) {
-			FVLog.log(LogLevel.WARN, this, "Global slice flow mod limit unreadle; disabling.");
+			FVLog.log(LogLevel.WARN, this, "Global slice flow mod limit unreadable; disabling.");
 			this.fmlimit = -1;
 		}
 	}
@@ -566,10 +570,19 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 							"msg failed sanity check; dropping: " + msg);
 					continue;
 				}
-				if (msg instanceof Slicable) {
-					((Slicable) msg).sliceFromController(fvClassifier, this);
+				if (msg instanceof Slicable ) {
 					// mark this channel as still alive
 					this.keepAlive.registerPong();
+					if (msg.getType() != OFType.HELLO && !fvClassifier.isRateLimited(this.getSliceName())) {
+						FVLog.log(LogLevel.WARN, this,
+								"dropping msg because slice", this.getSliceName(), " is rate limited: ",
+								msg);
+						this.sendMsg(FVMessageUtil.makeErrorMsg(OFBadRequestCode.OFPBRC_EPERM, msg), this);
+						
+						continue;
+					}
+					((Slicable) msg).sliceFromController(fvClassifier, this);
+					
 				} else
 					FVLog.log(LogLevel.CRIT, this,
 							"dropping msg that doesn't implement classify: ",
