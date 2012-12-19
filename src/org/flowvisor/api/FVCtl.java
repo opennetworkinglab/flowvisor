@@ -841,7 +841,7 @@ public class FVCtl {
 			String strRateLimit) throws IOException, XmlRpcException, 
 			MalformedURLException {
 		Boolean reply = (Boolean) this.client.execute(
-				"api.setMaximumFlowMods", new Object[] {sliceName, strRateLimit});
+				"api.setRateLimit", new Object[] {sliceName, strRateLimit});
 		if (reply == null) {
 			System.err.println("Got 'null' for reply :-(");
 			System.exit(-1);
