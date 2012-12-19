@@ -1,5 +1,8 @@
 package org.flowvisor.resources.ratelimit;
 
+import org.flowvisor.log.FVLog;
+import org.flowvisor.log.LogLevel;
+
 
 public class TokenBucket {
 
@@ -39,7 +42,7 @@ public class TokenBucket {
 		// Give the refill strategy a chance to add tokens if it needs to
 		long newTokens = Math.max(0, strategy.refill());
 		this.size = Math.max(0, Math.min(this.size + newTokens, capacity));
-
+		FVLog.log(LogLevel.DEBUG, null, "Refilled " + newTokens + " bucket has " + this.size);
 		// Now try to consume some tokens
 		if (numTokens <= this.size) {
 			this.size -= numTokens;
