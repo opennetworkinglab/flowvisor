@@ -6,6 +6,7 @@ import org.flowvisor.log.LogLevel;
 import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPortMod;
+import org.openflow.protocol.OFError.OFBadRequestCode;
 import org.openflow.protocol.OFError.OFPortModFailedCode;
 
 public class FVPortMod extends OFPortMod implements Classifiable, Slicable {
@@ -30,6 +31,13 @@ public class FVPortMod extends OFPortMod implements Classifiable, Slicable {
 	 */
 	@Override
 	public void sliceFromController(FVClassifier fvClassifier, FVSlicer fvSlicer) {
+		if (fvClassifier.isRateLimited(fvSlicer.getSliceName())) {
+			FVLog.log(LogLevel.WARN, fvSlicer,
+					"dropping msg because slice", fvSlicer.getSliceName(), " is rate limited: ",
+					this);
+			FVMessageUtil.makeErrorMsg(OFBadRequestCode.OFPBRC_EPERM, this);
+			return;
+		}
 		// First, check if this port is in the slice
 		if (!fvSlicer.portInSlice(this.portNumber)) {
 			fvSlicer.sendMsg(FVMessageUtil.makeErrorMsg(

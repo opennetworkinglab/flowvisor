@@ -40,6 +40,13 @@ public class FVPacketOut extends OFPacketOut implements Classifiable, Slicable {
 	@Override
 	public void sliceFromController(FVClassifier fvClassifier, FVSlicer fvSlicer) {
 
+		if (fvClassifier.isRateLimited(fvSlicer.getSliceName())) {
+			FVLog.log(LogLevel.WARN, fvSlicer,
+					"dropping msg because slice", fvSlicer.getSliceName(), " is rate limited: ",
+					this);
+			FVMessageUtil.makeErrorMsg(OFBadRequestCode.OFPBRC_EPERM, this);
+			return;
+		}
 		// make sure that this slice can access this bufferID
 		if (! fvSlicer.isBufferIDAllowed(this.getBufferId())) {
 			FVLog.log(LogLevel.WARN, fvSlicer,

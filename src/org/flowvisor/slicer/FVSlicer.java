@@ -569,13 +569,6 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 							"msg failed sanity check; dropping: " + msg);
 					continue;
 				}
-				if (fvClassifier.isRateLimited(sliceName)) {
-					FVLog.log(LogLevel.WARN, this,
-							"dropping msg because slice", sliceName, " is rate limited: ",
-							msg);
-					FVMessageUtil.makeErrorMsg(OFBadRequestCode.OFPBRC_EPERM, msg);
-					continue;
-				}
 				if (msg instanceof Slicable ) {
 					((Slicable) msg).sliceFromController(fvClassifier, this);
 					// mark this channel as still alive
