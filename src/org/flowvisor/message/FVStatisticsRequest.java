@@ -23,7 +23,6 @@ public class FVStatisticsRequest extends OFStatisticsRequest implements
 
 	@Override
 	public void sliceFromController(FVClassifier fvClassifier, FVSlicer fvSlicer) {
-		
 		if (this.statisticType == OFStatisticsType.DESC
 				|| this.statisticType == OFStatisticsType.TABLE
 				|| this.statisticType == OFStatisticsType.VENDOR) {

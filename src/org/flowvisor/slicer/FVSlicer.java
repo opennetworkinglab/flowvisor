@@ -58,6 +58,7 @@ import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
+import org.openflow.protocol.OFType;
 import org.openflow.util.LRULinkedHashMap;
 
 
@@ -570,9 +571,17 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 					continue;
 				}
 				if (msg instanceof Slicable ) {
-					((Slicable) msg).sliceFromController(fvClassifier, this);
 					// mark this channel as still alive
 					this.keepAlive.registerPong();
+					if (msg.getType() != OFType.HELLO && !fvClassifier.isRateLimited(this.getSliceName())) {
+						FVLog.log(LogLevel.WARN, this,
+								"dropping msg because slice", this.getSliceName(), " is rate limited: ",
+								msg);
+						FVMessageUtil.makeErrorMsg(OFBadRequestCode.OFPBRC_EPERM, msg);
+						continue;
+					}
+					((Slicable) msg).sliceFromController(fvClassifier, this);
+					
 				} else
 					FVLog.log(LogLevel.CRIT, this,
 							"dropping msg that doesn't implement classify: ",

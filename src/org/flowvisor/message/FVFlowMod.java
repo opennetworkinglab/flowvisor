@@ -40,13 +40,7 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 
 	@Override
 	public void sliceFromController(FVClassifier fvClassifier, FVSlicer fvSlicer) {
-		if (fvClassifier.isRateLimited(fvSlicer.getSliceName())) {
-			FVLog.log(LogLevel.WARN, fvSlicer,
-					"dropping msg because slice", fvSlicer.getSliceName(), " is rate limited: ",
-					this);
-			FVMessageUtil.makeErrorMsg(OFBadRequestCode.OFPBRC_EPERM, this);
-			return;
-		}
+	
 		FVLog.log(LogLevel.DEBUG, fvSlicer, "recv from controller: ", this);
 		FVMessageUtil.translateXid(this, fvClassifier, fvSlicer);
 		translateCookie(fvClassifier, fvSlicer);

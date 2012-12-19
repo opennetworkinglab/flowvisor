@@ -29,13 +29,6 @@ public class FVSetConfig extends OFSetConfig implements Classifiable, Slicable {
 	 */
 	@Override
 	public void sliceFromController(FVClassifier fvClassifier, FVSlicer fvSlicer) {
-		if (fvClassifier.isRateLimited(fvSlicer.getSliceName())) {
-			FVLog.log(LogLevel.WARN, fvSlicer,
-					"dropping msg because slice", fvSlicer.getSliceName(), " is rate limited: ",
-					this);
-			FVMessageUtil.makeErrorMsg(OFBadRequestCode.OFPBRC_EPERM, this);
-			return;
-		}
 		short missSendLength = this.getMissSendLength();
 		fvSlicer.setMissSendLength(missSendLength);
 		// check to see if this is a larger missLen param then previously asked
