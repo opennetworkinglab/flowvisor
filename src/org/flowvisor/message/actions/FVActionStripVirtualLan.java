@@ -25,7 +25,7 @@ public class FVActionStripVirtualLan extends OFActionStripVirtualLan implements
 			FVClassifier fvClassifier, FVSlicer fvSlicer)
 			throws ActionDisallowedException {
 		FVMatch neoMatch = new FVMatch(match);
-		match.setDataLayerVirtualLan(FlowSpaceRuleStore.ANY_VLAN_ID);
+		neoMatch.setDataLayerVirtualLan(FlowSpaceRuleStore.ANY_VLAN_ID);
 		List<FlowEntry> flowEntries = fvClassifier.getSwitchFlowMap().matches(fvClassifier.getDPID(), neoMatch);
 		for (FlowEntry fe : flowEntries) {
 			Iterator<OFAction> it = fe.getActionsList().iterator();
@@ -37,6 +37,7 @@ public class FVActionStripVirtualLan extends OFActionStripVirtualLan implements
 						FVLog.log(LogLevel.DEBUG, fvSlicer, "Approving " + this + 
 								" for " + match);
 						approvedActions.add(this);
+						return;
 					}
 				}
 			}
