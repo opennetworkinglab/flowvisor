@@ -155,6 +155,16 @@ public class FVConfig {
 		}
 	}
 	
+	public static synchronized String getConfig() throws FileNotFoundException  {
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		HashMap<String, Object> output = new HashMap<String, Object>();
+		FlowvisorImpl.getProxy().toJson(output);
+		SliceImpl.getProxy().toJson(output);
+		FlowSpaceImpl.getProxy().toJson(output);
+		SwitchImpl.getProxy().toJson(output);
+		return gson.toJson(output);
+	}
+	
 	public static void createSlice(String sliceName,
 			String controller_hostname, int controller_port, String drop_policy, String passwd,
 			String slice_email, String creatorSlice) throws InvalidSliceName,

@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -301,10 +302,18 @@ public class FVCtl {
 	}
 	
 	public void run_dumpConfig(String filename) throws XmlRpcException {
-		if (!filename.contains("/"))
-			filename = System.getProperty("user.dir") + "/" + filename;
-		this.client.execute("api.dumpConfig",
-				new Object[] {filename});
+		String output = (String) this.client.execute("api.dumpConfig",
+				new Object[] {});
+		FileWriter foutput;
+		try {
+			foutput = new FileWriter(filename);
+			foutput.write(output);
+			foutput.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		
 	}
 
 	public void run_listDevices() throws XmlRpcException {
