@@ -841,12 +841,13 @@ public class FVUserAPIImpl extends BasicJSONRPCService implements FVUserAPI {
 
 
 	@Override
-	public Boolean dumpConfig(String filename) throws PermissionDeniedException, FileNotFoundException {
+	public String dumpConfig() throws PermissionDeniedException, FileNotFoundException {
 		String user = APIUserCred.getUserName();
 		if (!FVConfig.isSupervisor(user))
 			throw new PermissionDeniedException("User " + user
-					+ " cannot dump the configuration to file " + filename);
-		FVConfig.writeToFile(filename);
-		return true;
+					+ " cannot obtain the configuration");
+		StringBuffer buf = FVConfig.getConfig();
+		
+		return buf.toString();
 	}
 }
