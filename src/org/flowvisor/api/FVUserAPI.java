@@ -352,7 +352,7 @@ public interface FVUserAPI {
 	 * @param filename the file to write to.
 	 * @throws PermissionDeniedException
 	 */
-	public Boolean dumpConfig(String filename) 
+	public String dumpConfig() 
 			throws PermissionDeniedException, FileNotFoundException; 
 
 	

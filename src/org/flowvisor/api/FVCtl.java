@@ -4,9 +4,11 @@
 package org.flowvisor.api;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -293,10 +295,19 @@ public class FVCtl {
 	}
 	
 	public void run_dumpConfig(String filename) throws XmlRpcException {
-		if (!filename.contains("/"))
-			filename = System.getProperty("user.dir") + "/" + filename;
-		this.client.execute("api.dumpConfig",
-				new Object[] {filename});
+		String config = (String) this.client.execute("api.dumpConfig",
+				new Object[] {});
+		try{
+			// Create file 
+			FileWriter fstream = new FileWriter(filename);
+			BufferedWriter out = new BufferedWriter(fstream);
+			out.write(config);
+			//Close the output stream
+			out.close();
+		}catch (Exception e){//Catch exception if any
+			System.err.println("Error: " + e.getMessage());
+		}
+		
 	}
 
 	public void run_listDevices() throws XmlRpcException {

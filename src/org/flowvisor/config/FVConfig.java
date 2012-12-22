@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.StringWriter;
 import java.util.LinkedList;
 
 import org.flowvisor.api.APIAuth;
@@ -182,6 +183,31 @@ public class FVConfig {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	
+	public static synchronized StringBuffer getConfig() {
+		
+		StringWriter strBuf = new StringWriter();
+		JsonWriter writer = new JsonWriter(strBuf);
+		writer.setIndent("   ");
+		try {
+			writer.beginObject();
+			FlowvisorImpl.getProxy().toJson(writer);
+			SliceImpl.getProxy().toJson(writer);
+			FlowSpaceImpl.getProxy().toJson(writer);
+			writer.endObject();
+			return strBuf.getBuffer();
+		} catch (IOException e) {
+			System.err.println("Error while fetching config : " + e.getMessage());
+		} finally {
+			try {
+				writer.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
 	}
 	
 	public static void createSlice(String sliceName,

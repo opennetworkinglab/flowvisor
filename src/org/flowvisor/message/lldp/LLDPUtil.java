@@ -7,8 +7,6 @@ import java.nio.ByteBuffer;
 
 import org.flowvisor.FlowVisor;
 import org.flowvisor.classifier.FVClassifier;
-import org.flowvisor.config.ConfigError;
-import org.flowvisor.config.FVConfig;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.message.FVPacketIn;
