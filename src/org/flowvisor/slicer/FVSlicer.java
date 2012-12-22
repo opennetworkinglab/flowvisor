@@ -48,7 +48,6 @@ import org.flowvisor.message.FVMessageFactory;
 import org.flowvisor.message.FVPacketOut;
 import org.flowvisor.message.SanityCheckable;
 import org.flowvisor.message.Slicable;
-import org.flowvisor.ofswitch.TopologyConnection;
 import org.flowvisor.ofswitch.TopologyController;
 import org.openflow.protocol.OFHello;
 import org.openflow.protocol.OFMessage;

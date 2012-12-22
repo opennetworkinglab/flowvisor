@@ -3,7 +3,6 @@
  */
 package org.flowvisor.api;
 
-import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -841,7 +840,7 @@ public class FVUserAPIImpl extends BasicJSONRPCService implements FVUserAPI {
 
 
 	@Override
-	public String dumpConfig() throws PermissionDeniedException, FileNotFoundException {
+	public String dumpConfig() throws PermissionDeniedException {
 		String user = APIUserCred.getUserName();
 		if (!FVConfig.isSupervisor(user))
 			throw new PermissionDeniedException("User " + user

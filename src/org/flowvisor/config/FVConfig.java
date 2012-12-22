@@ -199,7 +199,7 @@ public class FVConfig {
 			writer.endObject();
 			return strBuf.getBuffer();
 		} catch (IOException e) {
-			System.err.println("Error whie writing config file " + e.getMessage());
+			System.err.println("Error while fetching config : " + e.getMessage());
 		} finally {
 			try {
 				writer.close();
