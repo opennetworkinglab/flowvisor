@@ -781,7 +781,7 @@ public class FlowSpaceImpl implements FlowSpace {
 			ps = conn.prepareStatement(alter);
 			ps.execute();
 		} catch (SQLException e) {
-			throw new RuntimeException("Table alteration failed. Quitting. " + e.getMessage());
+			System.err.println("WARN: " + e.getMessage());
 		} finally {
 			close(ps);
 			close(conn);
