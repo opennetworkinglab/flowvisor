@@ -57,6 +57,8 @@ public class LoadConfig {
 		String config = defaultconfig.replace("CHANGEME", pass);
 		config = config.replace("CHANGESALT", salt);
 		ConfDBHandler db = new ConfDBHandler();
+		FVConfigurationController.init(db);
+		FlowVisor.updateDB();
 		try {
 			importSQL(db.getConnection(), new StringBufferInputStream(config));
 		} catch (SQLException e) {
@@ -69,6 +71,7 @@ public class LoadConfig {
 	
 	public static void loadConfig(String filename) {
 		ConfDBHandler db = new ConfDBHandler();
+		
 		try {
 			clearDB(db);
 			importSQL(db.getConnection(), new FileInputStream(filename));
