@@ -69,6 +69,8 @@ public class LoadConfig {
 	
 	public static void loadConfig(String filename) {
 		ConfDBHandler db = new ConfDBHandler();
+		FVConfigurationController.init(db);
+		FlowVisor.updateDB();
 		try {
 			clearDB(db);
 			importSQL(db.getConnection(), new FileInputStream(filename));
