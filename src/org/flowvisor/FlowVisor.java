@@ -428,7 +428,7 @@ public class FlowVisor {
 	
 	
 	
-	private static void updateDB() {
+	public static void updateDB() {
 		int db_version = FlowvisorImpl.getProxy().fetchDBVersion();
 		if (db_version == FLOWVISOR_DB_VERSION)
 			return;
