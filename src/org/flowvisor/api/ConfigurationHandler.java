@@ -48,6 +48,7 @@ public class ConfigurationHandler implements RequestHandler {
 			/*FVLog.log(LogLevel.WARN, null, req.getMethod(), "requires a ",
 					m.getType().toString(), " and not a ", 
 					req.getParamsType());*/
+			System.out.println(m.getType());
 			return new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					req.getMethod() + " requires a " + m.getType() + 
 					" and not a " + req.getParamsType()),
