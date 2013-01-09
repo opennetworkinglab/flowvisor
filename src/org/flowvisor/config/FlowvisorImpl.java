@@ -927,7 +927,7 @@ public class FlowvisorImpl implements Flowvisor {
 			if (set.next()) 
 				return set.getInt(DB_VERSION);
 			else {
-				System.err.println("You must be running in batch mode");
+				System.err.println("Database empty, assuming latest DB Version.");
 				return FlowVisor.FLOWVISOR_DB_VERSION;
 				/*
 				System.exit(1);*/
