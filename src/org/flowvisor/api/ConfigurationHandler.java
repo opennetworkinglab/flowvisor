@@ -5,6 +5,8 @@ import java.util.HashMap;
 import org.flowvisor.api.handlers.AddSlice;
 import org.flowvisor.api.handlers.ApiHandler;
 import org.flowvisor.api.handlers.ListSlices;
+import org.flowvisor.log.FVLog;
+import org.flowvisor.log.LogLevel;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
@@ -30,17 +32,24 @@ public class ConfigurationHandler implements RequestHandler {
 	@Override
 	public JSONRPC2Response process(JSONRPC2Request req, MessageContext ctxt) {
 		ApiHandler m = handlers.get(req.getMethod());
-		if (m != null) {
-			
-			switch (req.getParamsType()) {
-			case NO_PARAMS:
-				return m.process(null);
-			case ARRAY:
-				return m.process(req.getPositionalParams());
-			case OBJECT:
-				return m.process(req.getNamedParams());
+		try {
+			if (m != null) {
+				
+				switch (req.getParamsType()) {
+				case NO_PARAMS:
+					return m.process(null);
+				case ARRAY:
+					return m.process(req.getPositionalParams());
+				case OBJECT:
+					return m.process(req.getNamedParams());
+				}
 			}
-		} 
+		} catch (ClassCastException e) {
+			FVLog.log(LogLevel.WARN, null, req.getMethod(), "requires a ",
+					m.getClass().getDeclaredAnnotations().toString(), "and not a ", 
+					req.getParamsType());
+			return new JSONRPC2Response(JSONRPC2Error.INVALID_PARAMS, req.getID());
+		}
 		return new JSONRPC2Response(JSONRPC2Error.METHOD_NOT_FOUND, req.getID());
 	}
 
