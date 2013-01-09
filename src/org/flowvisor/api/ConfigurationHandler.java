@@ -49,7 +49,7 @@ public class ConfigurationHandler implements RequestHandler {
 					m.getClass().getDeclaredAnnotations()[0].toString(), "and not a ", 
 					req.getParamsType());
 			return new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
-					req.getMethod() + " requires a" + m.getClass().getAnnotations()[0] + 
+					req.getMethod() + " requires a" + m.getClass().getGenericInterfaces()[0] + 
 					" and not a " + req.getParamsType()),
 					req.getID());
 		}
