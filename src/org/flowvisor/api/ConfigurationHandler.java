@@ -24,7 +24,7 @@ public class ConfigurationHandler implements RequestHandler {
 	
 	@Override
 	public String[] handledRequests() {
-		return  (String[]) handlers.entrySet().toArray();
+		return  (String[]) handlers.keySet().toArray();
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
