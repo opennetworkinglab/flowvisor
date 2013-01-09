@@ -46,7 +46,7 @@ public class ConfigurationHandler implements RequestHandler {
 			}
 		} catch (ClassCastException e) {
 			FVLog.log(LogLevel.WARN, null, req.getMethod(), "requires a ",
-					m.getClass().getDeclaredAnnotations()[0].toString(), "and not a ", 
+					m.getClass().getGenericInterfaces()[0].toString(), "and not a ", 
 					req.getParamsType());
 			return new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					req.getMethod() + " requires a" + m.getClass().getGenericInterfaces()[0] + 
