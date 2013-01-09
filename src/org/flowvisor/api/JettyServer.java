@@ -34,7 +34,7 @@ public class JettyServer implements Runnable{
 	public static String REALM_NAME = "JETTYREALM";
 	private Server jettyServer;
 
-	protected BasicJSONRPCService service = new FVUserAPIJSONImpl();
+	protected JSONRPCService service = new JSONRPCService();
 
 	public JettyServer(int port){
 		init(port);
