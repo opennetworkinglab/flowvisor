@@ -15,7 +15,7 @@ public class ListSlices implements ApiHandler {
 		JSONRPC2Response resp = null;
 		try {
 			List<String> slices = SliceImpl.getProxy().getAllSliceNames();
-			resp = new JSONRPC2Response(slices);
+			resp = new JSONRPC2Response(slices, 0);
 		} catch (ConfigError e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
 					"Unable to fetch slice list : " + e.getMessage()));
