@@ -8,7 +8,7 @@ import org.flowvisor.config.SliceImpl;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 
-public class ListSlices implements ApiHandler {
+public class ListSlices implements ApiHandler<Object> {
 
 	@Override
 	public JSONRPC2Response process(Object params) {
@@ -18,7 +18,7 @@ public class ListSlices implements ApiHandler {
 			resp = new JSONRPC2Response(slices, 0);
 		} catch (ConfigError e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
-					"Unable to fetch slice list : " + e.getMessage()));
+					"Unable to fetch slice list : " + e.getMessage()), 0);
 		} 
 		return resp;
 		

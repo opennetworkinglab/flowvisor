@@ -558,6 +558,52 @@ public class SliceImpl implements Slice {
 			
 		}	
 	}
+	
+	
+	@Override
+	public void createSlice(String sliceName, String controller_hostname,
+			int controller_port, String drop_policy, String passwd,
+			String salt, String slice_email, String creatorSlice, boolean lldp_spam, 
+			int maxFlowMods, int flowvisor_id, int type)
+			throws DuplicateControllerException {
+		String crypt = APIAuth.makeCrypt(salt, passwd);
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(CONTCHECK);
+			ps.setString(1, controller_hostname);
+			ps.setInt(2, controller_port);
+			set = ps.executeQuery();
+			if (set.next())
+				throw new DuplicateControllerException(controller_hostname, controller_port, sliceName, null);
+            close(conn);
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(CREATESLICE);
+			ps.setInt(1, flowvisor_id);
+			ps.setInt(2, type);
+			ps.setString(3, sliceName);
+			ps.setString(4, creatorSlice);
+			ps.setString(5, crypt);
+			ps.setString(6, salt);
+			ps.setString(7, controller_hostname);
+			ps.setInt(8, controller_port);
+			ps.setString(9, slice_email);
+			ps.setString(10, drop_policy);
+			ps.setBoolean(11, lldp_spam);
+			ps.setInt(12, maxFlowMods);
+			if (ps.executeUpdate() == 0)
+				FVLog.log(LogLevel.WARN, null, "Slice " + sliceName + " creation had no effect.");
+		} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+		} finally {
+			close(set);
+			close(ps);
+			close(conn);
+			
+		}	
+	}
 
 	
 	

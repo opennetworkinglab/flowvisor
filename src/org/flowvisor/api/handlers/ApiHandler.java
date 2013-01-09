@@ -2,8 +2,8 @@ package org.flowvisor.api.handlers;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 
-public interface ApiHandler {
+public interface ApiHandler<T> {
 
-	public <T> JSONRPC2Response process(T params);
+	public JSONRPC2Response process(T params);
 	
 }
