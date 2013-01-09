@@ -6,10 +6,13 @@ import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.SliceImpl;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
+import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 
 public class ListSlices implements ApiHandler<Object> {
 
+	
+	
 	@Override
 	public JSONRPC2Response process(Object params) {
 		JSONRPC2Response resp = null;
@@ -22,6 +25,11 @@ public class ListSlices implements ApiHandler<Object> {
 		} 
 		return resp;
 		
+	}
+
+	@Override
+	public JSONRPC2ParamsType getType() {
+		return JSONRPC2ParamsType.NO_PARAMS;
 	}
 
 }

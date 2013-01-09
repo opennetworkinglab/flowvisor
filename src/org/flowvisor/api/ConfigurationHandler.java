@@ -35,7 +35,7 @@ public class ConfigurationHandler implements RequestHandler {
 		try {
 			if (m != null) {
 				
-				switch (req.getParamsType()) {
+				switch (m.getType()) {
 				case NO_PARAMS:
 					return m.process(null);
 				case ARRAY:
@@ -46,10 +46,10 @@ public class ConfigurationHandler implements RequestHandler {
 			}
 		} catch (ClassCastException e) {
 			FVLog.log(LogLevel.WARN, null, req.getMethod(), "requires a ",
-					m.getClass().getGenericInterfaces()[0].toString(), "and not a ", 
+					m.getType(), "and not a ", 
 					req.getParamsType());
 			return new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
-					req.getMethod() + " requires a" + m.getClass().getGenericInterfaces()[0] + 
+					req.getMethod() + " requires a " + m.getType() + 
 					" and not a " + req.getParamsType()),
 					req.getID());
 		}

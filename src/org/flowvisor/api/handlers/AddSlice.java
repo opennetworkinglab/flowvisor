@@ -17,10 +17,13 @@ import org.flowvisor.exceptions.UnknownFieldType;
 import org.flowvisor.flows.FlowMap;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
+import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 
 public class AddSlice implements ApiHandler<Map<String, Object>> {
 
+	
+	
 	private final static String CTRLURL = "controller-url";
 	private final static String SLICENAME = "slice-name";
 	private final static String DROP = "drop-policy";
@@ -104,6 +107,12 @@ public class AddSlice implements ApiHandler<Map<String, Object>> {
 			throw new PermissionDeniedException(
 					"Cannot create slice with existing name.");
 	
+	}
+
+
+	@Override
+	public JSONRPC2ParamsType getType() {
+		return JSONRPC2ParamsType.OBJECT;
 	}
 
 }
