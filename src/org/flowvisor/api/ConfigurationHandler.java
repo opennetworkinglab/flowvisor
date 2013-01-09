@@ -5,10 +5,9 @@ import java.util.HashMap;
 import org.flowvisor.api.handlers.AddSlice;
 import org.flowvisor.api.handlers.ApiHandler;
 import org.flowvisor.api.handlers.ListSlices;
-import org.flowvisor.log.FVLog;
-import org.flowvisor.log.LogLevel;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
+import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 import com.thetransactioncompany.jsonrpc2.server.MessageContext;
@@ -34,10 +33,10 @@ public class ConfigurationHandler implements RequestHandler {
 		ApiHandler m = handlers.get(req.getMethod());
 		if (m != null) {
 			
-			if (m.getType() != req.getParamsType())
+			if (m.getType() != JSONRPC2ParamsType.NO_PARAMS && m.getType() != req.getParamsType())
 				return new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
-						req.getMethod() + " requires a " + m.getType() + 
-						" and not a " + req.getParamsType()),
+						req.getMethod() + " requires: " + m.getType() + 
+						"; got: " + req.getParamsType()),
 						req.getID());
 			
 			switch (m.getType()) {

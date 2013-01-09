@@ -70,10 +70,10 @@ public class AddSlice implements ApiHandler<Map<String, Object>> {
 			resp = new JSONRPC2Response(true, 0);
 		} catch (ConfigError e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
-					"Unable to fetch slice list : " + e.getMessage()), 0);
+					"add-slice: Unable to fetch slice list : " + e.getMessage()), 0);
 		} catch (UnknownFieldType e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
-					e.getMessage()), 0);
+					"add-slice: " + e.getMessage()), 0);
 		} catch (MissingRequiredField e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					"add-slice: " + e.getMessage()), 0);

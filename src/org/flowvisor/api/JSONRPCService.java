@@ -31,14 +31,11 @@ public class JSONRPCService {
 	
 
 	public void dispatch(HttpServletRequest req, HttpServletResponse resp) { 
-		System.out.println("HHHALAJLAJLJA");
 		JSONRPC2Request json = null;
 		try {
 			json = parseJSONRequest(req);
-			System.out.println(json);
 			JSONRPC2Response jsonResp = dispatcher.process(json, null);
 			jsonResp.setID(json.getID());
-			System.out.println(jsonResp);
 			writeJSONObject(resp, jsonResp);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
