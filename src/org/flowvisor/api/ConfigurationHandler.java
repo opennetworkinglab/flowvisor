@@ -32,28 +32,24 @@ public class ConfigurationHandler implements RequestHandler {
 	@Override
 	public JSONRPC2Response process(JSONRPC2Request req, MessageContext ctxt) {
 		ApiHandler m = handlers.get(req.getMethod());
-		try {
-			if (m != null) {
-				
-				switch (m.getType()) {
-				case NO_PARAMS:
-					return m.process(null);
-				case ARRAY:
-					return m.process(req.getPositionalParams());
-				case OBJECT:
-					return m.process(req.getNamedParams());
-				}
+		if (m != null) {
+			
+			if (m.getType() != req.getParamsType())
+				return new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
+						req.getMethod() + " requires a " + m.getType() + 
+						" and not a " + req.getParamsType()),
+						req.getID());
+			
+			switch (m.getType()) {
+			case NO_PARAMS:
+				return m.process(null);
+			case ARRAY:
+				return m.process(req.getPositionalParams());
+			case OBJECT:
+				return m.process(req.getNamedParams());
 			}
-		} catch (ClassCastException e) {
-			/*FVLog.log(LogLevel.WARN, null, req.getMethod(), "requires a ",
-					m.getType().toString(), " and not a ", 
-					req.getParamsType());*/
-			System.out.println(m.getType());
-			return new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
-					req.getMethod() + " requires a " + m.getType() + 
-					" and not a " + req.getParamsType()),
-					req.getID());
 		}
+		
 		return new JSONRPC2Response(JSONRPC2Error.METHOD_NOT_FOUND, req.getID());
 	}
 
