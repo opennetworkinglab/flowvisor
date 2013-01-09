@@ -38,6 +38,7 @@ public class JSONRPCService {
 			System.out.println(json);
 			JSONRPC2Response jsonResp = dispatcher.process(json, null);
 			jsonResp.setID(json.getID());
+			System.out.println(jsonResp);
 			writeJSONObject(resp, jsonResp);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
