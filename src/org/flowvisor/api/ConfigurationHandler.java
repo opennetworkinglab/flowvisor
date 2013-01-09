@@ -20,11 +20,11 @@ public class ConfigurationHandler implements RequestHandler {
 		put("add-slice", new AddSlice());
 	}};
 	
-	private final String[] methods =  { "list-slices"}; 
+	//private final String[] methods = (String[]) handlers.entrySet().toArray(); 
 	
 	@Override
 	public String[] handledRequests() {
-		return methods;
+		return  (String[]) handlers.entrySet().toArray();
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
