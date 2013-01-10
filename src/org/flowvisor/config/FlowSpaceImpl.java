@@ -762,8 +762,11 @@ public class FlowSpaceImpl implements FlowSpace {
   		try {
   			int wildcards = -1;
   			conn = settings.getConnection();
-  			ps = conn.prepareStatement(GSLICEFLOWMAP);
-  			ps.setString(1, sliceName);
+  			if (sliceName != null) {
+  				ps = conn.prepareStatement(GSLICEFLOWMAP);
+  				ps.setString(1, sliceName);
+  			} else
+  				ps = conn.prepareStatement(GFLOWMAP);
   			set = ps.executeQuery();
  			//writer.name(FS);
  			//writer.beginArray();
@@ -772,6 +775,7 @@ public class FlowSpaceImpl implements FlowSpace {
   				wildcards = set.getInt(WILDCARDS);
  				fs.put(DPID, FlowSpaceUtil.dpidToString(set.getLong(DPID)));
  				fs.put(PRIO, set.getInt(PRIO));
+ 				fs.put("id", set.getInt("id"));
  				if ((wildcards & FVMatch.OFPFW_IN_PORT) == 0)
  					fs.put(INPORT, set.getInt(INPORT));
   				

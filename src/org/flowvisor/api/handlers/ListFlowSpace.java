@@ -29,7 +29,7 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 			HashMap<String, Object> map = new HashMap<String, Object>();
 			if (FVConfig.isSupervisor(user)) {
 				if (sliceName == null) 
-					FlowSpaceImpl.getProxy().toJson(map);
+					FlowSpaceImpl.getProxy().toJson(map, null);
 				else
 					FlowSpaceImpl.getProxy().toJson(map, sliceName);
 			} else
