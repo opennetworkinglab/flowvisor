@@ -20,7 +20,7 @@ public class FVConfigurationController {
 	private FVConfigurationController(ConfDBSettings settings) {
 		this.settings  = settings;
 		this.listeners = new HashMap<Object, Set<ChangedListener>>();
-		executor = Executors.newFixedThreadPool(1);
+		executor = Executors.newFixedThreadPool(10);
 	}
 	
 	public static FVConfigurationController instance() {
