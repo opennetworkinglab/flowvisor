@@ -54,7 +54,7 @@ public class FVConfigurationController {
 	
 	public void fireChange(final Object key, final String method, final Object value) {
 		
-		FutureTask<Object> future = new FutureTask<Object>(
+		/*FutureTask<Object> future = new FutureTask<Object>(
                 new Callable<Object>() {
                     public Object call() {
                     	if (!listeners.containsKey(key))
@@ -64,13 +64,13 @@ public class FVConfigurationController {
                 		return null;
                     }
                 });
-        executor.execute(future);
-		/*
+        executor.execute(future);*/
+		
 		if (!listeners.containsKey(key))
 			return;
 		for (ChangedListener l : listeners.get(key)) 
 			l.processChange(new ConfigurationEvent(method, l, value));
-		*/
+		
 			
 	}
 	
