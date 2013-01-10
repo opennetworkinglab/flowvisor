@@ -1,5 +1,7 @@
 package org.flowvisor.config;
 
+import java.util.HashMap;
+
 import org.flowvisor.flows.FlowEntry;
 import org.flowvisor.flows.FlowMap;
 
@@ -93,6 +95,8 @@ public interface FlowSpace extends FVAppConfig {
 	
 	public void notifyChange(FlowMap map);
 
+	
+	public void toJson(HashMap<String, Object> map, String sliceName) throws ConfigError;
 
 	
 	

@@ -3,7 +3,6 @@ package org.flowvisor.api.handlers;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.collections.map.HashedMap;
 import org.flowvisor.api.APIUserCred;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
@@ -11,8 +10,7 @@ import org.flowvisor.config.FlowSpace;
 import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.exceptions.MissingRequiredField;
 import org.flowvisor.exceptions.UnknownFieldType;
-import org.flowvisor.flows.FlowMap;
-import org.flowvisor.flows.FlowSpaceUtil;
+
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
@@ -33,9 +31,9 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 				if (sliceName == null) 
 					FlowSpaceImpl.getProxy().toJson(map);
 				else
-					FlowSpaceUtil.getSliceFlowSpace(sliceName);
+					FlowSpaceImpl.getProxy().toJson(map, sliceName);
 			} else
-				FlowSpaceUtil.getSliceFlowSpace(user);
+				FlowSpaceImpl.getProxy().toJson(map, user);
 			resp = new JSONRPC2Response(map.get(FlowSpace.FS), 0);
 		}  catch (UnknownFieldType e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
