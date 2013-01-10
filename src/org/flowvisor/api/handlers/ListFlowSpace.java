@@ -43,7 +43,7 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 					"list-flowspace: " + e.getMessage()), 0);
 		} catch (ConfigError e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
-					"list-flowspace: Unable to set slice password : " + e.getMessage()), 0);
+					"list-flowspace: Unable to get flowspace : " + e.getMessage()), 0);
 		}  
 		return resp;
 		
