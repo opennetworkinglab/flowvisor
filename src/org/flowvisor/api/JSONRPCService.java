@@ -40,15 +40,15 @@ public class JSONRPCService {
 			jsonResp.setID(json.getID());
 		} catch (IOException e) {
 			jsonResp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.PARSE_ERROR.getCode(), 
-					e.getMessage()), 0);
+					stack2string(e)), 0);
 		} catch (JSONRPC2ParseException e) {
 			jsonResp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.PARSE_ERROR.getCode(), 
-					e.getMessage()), 0);
+					stack2string(e)), 0);
 		}
 		try {
 			writeJSONObject(resp, jsonResp);
 		} catch (IOException e) {
-			FVLog.log(LogLevel.CRIT, null, "Unable to send response: " + e.getMessage());
+			FVLog.log(LogLevel.CRIT, null, "Unable to send response: ", stack2string(e));
 		}
 		
 		

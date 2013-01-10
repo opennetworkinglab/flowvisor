@@ -107,11 +107,12 @@ public class JettyServer implements Runnable{
 	public class AuthenticationHandler extends AbstractHandler{
 
 		@Override
-		public final void handle(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
+		public final void handle(String target,Request baseRequest,
+				HttpServletRequest request,HttpServletResponse response)
 		throws IOException, ServletException
 		{
 			if(baseRequest.getAuthentication().equals(Authentication.UNAUTHENTICATED)){
-				response.sendError(Response.SC_UNAUTHORIZED, "");
+				response.sendError(Response.SC_UNAUTHORIZED, "Permission denied.");
 				baseRequest.setHandled(true);
 				return;
 			}
