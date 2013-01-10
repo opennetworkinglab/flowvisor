@@ -2,6 +2,7 @@ package org.flowvisor.api;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,6 +27,9 @@ import org.flowvisor.config.FVConfig;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.JettyLog;
 import org.flowvisor.log.LogLevel;
+
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 
 public class JettyServer implements Runnable{
 
@@ -112,7 +116,8 @@ public class JettyServer implements Runnable{
 		throws IOException, ServletException
 		{
 			if(baseRequest.getAuthentication().equals(Authentication.UNAUTHENTICATED)){
-				response.sendError(Response.SC_UNAUTHORIZED, "Permission denied.");
+				//response.sendError(Response.SC_UNAUTHORIZED, "Permission denied.");
+				sendUnauthorizedMsg(response);
 				baseRequest.setHandled(true);
 				return;
 			}
@@ -120,6 +125,18 @@ public class JettyServer implements Runnable{
 			service.dispatch(request, response);
 			baseRequest.setHandled(true);
 		}
+	}
+	
+	private void sendUnauthorizedMsg(HttpServletResponse response)
+		throws IOException {
+		JSONRPC2Response jresp = new JSONRPC2Response(new JSONRPC2Error(
+				JSONRPC2Error.INVALID_REQUEST.getCode(), 
+				"Authentication failed: Permission denied."), 0);
+		response.setContentType("text/json; charset=utf-8");
+		String json = jresp.toJSONString();
+		Writer writer = response.getWriter();
+		FVLog.log(LogLevel.DEBUG, null, "---------JSON RPC response:", json);
+		writer.write(json);
 	}
 
 	private ConstraintSecurityHandler createAuthenticationHandler(Server server){
