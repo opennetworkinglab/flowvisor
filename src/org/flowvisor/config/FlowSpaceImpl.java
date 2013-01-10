@@ -50,6 +50,7 @@ public class FlowSpaceImpl implements FlowSpace {
 	private static String GFLOWMAP = "SELECT FSR.*,S." + Slice.FMTYPE + 
 			" FROM FlowSpaceRule AS FSR, Slice AS S, JFSRSlice AS J WHERE FSR.id" +
 			"=J.flowspacerule_id AND J.slice_id=S.id";
+	
 	private static String GSLICEID = "SELECT id FROM Slice WHERE " + Slice.SLICE + "= ?";
 	private static String DFLOWMAP = "DELETE FROM FlowSpaceRule";
 	private static String DFLOWRULE = "DELETE FROM FlowSpaceRule WHERE id = ?";
@@ -66,6 +67,13 @@ public class FlowSpaceImpl implements FlowSpace {
 			INPORT + "," + VLAN + "," + VPCP + "," + DLSRC + "," + DLDST + "," + DLTYPE + "," +
 			NWSRC + "," + NWDST + "," + NWPROTO + "," + NWTOS + "," + TPSRC + "," + TPDST + "," +
 			FORCED_QUEUE + "," + WILDCARDS+ ") " + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+	
+	private static String SAVESLICEFLOWMAP = "INSERT INTO PreservedFlowSpaceRules(" + DPID + "," + PRIO + "," +  
+			INPORT + "," + VLAN + "," + VPCP + "," + DLSRC + "," + DLDST + "," + DLTYPE + "," +
+			NWSRC + "," + NWDST + "," + NWPROTO + "," + NWTOS + "," + TPSRC + "," + TPDST + "," +
+			FORCED_QUEUE + "," + WILDCARDS+ "," + Slice.SLICE+"," + ACTION +") " + 
+			" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+	
 	private static String SACTIONS = "INSERT INTO jFSRSlice(flowspacerule_id, slice_id," + ACTION + ")" +
 			" VALUES(?,?,?)";
 	
@@ -468,9 +476,110 @@ public class FlowSpaceImpl implements FlowSpace {
 		
 	}
 	
+	@Override
+	public void saveFlowSpace(String sliceName) throws ConfigError {
+		FVLog.log(LogLevel.WARN, null, "FlowSpace preservation not yet implemented");
+		/*FlowMap fm = getFlowMap();
+		for (FlowEntry fe : fm.getRules()) {
+			for (OFAction act : fe.getActionsList()) {
+				assert(act instanceof SliceAction);
+				SliceAction sact = (SliceAction) act;
+				if (sact.getSliceName().equals(sliceName))
+					preserveFlowSpace(fe, sliceName, sact.getSlicePerms());
+			}
+		}*/
+		
+	}
+	
 	
 	
 		
+	/*private void preserveFlowSpace(FlowEntry fe, String sliceName, int perm) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			
+			int wildcards = -1;
+			
+			wildcards = fe.getRuleMatch().getWildcards();
+			ps = conn.prepareStatement(SAVESLICEFLOWMAP);
+			ps.setLong(1, fe.getDpid());
+			ps.setInt(2, fe.getPriority());
+			ps.setShort(3, fe.getRuleMatch().getInputPort());
+			if ((wildcards & FVMatch.OFPFW_DL_VLAN) != 0)
+				ps.setNull(4, Types.SMALLINT);
+			else
+				ps.setShort(4, fe.getRuleMatch().getDataLayerVirtualLan());
+			
+			if ((wildcards & FVMatch.OFPFW_DL_VLAN_PCP) != 0)
+				ps.setNull(5, Types.SMALLINT);
+			else
+				ps.setShort(5, fe.getRuleMatch().getDataLayerVirtualLanPriorityCodePoint());
+			
+			if ((wildcards & FVMatch.OFPFW_DL_SRC) != 0)
+				ps.setNull(6, Types.BIGINT);
+			else
+				ps.setLong(6, FlowSpaceUtil.toLong(fe.getRuleMatch().getDataLayerSource()));
+			
+			if ((wildcards & FVMatch.OFPFW_DL_DST) != 0)
+				ps.setNull(7, Types.BIGINT);
+			else
+				ps.setLong(7, FlowSpaceUtil.toLong(fe.getRuleMatch().getDataLayerDestination()));
+			
+			if ((wildcards & FVMatch.OFPFW_DL_TYPE) != 0)
+				ps.setNull(8, Types.SMALLINT);
+			else
+				ps.setShort(8, fe.getRuleMatch().getDataLayerType());
+			
+			if ((wildcards & FVMatch.OFPFW_NW_SRC_ALL) != 0)
+				ps.setNull(9, Types.INTEGER);
+			else
+				ps.setInt(9, fe.getRuleMatch().getNetworkSource());
+			
+			if ((wildcards & FVMatch.OFPFW_NW_DST_ALL) != 0)
+				ps.setNull(10, Types.INTEGER);
+			else
+				ps.setInt(10, fe.getRuleMatch().getNetworkDestination());
+			
+			if ((wildcards & FVMatch.OFPFW_NW_PROTO) != 0)
+				ps.setNull(11, Types.SMALLINT);
+			else
+				ps.setShort(11, fe.getRuleMatch().getNetworkProtocol());
+			
+			if ((wildcards & FVMatch.OFPFW_NW_TOS) != 0)
+				ps.setNull(12, Types.SMALLINT);
+			else
+				ps.setShort(12, fe.getRuleMatch().getNetworkTypeOfService());
+			
+			if ((wildcards & FVMatch.OFPFW_TP_SRC) != 0)
+				ps.setNull(13, Types.SMALLINT);
+			else
+				ps.setShort(13, fe.getRuleMatch().getTransportSource());
+			
+			if ((wildcards & FVMatch.OFPFW_TP_DST) != 0)
+				ps.setNull(14, Types.SMALLINT);
+			else
+				ps.setShort(14, fe.getRuleMatch().getTransportDestination());
+			
+			ps.setInt(15, (int) fe.getForcedQueue());
+			ps.setInt(16, wildcards);
+			ps.setString(17, sliceName);
+			ps.setInt(18, perm);
+			ps.executeUpdate();
+			
+		} catch (SQLException e) {
+			FVLog.log(LogLevel.DEBUG, null, e.getMessage());
+			throw new ConfigError("Unable to preserve the flowspace in db");
+		} finally {
+			close(set);
+			close(ps);
+			close(conn);	
+		}
+		
+	}*/
+
 	@Override
 	public void close(Connection conn) {
 		settings.returnConnection(conn);
@@ -804,6 +913,15 @@ public class FlowSpaceImpl implements FlowSpace {
 					"REFERENCES FlowSpaceRule (id) ON DELETE CASCADE");
 			version++;
 		}
+		/*if (version == 1) {
+			processAlter("CREATE TABLE PreservedFlowSpaceRules (" +
+						"id INT GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) ," +
+						"dpid BIGINT,priority INT NOT NULL,in_port SMALLINT,dl_vlan SMALLINT," +
+						"dl_vpcp SMALLINT,dl_src BIGINT,dl_dst BIGINT,dl_type SMALLINT," +
+						"nw_src INT,nw_dst INT,nw_proto SMALLINT,nw_tos SMALLINT,tp_src SMALLINT," +
+						"tp_dst SMALLINT,forced_queue INT DEFAULT -1,wildcards INT," +
+						"slicename VARCHAR(45) NOT NULL, slice_action INT, PRIMARY KEY (id));");
+		}*/
 		
 		
 	}

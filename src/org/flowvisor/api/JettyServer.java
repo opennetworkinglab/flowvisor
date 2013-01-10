@@ -18,7 +18,6 @@ import org.eclipse.jetty.security.LoginService;
 import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
@@ -129,6 +128,10 @@ public class JettyServer implements Runnable{
 	
 	private void sendUnauthorizedMsg(HttpServletResponse response)
 		throws IOException {
+		/*
+		 * Should the response include the same id as request in case
+		 * of unauthorized?
+		 */
 		JSONRPC2Response jresp = new JSONRPC2Response(new JSONRPC2Error(
 				JSONRPC2Error.INVALID_REQUEST.getCode(), 
 				"Authentication failed: Permission denied."), 0);

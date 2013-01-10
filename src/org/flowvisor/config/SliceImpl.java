@@ -53,6 +53,8 @@ public class SliceImpl implements Slice {
 	private static String SCRYPT = "UPDATE Slice SET " + CRYPT + " = ?, " + SALT +
 			" = ? WHERE " + SLICE + " = ?";
 	
+	private static String SAVEDFLOWSPACE = "SELECT * FROM PreservedFlowSpaceRules WHERE slicename=?";
+	
 	private static String FLOWVISOR = "SELECT id from " + Flowvisor.FLOWVISOR + " WHERE " + Flowvisor.CONFIG + " = ?"; 
 	
 
@@ -593,8 +595,10 @@ public class SliceImpl implements Slice {
 			ps.setString(10, drop_policy);
 			ps.setBoolean(11, lldp_spam);
 			ps.setInt(12, maxFlowMods);
-			if (ps.executeUpdate() == 0)
+			if (ps.executeUpdate() == 0) {
 				FVLog.log(LogLevel.WARN, null, "Slice " + sliceName + " creation had no effect.");
+				return;
+			}
 		} catch (SQLException e) {
 			FVLog.log(LogLevel.WARN, null, e.getMessage());
 		} finally {
@@ -606,6 +610,14 @@ public class SliceImpl implements Slice {
 	}
 
 	
+	@Override
+	public void deleteSlice(String sliceName, Boolean preserve) 
+			throws InvalidSliceName, ConfigError {
+		if (preserve) 
+			FlowSpaceImpl.getProxy().saveFlowSpace(sliceName);
+		deleteSlice(sliceName);
+
+	}
 	
 	@Override
 	public void deleteSlice(String sliceName) throws InvalidSliceName {
@@ -789,6 +801,7 @@ public class SliceImpl implements Slice {
 			processAlter("ALTER TABLE Slice ADD COLUMN " + FMLIMIT + " INT NOT NULL DEFAULT -1");
 			version++;
 		}
+		
 		
 	}
 	

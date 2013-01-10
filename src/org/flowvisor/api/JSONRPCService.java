@@ -27,10 +27,6 @@ public class JSONRPCService {
 		dispatcher.register(new ConfigurationHandler());
 	}
 	
-	
-	
-	
-
 	public void dispatch(HttpServletRequest req, HttpServletResponse resp) { 
 		JSONRPC2Request json = null;
 		JSONRPC2Response jsonResp = null;
@@ -78,25 +74,7 @@ public class JSONRPCService {
 	    return JSONRPC2Request.parse(sb.toString());
 
 	}
-	/*	BufferedReader reader = null;
-		char[] buff = new char[100];
-		int sz = 0;
-		try {
-			reader = request.getReader();
-			StringBuffer buffer = new StringBuffer();
-			while ((sz = reader.read(buff)) != -1) {
-				buffer.append(buff, 0, sz);
-			}
-			FVLog.log(LogLevel.DEBUG, null, "---------JSON RPC request:" + buffer.toString());
-			return JSONRPC2Request.parse(buffer.toString());
-		} catch (JSONRPC2ParseException e) {
-			return null;
-		} finally {
-			if (reader != null)
-				reader.close();
-		}
 
-	}*/
 	
 	/**
 	 * Write json object.

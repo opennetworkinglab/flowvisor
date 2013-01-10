@@ -23,15 +23,6 @@ import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 public class AddSlice implements ApiHandler<Map<String, Object>> {
 
 	
-	
-	private final static String CTRLURL = "controller-url";
-	private final static String SLICENAME = "slice-name";
-	private final static String DROP = "drop-policy";
-	private final static String LLDP = "recv-lldp";
-	private final static String ADMIN = "admin-contact";
-	private final static String PASS = "password";
-	private final static String MAX = "flowmod-limit";
-	
 	@Override
 	public JSONRPC2Response process(Map<String, Object> params) {
 		JSONRPC2Response resp = null;

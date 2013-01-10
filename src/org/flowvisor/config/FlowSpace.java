@@ -83,7 +83,17 @@ public interface FlowSpace extends FVAppConfig {
 	 */
 	public int addRule(FlowEntry fe) throws ConfigError;
 
-
+	/**
+	 * Preserve the flowspace for future usage.
+	 * 
+	 * @param sliceName - flowspace for sliceName will be saved.
+	 * @throws ConfigError
+	 */
+	public void saveFlowSpace(String sliceName) throws ConfigError;
+	
 	public void notifyChange(FlowMap map);
+
+
+	
 	
 }

@@ -4,7 +4,11 @@ import java.util.HashMap;
 
 import org.flowvisor.api.handlers.AddSlice;
 import org.flowvisor.api.handlers.ApiHandler;
+import org.flowvisor.api.handlers.ListFlowSpace;
 import org.flowvisor.api.handlers.ListSlices;
+import org.flowvisor.api.handlers.RemoveSlice;
+import org.flowvisor.api.handlers.UpdateSlice;
+import org.flowvisor.api.handlers.UpdateSlicePassword;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
@@ -19,6 +23,10 @@ public class ConfigurationHandler implements RequestHandler {
 	HashMap<String, ApiHandler> handlers = new HashMap<String, ApiHandler>() {{
 		put("list-slices", new ListSlices());
 		put("add-slice", new AddSlice());
+		put("update-slice", new UpdateSlice());
+		put("remove-slice", new RemoveSlice());
+		put("update-slice-password", new UpdateSlicePassword());
+		put("list-flowspace", new ListFlowSpace());
 	}};
 	
 	

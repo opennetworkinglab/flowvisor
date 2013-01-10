@@ -73,14 +73,16 @@ public interface Slice extends FVAppConfig {
 			int flowvisor_id, int type) 
 					throws InvalidSliceName, DuplicateControllerException;
 	
-	//JSONRPC 
+	public void deleteSlice(String SliceName) throws InvalidSliceName;
+	
+	// ADDED FOR JSONRPC 
 	public void createSlice(String sliceName, String controller_hostname,
 			int controller_port, String drop_policy, String passwd,
 			String salt, String slice_email, String creatorSlice, boolean lldp_spam, 
 			int maxFlowMods, int flowvisor_id, int type)
 			throws DuplicateControllerException;
 	
-	public void deleteSlice(String SliceName) throws InvalidSliceName;
+	public void deleteSlice(String SliceName, Boolean preserve) throws InvalidSliceName, ConfigError;
 		
 
 	

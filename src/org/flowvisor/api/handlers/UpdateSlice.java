@@ -1,0 +1,162 @@
+package org.flowvisor.api.handlers;
+
+import java.util.List;
+import java.util.Map;
+
+import org.flowvisor.api.APIAuth;
+import org.flowvisor.api.APIUserCred;
+import org.flowvisor.config.ConfigError;
+import org.flowvisor.config.FVConfig;
+import org.flowvisor.config.InvalidDropPolicy;
+import org.flowvisor.config.SliceImpl;
+
+import org.flowvisor.exceptions.DuplicateControllerException;
+import org.flowvisor.exceptions.MissingRequiredField;
+import org.flowvisor.exceptions.PermissionDeniedException;
+import org.flowvisor.exceptions.UnknownFieldType;
+
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
+import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
+
+public class UpdateSlice implements ApiHandler<Map<String, Object>> {
+
+	
+	
+	@Override
+	public JSONRPC2Response process(Map<String, Object> params) {
+		JSONRPC2Response resp = null;
+		
+		try {
+			String sliceName = HandlerUtils.fetchField(SLICENAME, params, String.class, true, null);
+			String changerSlice = APIUserCred.getUserName();
+			if (!APIAuth.transitivelyCreated(changerSlice, sliceName)
+					&& !FVConfig.isSupervisor(changerSlice))
+				return new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_REQUEST.getCode(), 
+						"Slice " + changerSlice
+						+ " does not have perms to change " + sliceName), 0);
+			
+			String ctrlHost = HandlerUtils.fetchField(CTRLHOST, params, String.class, false, null);
+			Number ctrlPort = HandlerUtils.fetchField(CTRLPORT, params, Number.class, false, null);
+			String adminInfo = HandlerUtils.fetchField(ADMIN, params, String.class, false, null);
+			Number maxFM =  HandlerUtils.fetchField(MAX, params, Number.class, false, null);
+			String dropPolicy = HandlerUtils.fetchField(DROP, params, String.class, false, null);
+			Boolean lldpOptIn = HandlerUtils.fetchField(LLDP, params, Boolean.class, false, null);
+			
+			validateSliceName(sliceName);
+			updateCtrl(sliceName, ctrlHost, ctrlPort);
+			updateDropPolicy(sliceName, dropPolicy);
+			updateAdminInfo(sliceName, adminInfo);	
+			updateMaxFM(sliceName, maxFM);
+			updateLLDP(sliceName, lldpOptIn);
+			
+			resp = new JSONRPC2Response(true, 0);
+		} catch (ConfigError e) {
+			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
+					"update-slice: Unable to fetch/set config : " + e.getMessage()), 0);
+		} catch (UnknownFieldType e) {
+			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
+					"update-slice: " + e.getMessage()), 0);
+		} catch (MissingRequiredField e) {
+			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
+					"update-slice: " + e.getMessage()), 0);
+		} catch (PermissionDeniedException e) {
+			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
+					"update-slice: " + e.getMessage()), 0);
+		} catch (InvalidDropPolicy e) {
+			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
+					"update-slice: " + e.getMessage()), 0);
+		} catch (DuplicateControllerException e) {
+			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_REQUEST.getCode(), 
+					"update-slice: " + e.getMessage()), 0);
+		} 
+		return resp;
+		
+	}
+
+
+	private void updateLLDP(String sliceName, Boolean lldpOptIn) {
+		if (lldpOptIn == null)
+			return;
+		SliceImpl.getProxy().setlldp_spam(sliceName, lldpOptIn);
+		
+	}
+
+
+	private void updateMaxFM(String sliceName, Number max) throws ConfigError {
+		if (max == null)
+			return;
+		SliceImpl.getProxy().setMaxFlowMods(sliceName, max.intValue());
+		
+	}
+
+
+	private void updateAdminInfo(String sliceName, String adminInfo) throws ConfigError {
+		if (adminInfo == null)
+			return;
+		SliceImpl.getProxy().setContactEmail(sliceName, adminInfo);
+	}
+
+
+	private void updateCtrl(String sliceName, String ctrlHost,
+			Number ctrlPort) throws ConfigError, DuplicateControllerException {
+		if (ctrlHost == null && ctrlPort == null) 
+			return;
+		if (ctrlPort == null)
+			ctrlPort = SliceImpl.getProxy().getcontroller_port(sliceName);
+		if (ctrlHost == null)
+			ctrlHost = SliceImpl.getProxy().getcontroller_hostname(sliceName);
+		checkDupCtrl(sliceName, ctrlHost, ctrlPort.intValue());
+	}
+
+
+	private void checkDupCtrl(String sliceName, String ctrlHost,
+			Integer ctrlPort) throws ConfigError, DuplicateControllerException {
+		String host = null;
+		Integer port = null;
+		List<String> slices = FVConfig.getAllSlices();
+		for (String slice : slices) {
+			if (slice.equals(sliceName))
+				continue;
+			host = SliceImpl.getProxy().getcontroller_hostname(slice);
+			port = SliceImpl.getProxy().getcontroller_port(slice);
+			if (port == ctrlPort && host.equalsIgnoreCase(ctrlHost))
+				throw new DuplicateControllerException(ctrlHost, ctrlPort, sliceName, "update");
+		}
+		
+	}
+
+
+	private void updateDropPolicy(String sliceName, String dropPolicy) 
+			throws InvalidDropPolicy {
+		if (dropPolicy == null)
+			return;
+		validateDropPolicy(dropPolicy);
+		SliceImpl.getProxy().setdrop_policy(sliceName, dropPolicy);
+	}
+
+
+	private void validateDropPolicy(String dropPolicy) throws InvalidDropPolicy {
+		if (!dropPolicy.equals("exact") && !dropPolicy.equals("rule"))
+			throw new InvalidDropPolicy("Flowvisor currently supports an 'exact'"
+						+" or a 'rule' based drop policy");
+		
+	}
+
+
+	private void validateSliceName(String sliceName)
+		throws ConfigError, PermissionDeniedException {
+		List<String> slices = FVConfig.getAllSlices();
+		if (!slices.contains(sliceName))
+			throw new PermissionDeniedException(
+					"Slice " + sliceName + " does not exist");
+	
+	}
+
+
+	@Override
+	public JSONRPC2ParamsType getType() {
+		return JSONRPC2ParamsType.OBJECT;
+	}
+
+}
