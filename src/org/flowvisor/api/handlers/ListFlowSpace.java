@@ -33,7 +33,7 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 					fm = FlowSpaceUtil.getSliceFlowSpace(sliceName);
 			} else
 				fm = FlowSpaceUtil.getSliceFlowSpace(user);
-			resp = new JSONRPC2Response(fm.getRules(), 0);
+			resp = new JSONRPC2Response(fm.getRules().toArray(), 0);
 		}  catch (UnknownFieldType e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					"list-flowspace: " + e.getMessage()), 0);
