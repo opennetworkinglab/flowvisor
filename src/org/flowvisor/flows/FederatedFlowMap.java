@@ -95,4 +95,17 @@ public class FederatedFlowMap implements FlowMap, Cloneable {
 		return type.FEDERATED;
 	}
 
+	
+	/*
+	 *  TODO: come and make this useful.
+	 */
+	@Override
+	public FlowEntry findRuleByName(String name) {
+		for (FlowEntry fe : getRules()) 
+			if (fe.getName().equals(name))
+				return fe;
+		return null;
+		
+	}
+
 }

@@ -2,11 +2,16 @@ package org.flowvisor.api;
 
 import java.util.HashMap;
 
+import org.flowvisor.api.handlers.AddFlowSpace;
 import org.flowvisor.api.handlers.AddSlice;
 import org.flowvisor.api.handlers.ApiHandler;
 import org.flowvisor.api.handlers.ListFlowSpace;
 import org.flowvisor.api.handlers.ListSlices;
+import org.flowvisor.api.handlers.ListVersion;
 import org.flowvisor.api.handlers.RemoveSlice;
+import org.flowvisor.api.handlers.SaveConfig;
+import org.flowvisor.api.handlers.UpdateAdminPassword;
+import org.flowvisor.api.handlers.UpdateFlowSpace;
 import org.flowvisor.api.handlers.UpdateSlice;
 import org.flowvisor.api.handlers.UpdateSlicePassword;
 
@@ -26,7 +31,12 @@ public class ConfigurationHandler implements RequestHandler {
 		put("update-slice", new UpdateSlice());
 		put("remove-slice", new RemoveSlice());
 		put("update-slice-password", new UpdateSlicePassword());
+		put("update-admin-password", new UpdateAdminPassword());
 		put("list-flowspace", new ListFlowSpace());
+		put("add-flowspace", new AddFlowSpace());
+		put("update-flowspace", new UpdateFlowSpace());
+		put("list-version", new ListVersion());
+		put("save-config", new SaveConfig());
 	}};
 	
 	

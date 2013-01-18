@@ -11,6 +11,8 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.UUID;
 import java.util.Map.Entry;
 import java.util.SortedSet;
 
@@ -58,6 +60,7 @@ public class FlowSpaceImpl implements FlowSpace {
 	private static String GSLICEID = "SELECT id FROM Slice WHERE " + Slice.SLICE + "= ?";
 	private static String DFLOWMAP = "DELETE FROM FlowSpaceRule";
 	private static String DFLOWRULE = "DELETE FROM FlowSpaceRule WHERE id = ?";
+	private static String DFLOWRULEBYNAME = "DELETE FROM FlowSpaceRule WHERE ";
 	
 	private static String GACTIONS = "SELECT " + ACTION + ",S." + Slice.SLICE + " FROM jFSRSlice as J," +
 			"Slice as S  WHERE flowspacerule_id=? and slice_id = S.id";
@@ -70,7 +73,7 @@ public class FlowSpaceImpl implements FlowSpace {
 	private static String SFLOWMAP = "INSERT INTO FlowSpaceRule(" + DPID + "," + PRIO + "," +  
 			INPORT + "," + VLAN + "," + VPCP + "," + DLSRC + "," + DLDST + "," + DLTYPE + "," +
 			NWSRC + "," + NWDST + "," + NWPROTO + "," + NWTOS + "," + TPSRC + "," + TPDST + "," +
-			FORCED_QUEUE + "," + WILDCARDS+ ") " + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+			FORCED_QUEUE + "," + WILDCARDS+ "," + NAME +") " + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	
 	private static String SAVESLICEFLOWMAP = "INSERT INTO PreservedFlowSpaceRules(" + DPID + "," + PRIO + "," +  
 			INPORT + "," + VLAN + "," + VPCP + "," + DLSRC + "," + DLDST + "," + DLTYPE + "," +
@@ -412,6 +415,7 @@ public class FlowSpaceImpl implements FlowSpace {
 			
 			ps.setInt(15, (int) fe.getForcedQueue());
 			ps.setInt(16, wildcards);
+			ps.setString(17, fe.getName());
 			ps.executeUpdate();
 			set = ps.getGeneratedKeys();
 			set.next();
@@ -472,6 +476,40 @@ public class FlowSpaceImpl implements FlowSpace {
 		} catch (SQLException e) {
 			FVLog.log(LogLevel.DEBUG, null, e.getMessage());
 			throw new ConfigError("Unable to remove rule with id " + id);
+		} finally {
+			close(ps);
+			close(conn);
+		}
+ 		
+		
+	}
+	
+	
+	@Override
+	public void removeRuleByName(List<String> names) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+	
+		String stmt = DFLOWRULEBYNAME;
+		for (int i = 0 ; i < names.size() ; i++) {
+			if (i == 0)
+				stmt += " name = ? ";
+			else
+				stmt += " OR name = ? ";	
+		}
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(stmt);
+			for (int i = 0 ; i < names.size() ; i++)
+				ps.setString(i+1, names.get(i));
+			int affected = -1;
+			if ((affected = ps.executeUpdate()) != 1) {
+				FVLog.log(LogLevel.ALERT, null, "Failed to delete rules by name  : rows affected ", affected);
+				throw new ConfigError("Unable to remove rule by names");
+			}
+		} catch (SQLException e) {
+			FVLog.log(LogLevel.DEBUG, null, e.getMessage());
+			throw new ConfigError("Unable to remove rule by names" + e.getMessage());
 		} finally {
 			close(ps);
 			close(conn);
@@ -628,107 +666,13 @@ public class FlowSpaceImpl implements FlowSpace {
 
   	@Override
  	public HashMap<String, Object> toJson(HashMap<String, Object> output) {
-  		Connection conn = null;
-  		PreparedStatement ps = null;
-  		PreparedStatement actions = null;
-  		PreparedStatement queues = null;
-  		ResultSet set = null;
-  		ResultSet actionSet = null;
-  		ResultSet queueSet = null;
- 		HashMap<String, Object> fs = new HashMap<String, Object>();
- 		HashMap<String, Object> action = new HashMap<String, Object>();
- 		LinkedList<Object> list = new LinkedList<Object>();
- 		LinkedList<Object> actionList = new LinkedList<Object>();
- 		LinkedList<Integer> queueList = new LinkedList<Integer>();
   		try {
-  			int wildcards = -1;
-  			conn = settings.getConnection();
-  			ps = conn.prepareStatement(GFLOWMAP);
-  			set = ps.executeQuery();
- 			//writer.name(FS);
- 			//writer.beginArray();
-  			while (set.next()) {
- 				//writer.beginObject();
-  				wildcards = set.getInt(WILDCARDS);
- 				fs.put(DPID, FlowSpaceUtil.dpidToString(set.getLong(DPID)));
- 				fs.put(PRIO, set.getInt(PRIO));
- 				if ((wildcards & FVMatch.OFPFW_IN_PORT) == 0)
- 					fs.put(INPORT, set.getInt(INPORT));
-  				
-  				if ((wildcards & FVMatch.OFPFW_DL_VLAN) == 0)
- 					fs.put(VLAN, set.getShort(VLAN));
-  				
-  				if ((wildcards & FVMatch.OFPFW_DL_VLAN_PCP) == 0)
- 					fs.put(VPCP, set.getShort(VPCP));
-  				
-  				if ((wildcards & FVMatch.OFPFW_DL_SRC) == 0)
- 					fs.put(DLSRC, FlowSpaceUtil.macToString(set.getLong(DLSRC)));
-  				
-  				if ((wildcards & FVMatch.OFPFW_DL_DST) == 0)
- 					fs.put(DLDST, FlowSpaceUtil.macToString(set.getLong(DLDST)));
-  				
-  				if ((wildcards & FVMatch.OFPFW_DL_TYPE) == 0)
- 					fs.put(DLTYPE, set.getShort(DLTYPE));
-  				
-  				if ((wildcards & FVMatch.OFPFW_NW_SRC_ALL) == 0)
- 					fs.put(NWSRC, set.getInt(NWSRC));
-  				
-  				if ((wildcards & FVMatch.OFPFW_NW_DST_ALL) == 0)
- 					fs.put(NWDST, set.getInt(NWDST));
-  				
-  				if ((wildcards & FVMatch.OFPFW_NW_PROTO) == 0)
- 					fs.put(NWPROTO, set.getShort(NWPROTO));
-  				
-  				if ((wildcards & FVMatch.OFPFW_NW_TOS) == 0)
- 					fs.put(NWTOS, set.getShort(NWTOS));
- 				
- 				if ((wildcards & FVMatch.OFPFW_TP_DST) == 0)
- 					fs.put(TPDST, set.getShort(TPDST));
-  				
-  				if ((wildcards & FVMatch.OFPFW_TP_SRC) == 0)
- 					fs.put(TPSRC, set.getShort(TPSRC));
-  				
-  				fs.put(FORCED_QUEUE, set.getInt(FORCED_QUEUE));
- 				fs.put(WILDCARDS, wildcards);
-  				//fs.put(QUEUE, set.getInt(QUEUE));
-  				actions = conn.prepareStatement(GACTIONS);
-  				actions.setInt(1, set.getInt("id"));
-  				actionSet = actions.executeQuery();
- 				//writer.name(ACTION);
- 				//writer.beginArray();
-  				while (actionSet.next()) {
- 					action.put(actionSet.getString(Slice.SLICE), actionSet.getInt(ACTION));
- 					actionList.add(action.clone());
- 					action.clear();
-  				}
-  				fs.put(ACTION, actionList.clone());
-  				actionList.clear();
-  				
-  				queues = conn.prepareStatement(GQUEUES);
-  				queues.setInt(1, set.getInt("id"));
-  				queueSet = queues.executeQuery();
- 				while (queueSet.next()) {
- 						queueList.add(queueSet.getInt(QUEUE));
- 				}
- 				fs.put(QUEUE, queueList.clone());
- 				queueList.clear();
- 				list.add(fs.clone());
- 				fs.clear();
-  			}
- 			output.put(FS, list);
-  		} catch (SQLException e) {
-  			FVLog.log(LogLevel.CRIT, null, "Failed to write flowspace config : " + e.getMessage());
-  		} finally {
-
-			close(set);
-			close(ps);
-			close(actionSet);
-			close(actions);
-			close(queueSet);
-			close(queues);
-			close(conn);	
-		}	
-		return output;
+			return toJson(output, null);
+		} catch (ConfigError e) {
+			FVLog.log(LogLevel.WARN, null, "Failed to convert config to JSON: "
+							+ e.getMessage());
+		}
+  		return null;
 	}
 	
 	@Override
@@ -738,14 +682,9 @@ public class FlowSpaceImpl implements FlowSpace {
 			insert(row);
 	}
 	
-	/*
-	 * Super ugly toJson method to allow JSONRPC to get part of the 
-	 * flowspace in a JSON understandable way.
-	 * 
-	 * FIXME: the two toJson methods should be merged...
-	 */
+	
 	@Override
-	public void toJson(HashMap<String, Object> map, String sliceName)
+	public HashMap<String, Object> toJson(HashMap<String, Object> map, String sliceName)
 			throws ConfigError {
   		Connection conn = null;
   		PreparedStatement ps = null;
@@ -814,6 +753,7 @@ public class FlowSpaceImpl implements FlowSpace {
   				
   				fs.put(FORCED_QUEUE, set.getInt(FORCED_QUEUE));
  				fs.put(WILDCARDS, wildcards);
+ 				fs.put(NAME, set.getString(NAME));
   				//fs.put(QUEUE, set.getInt(QUEUE));
   				actions = conn.prepareStatement(GACTIONS);
   				actions.setInt(1, set.getInt("id"));
@@ -852,7 +792,7 @@ public class FlowSpaceImpl implements FlowSpace {
 			close(queues);
 			close(conn);	
 		}	
-		
+		return map;
 	}
 	
 
@@ -938,6 +878,10 @@ public class FlowSpaceImpl implements FlowSpace {
 			else
 				ps.setInt(16, ((Double) row.get(WILDCARDS)).intValue());
 			
+			if (row.get(NAME) == null) 
+				ps.setString(17, UUID.randomUUID().toString());
+			else
+				ps.setString(17, (String) row.get(NAME));
 			
 			if (ps.executeUpdate() == 0)
 				FVLog.log(LogLevel.WARN, null, "Flow rule insertion failed... siliently.");

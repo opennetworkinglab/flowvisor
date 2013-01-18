@@ -13,7 +13,6 @@ import org.flowvisor.config.SliceImpl;
 import org.flowvisor.exceptions.DuplicateControllerException;
 import org.flowvisor.exceptions.MissingRequiredField;
 import org.flowvisor.exceptions.PermissionDeniedException;
-import org.flowvisor.exceptions.UnknownFieldType;
 import org.flowvisor.flows.FlowMap;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
@@ -31,7 +30,7 @@ public class AddSlice implements ApiHandler<Map<String, Object>> {
 					"only superusers can create new slices"), 0);
 		
 		try {
-			String ctrlUrl = HandlerUtils.fetchField(CTRLURL, params, String.class, true, null);
+			String ctrlUrl = HandlerUtils.<String>fetchField(CTRLURL, params, true, null);
 			String[] list = ctrlUrl.split(":");
 			if (list.length < 2)
 				return new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(),
@@ -47,12 +46,12 @@ public class AddSlice implements ApiHandler<Map<String, Object>> {
 				ctrlPort = Integer.valueOf(list[2]);
 			else
 				ctrlPort = FVConfig.OFP_TCP_PORT;
-			String dropPolicy = HandlerUtils.fetchField(DROP, params, String.class, false, "exact");
-			Boolean lldpOptIn = HandlerUtils.fetchField(LLDP, params, Boolean.class, false, false);
-			String sliceName = HandlerUtils.fetchField(SLICENAME, params, String.class, true, null);
-			String adminInfo = HandlerUtils.fetchField(ADMIN, params, String.class, true, null);
-			String password = HandlerUtils.fetchField(PASS, params, String.class, true, null);
-			Number maxFM =  HandlerUtils.fetchField(MAX, params, Number.class, false, -1);
+			String dropPolicy = HandlerUtils.<String>fetchField(DROP, params, false, "exact");
+			Boolean lldpOptIn = HandlerUtils.<Boolean>fetchField(LLDP, params, false, false);
+			String sliceName = HandlerUtils.<String>fetchField(SLICENAME, params, true, null);
+			String adminInfo = HandlerUtils.<String>fetchField(ADMIN, params, true, null);
+			String password = HandlerUtils.<String>fetchField(PASS, params, true, null);
+			Number maxFM =  HandlerUtils.<Number>fetchField(MAX, params, false, -1);
 			validateSliceName(sliceName);
 			validateDropPolicy(dropPolicy);
 			SliceImpl.getProxy().createSlice(sliceName, list[1], ctrlPort, 
@@ -61,22 +60,22 @@ public class AddSlice implements ApiHandler<Map<String, Object>> {
 			resp = new JSONRPC2Response(true, 0);
 		} catch (ConfigError e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
-					"add-slice: Unable to fetch slice list : " + e.getMessage()), 0);
-		} catch (UnknownFieldType e) {
+					cmdName() + ": Unable to fetch slice list : " + e.getMessage()), 0);
+		} catch (ClassCastException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
-					"add-slice: " + e.getMessage()), 0);
+					cmdName() + ": " + e.getMessage()), 0);
 		} catch (MissingRequiredField e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
-					"add-slice: " + e.getMessage()), 0);
+					cmdName() + ": " + e.getMessage()), 0);
 		} catch (PermissionDeniedException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
-					"add-slice: " + e.getMessage()), 0);
+					cmdName() + ": " + e.getMessage()), 0);
 		} catch (InvalidDropPolicy e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
-					"add-slice: " + e.getMessage()), 0);
+					cmdName() + ": " + e.getMessage()), 0);
 		} catch (DuplicateControllerException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_REQUEST.getCode(), 
-					"add-slice: " + e.getMessage()), 0);
+					cmdName() + ": " + e.getMessage()), 0);
 		} 
 		return resp;
 		
@@ -104,6 +103,12 @@ public class AddSlice implements ApiHandler<Map<String, Object>> {
 	@Override
 	public JSONRPC2ParamsType getType() {
 		return JSONRPC2ParamsType.OBJECT;
+	}
+
+
+	@Override
+	public String cmdName() {
+		return "add-slice";
 	}
 
 }

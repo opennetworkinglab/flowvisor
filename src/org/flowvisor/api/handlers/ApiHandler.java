@@ -15,10 +15,16 @@ public interface ApiHandler<T> {
 	final static String MAX = "flowmod-limit";
 	final static String PRESERVE = "preserve-flowspace";
 	final static String PASS = "password";
+	final static String FSNAME = "name";
+	final static String MATCH = "match";
+	final static String SLICEACTIONS = "slice-action";
+	final static String PERM = "permission";
 	
 
 	public JSONRPC2Response process(T params);
 	
 	public JSONRPC2ParamsType getType();
+	
+	public String cmdName();
 	
 }

@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.flowvisor.config.BracketParse;
 import org.flowvisor.config.Bracketable;
@@ -39,7 +40,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 	private static final long serialVersionUID = 1L;
 	public static final long ALL_DPIDS = Long.MIN_VALUE;
 	public static final String ALL_DPIDS_STR = "all_dpids";
-	private static final int DefaultPriority = 32000;
+	public static final int DefaultPriority = 32000;
 	static int UNIQUE_FLOW_ID = -1;
 	protected FVMatch ruleMatch;
 	protected List<Integer> queue_ids = new LinkedList<Integer>();
@@ -47,6 +48,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 	long dpid;
 	int priority;
 	int id;
+	String name;
 	// swap the policy after each defrag for version-ing
 	static DefragmentPolicy CurrentDefragPolicy = DefragmentPolicy.DefragAll;
 
@@ -61,14 +63,23 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 	 * @param actionsList
 	 *            list of actions; empty list implies DROP
 	 */
-	public FlowEntry(long dpid, FVMatch match, int id, int priority,
+	public FlowEntry(String name, long dpid, FVMatch match, int id, int priority,
 			List<OFAction> actionsList) {
 		this.dpid = dpid;
 		this.ruleMatch = match;
 		this.id = id;
 		this.actionsList = actionsList;
 		this.priority = priority;
+		this.name = name;
 	}
+	
+	
+	public FlowEntry(long dpid, FVMatch match, int id, int priority,
+			List<OFAction> actionsList) {
+		this(UUID.randomUUID().toString(), dpid, match, id, priority, actionsList);
+	}
+	
+	
 
 	public FlowEntry(long dpid, FVMatch match, int priority,
 			List<OFAction> actionsList) {
@@ -466,6 +477,13 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 	 */
 	public void setId(int id) {
 		this.id = id;
+	}
+	
+	/**
+	 * @return the user-defined name
+	 */
+	public String getName() {
+		return this.name;
 	}
 
 	/*

@@ -3,38 +3,42 @@ package org.flowvisor.api.handlers;
 import java.util.List;
 
 import org.flowvisor.config.ConfigError;
-import org.flowvisor.config.SliceImpl;
+import org.flowvisor.config.FlowSpaceImpl;
+
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 
-public class ListSlices implements ApiHandler<Object> {
+public class RemoveFlowSpace implements ApiHandler<List<String>> {
 
 	
 	
 	@Override
-	public JSONRPC2Response process(Object params) {
+	public JSONRPC2Response process(List<String> params) {
+		if (params.size() < 0)
+			return new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
+					cmdName() + ": Nothing to remove"), 0);
 		JSONRPC2Response resp = null;
 		try {
-			List<String> slices = SliceImpl.getProxy().getAllSliceNames();
-			resp = new JSONRPC2Response(slices, 0);
+			FlowSpaceImpl.getProxy().removeRuleByName(params);
+			resp = new JSONRPC2Response(true, 0);
 		} catch (ConfigError e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
-					cmdName() + ": Unable to fetch slice list : " + e.getMessage()), 0);
-		} 
+					"remove-flowspace: Unable to get flowspace : " + e.getMessage()), 0);
+		}  
 		return resp;
 		
 	}
 
 	@Override
 	public JSONRPC2ParamsType getType() {
-		return JSONRPC2ParamsType.NO_PARAMS;
+		return JSONRPC2ParamsType.ARRAY;
 	}
 
 	@Override
 	public String cmdName() {
-		return "list-slices";
+		return "remove-flowspace";
 	}
 
 }

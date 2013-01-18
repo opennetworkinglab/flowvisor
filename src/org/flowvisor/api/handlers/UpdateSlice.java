@@ -13,7 +13,6 @@ import org.flowvisor.config.SliceImpl;
 import org.flowvisor.exceptions.DuplicateControllerException;
 import org.flowvisor.exceptions.MissingRequiredField;
 import org.flowvisor.exceptions.PermissionDeniedException;
-import org.flowvisor.exceptions.UnknownFieldType;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
@@ -28,7 +27,7 @@ public class UpdateSlice implements ApiHandler<Map<String, Object>> {
 		JSONRPC2Response resp = null;
 		
 		try {
-			String sliceName = HandlerUtils.fetchField(SLICENAME, params, String.class, true, null);
+			String sliceName = HandlerUtils.<String>fetchField(SLICENAME, params, true, null);
 			String changerSlice = APIUserCred.getUserName();
 			if (!APIAuth.transitivelyCreated(changerSlice, sliceName)
 					&& !FVConfig.isSupervisor(changerSlice))
@@ -36,12 +35,12 @@ public class UpdateSlice implements ApiHandler<Map<String, Object>> {
 						"Slice " + changerSlice
 						+ " does not have perms to change " + sliceName), 0);
 			
-			String ctrlHost = HandlerUtils.fetchField(CTRLHOST, params, String.class, false, null);
-			Number ctrlPort = HandlerUtils.fetchField(CTRLPORT, params, Number.class, false, null);
-			String adminInfo = HandlerUtils.fetchField(ADMIN, params, String.class, false, null);
-			Number maxFM =  HandlerUtils.fetchField(MAX, params, Number.class, false, null);
-			String dropPolicy = HandlerUtils.fetchField(DROP, params, String.class, false, null);
-			Boolean lldpOptIn = HandlerUtils.fetchField(LLDP, params, Boolean.class, false, null);
+			String ctrlHost = HandlerUtils.<String>fetchField(CTRLHOST, params, false, null);
+			Number ctrlPort = HandlerUtils.<Number>fetchField(CTRLPORT, params, false, null);
+			String adminInfo = HandlerUtils.<String>fetchField(ADMIN, params, false, null);
+			Number maxFM =  HandlerUtils.<Number>fetchField(MAX, params, false, null);
+			String dropPolicy = HandlerUtils.<String>fetchField(DROP, params, false, null);
+			Boolean lldpOptIn = HandlerUtils.<Boolean>fetchField(LLDP, params, false, null);
 			
 			validateSliceName(sliceName);
 			updateCtrl(sliceName, ctrlHost, ctrlPort);
@@ -53,22 +52,22 @@ public class UpdateSlice implements ApiHandler<Map<String, Object>> {
 			resp = new JSONRPC2Response(true, 0);
 		} catch (ConfigError e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
-					"update-slice: Unable to fetch/set config : " + e.getMessage()), 0);
-		} catch (UnknownFieldType e) {
+					cmdName() + ": Unable to fetch/set config : " + e.getMessage()), 0);
+		} catch (ClassCastException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
-					"update-slice: " + e.getMessage()), 0);
+					cmdName() + ": " + e.getMessage()), 0);
 		} catch (MissingRequiredField e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
-					"update-slice: " + e.getMessage()), 0);
+					cmdName() + ": " + e.getMessage()), 0);
 		} catch (PermissionDeniedException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
-					"update-slice: " + e.getMessage()), 0);
+					cmdName() + ": " + e.getMessage()), 0);
 		} catch (InvalidDropPolicy e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
-					"update-slice: " + e.getMessage()), 0);
+					cmdName() + ": " + e.getMessage()), 0);
 		} catch (DuplicateControllerException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_REQUEST.getCode(), 
-					"update-slice: " + e.getMessage()), 0);
+					cmdName() + ": " + e.getMessage()), 0);
 		} 
 		return resp;
 		
@@ -157,6 +156,12 @@ public class UpdateSlice implements ApiHandler<Map<String, Object>> {
 	@Override
 	public JSONRPC2ParamsType getType() {
 		return JSONRPC2ParamsType.OBJECT;
+	}
+
+
+	@Override
+	public String cmdName() {
+		return "update-slice";
 	}
 
 }

@@ -2,16 +2,19 @@ package org.flowvisor.api.handlers;
 
 import java.util.Map;
 
+import org.flowvisor.api.APIAuth;
+import org.flowvisor.api.APIUserCred;
 import org.flowvisor.config.ConfigError;
-import org.flowvisor.config.InvalidSliceName;
+import org.flowvisor.config.FVConfig;
 import org.flowvisor.config.SliceImpl;
 import org.flowvisor.exceptions.MissingRequiredField;
+
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 
-public class RemoveSlice implements ApiHandler<Map<String, Object>> {
+public class UpdateAdminPassword implements ApiHandler<Map<String, Object>> {
 
 	
 	
@@ -19,23 +22,30 @@ public class RemoveSlice implements ApiHandler<Map<String, Object>> {
 	public JSONRPC2Response process(Map<String, Object> params) {
 		JSONRPC2Response resp = null;
 		try {
-			String sliceName = HandlerUtils.<String>fetchField(SLICENAME, params, true, null);
-			Boolean preserve = HandlerUtils.<Boolean>fetchField(PRESERVE, params, false, false);
-			SliceImpl.getProxy().deleteSlice(sliceName, preserve);
+			String sliceName = FVConfig.SUPER_USER;
+			String newPasswd = HandlerUtils.<String>fetchField(PASS, params, true, null);
+			String changerSlice = APIUserCred.getUserName();
+			if (!APIAuth.transitivelyCreated(changerSlice, sliceName)
+					&& !FVConfig.isSupervisor(changerSlice))
+				return new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_REQUEST.getCode(), 
+						cmdName() + ": Slice " + changerSlice
+						+ " does not have perms to change the passwd of "
+						+ sliceName), 0);
+			String salt = APIAuth.getSalt();
+			String crypt = APIAuth.makeCrypt(salt, newPasswd);
+			sliceName = FVConfig.sanitize(sliceName);
+			SliceImpl.getProxy().setPasswd(sliceName, salt, crypt);
 			resp = new JSONRPC2Response(true, 0);
-		} catch (ClassCastException e) {
+		}  catch (ClassCastException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					cmdName() + ": " + e.getMessage()), 0);
 		} catch (MissingRequiredField e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					cmdName() + ": " + e.getMessage()), 0);
-		} catch (InvalidSliceName e) {
-			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
-					cmdName() + ": " + e.getMessage()), 0);
 		} catch (ConfigError e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
-					cmdName() + ": Unable to delete slice : " + e.getMessage()), 0);
-		} 
+					cmdName() + ": Unable to set slice password : " + e.getMessage()), 0);
+		}  
 		return resp;
 		
 	}
@@ -47,7 +57,7 @@ public class RemoveSlice implements ApiHandler<Map<String, Object>> {
 
 	@Override
 	public String cmdName() {
-		return "remove-slice";
+		return "update-slice-password";
 	}
 
 }

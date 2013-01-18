@@ -82,6 +82,7 @@ CREATE TABLE FlowSpaceRule (
   tp_dst SMALLINT,
   forced_queue INT DEFAULT -1,
   wildcards INT,
+  name VARCHAR(64),
   PRIMARY KEY (id));
 
 CREATE INDEX prio_index ON FlowSpaceRule (priority ASC);
