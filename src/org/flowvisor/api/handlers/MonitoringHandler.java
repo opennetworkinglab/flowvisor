@@ -1,19 +1,16 @@
-package org.flowvisor.api;
+package org.flowvisor.api.handlers;
 
 import java.util.HashMap;
 
-import org.flowvisor.api.handlers.AddFlowSpace;
-import org.flowvisor.api.handlers.AddSlice;
-import org.flowvisor.api.handlers.ApiHandler;
-import org.flowvisor.api.handlers.ListFlowSpace;
-import org.flowvisor.api.handlers.ListSlices;
-import org.flowvisor.api.handlers.ListVersion;
-import org.flowvisor.api.handlers.RemoveSlice;
-import org.flowvisor.api.handlers.SaveConfig;
-import org.flowvisor.api.handlers.UpdateAdminPassword;
-import org.flowvisor.api.handlers.UpdateFlowSpace;
-import org.flowvisor.api.handlers.UpdateSlice;
-import org.flowvisor.api.handlers.UpdateSlicePassword;
+import org.flowvisor.api.handlers.monitoring.ListDatapathInfo;
+import org.flowvisor.api.handlers.monitoring.ListDatapathStats;
+import org.flowvisor.api.handlers.monitoring.ListDatapaths;
+import org.flowvisor.api.handlers.monitoring.ListFVHealth;
+import org.flowvisor.api.handlers.monitoring.ListLinks;
+import org.flowvisor.api.handlers.monitoring.ListSliceHealth;
+import org.flowvisor.api.handlers.monitoring.ListSliceInfo;
+import org.flowvisor.api.handlers.monitoring.ListSliceStats;
+
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
@@ -22,21 +19,18 @@ import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 import com.thetransactioncompany.jsonrpc2.server.MessageContext;
 import com.thetransactioncompany.jsonrpc2.server.RequestHandler;
 
-public class ConfigurationHandler implements RequestHandler {
+public class MonitoringHandler implements RequestHandler {
 
 	@SuppressWarnings( { "serial", "rawtypes" } )
 	HashMap<String, ApiHandler> handlers = new HashMap<String, ApiHandler>() {{
-		put("list-slices", new ListSlices());
-		put("add-slice", new AddSlice());
-		put("update-slice", new UpdateSlice());
-		put("remove-slice", new RemoveSlice());
-		put("update-slice-password", new UpdateSlicePassword());
-		put("update-admin-password", new UpdateAdminPassword());
-		put("list-flowspace", new ListFlowSpace());
-		put("add-flowspace", new AddFlowSpace());
-		put("update-flowspace", new UpdateFlowSpace());
-		put("list-version", new ListVersion());
-		put("save-config", new SaveConfig());
+		put("list-slice-info", new ListSliceInfo());
+		put("list-datapaths", new ListDatapaths());
+		put("list-datapath-info", new ListDatapathInfo());
+		put("list-datapath-stats", new ListDatapathStats());
+		put("list-fv-health", new ListFVHealth());
+		put("list-links", new ListLinks());
+		put("list-slice-health", new ListSliceHealth());
+		put("list-slice-stats", new ListSliceStats());
 	}};
 	
 	

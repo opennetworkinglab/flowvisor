@@ -1,4 +1,4 @@
-package org.flowvisor.api.handlers;
+package org.flowvisor.api.handlers.configuration;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.flowvisor.api.APIUserCred;
+import org.flowvisor.api.handlers.ApiHandler;
+import org.flowvisor.api.handlers.HandlerUtils;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
 import org.flowvisor.config.FlowSpace;

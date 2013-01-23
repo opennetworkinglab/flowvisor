@@ -1,9 +1,11 @@
-package org.flowvisor.api.handlers;
+package org.flowvisor.api.handlers.configuration;
 
 import java.util.Map;
 
 import org.flowvisor.api.APIAuth;
 import org.flowvisor.api.APIUserCred;
+import org.flowvisor.api.handlers.ApiHandler;
+import org.flowvisor.api.handlers.HandlerUtils;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
 import org.flowvisor.config.SliceImpl;
@@ -14,7 +16,7 @@ import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 
-public class UpdateAdminPassword implements ApiHandler<Map<String, Object>> {
+public class UpdateSlicePassword implements ApiHandler<Map<String, Object>> {
 
 	
 	
@@ -22,7 +24,7 @@ public class UpdateAdminPassword implements ApiHandler<Map<String, Object>> {
 	public JSONRPC2Response process(Map<String, Object> params) {
 		JSONRPC2Response resp = null;
 		try {
-			String sliceName = FVConfig.SUPER_USER;
+			String sliceName = HandlerUtils.<String>fetchField(SLICENAME, params, true, null);
 			String newPasswd = HandlerUtils.<String>fetchField(PASS, params, true, null);
 			String changerSlice = APIUserCred.getUserName();
 			if (!APIAuth.transitivelyCreated(changerSlice, sliceName)

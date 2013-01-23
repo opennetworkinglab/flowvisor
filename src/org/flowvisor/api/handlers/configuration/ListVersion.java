@@ -1,8 +1,9 @@
-package org.flowvisor.api.handlers;
+package org.flowvisor.api.handlers.configuration;
 
 import java.util.HashMap;
 
 import org.flowvisor.FlowVisor;
+import org.flowvisor.api.handlers.ApiHandler;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;

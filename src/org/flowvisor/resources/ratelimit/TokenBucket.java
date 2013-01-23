@@ -51,6 +51,10 @@ public class TokenBucket {
 
 		return false;
 	}
+	
+	public long currentRate() {
+		return this.capacity - this.size;
+	}
 
 
 

@@ -19,6 +19,7 @@ CREATE TABLE Flowvisor (
   default_flood_perm VARCHAR(45) DEFAULT 'fvadmin',
   config_name VARCHAR(100) UNIQUE DEFAULT 'default',
   db_version INT,
+  fscache INT DEFAULT 30,
   PRIMARY KEY (id));
 
 CREATE TABLE Slice (

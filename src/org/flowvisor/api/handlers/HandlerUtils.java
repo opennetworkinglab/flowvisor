@@ -1,12 +1,21 @@
 package org.flowvisor.api.handlers;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.flowvisor.FlowVisor;
+import org.flowvisor.classifier.FVClassifier;
+import org.flowvisor.config.ConfigError;
+import org.flowvisor.config.SliceImpl;
+import org.flowvisor.events.FVEventHandler;
+import org.flowvisor.exceptions.DPIDNotFound;
 import org.flowvisor.exceptions.MissingRequiredField;
 import org.flowvisor.flows.FlowSpaceUtil;
 import org.flowvisor.openflow.protocol.FVMatch;
+import org.flowvisor.resources.SlicerLimits;
+import org.flowvisor.slicer.FVSlicer;
 import org.openflow.util.U16;
 import org.openflow.util.U8;
 
@@ -129,6 +138,77 @@ public class HandlerUtils {
 		
 		return match;
 		
+	}
+	
+	public static List<FVClassifier> getAllClassifiers() {
+		List<FVClassifier> list = new LinkedList<FVClassifier>();
+		for (Iterator<FVEventHandler> it = FlowVisor.getInstance()
+				.getHandlersCopy().iterator(); it.hasNext();) {
+			FVEventHandler eventHandler = it.next();
+			if (eventHandler instanceof FVClassifier) {
+				FVClassifier classifier = (FVClassifier) eventHandler;
+				list.add(classifier);
+			}
+		}
+		return list;
+	}
+	
+	public static FVClassifier getClassifierByDPID(Long dpid) throws DPIDNotFound {
+		for (FVClassifier classifier : getAllClassifiers()) {
+			if (!classifier.isIdentified())
+				continue;
+			if (dpid == classifier.getDPID())
+				return classifier;
+		}
+		throw new DPIDNotFound(FlowSpaceUtil.dpidToString(dpid));
+	}
+	
+	
+	public static FVSlicer getSlicerByName(String sliceName) {
+		FVSlicer fvSlicer = null;
+		for (Iterator<FVEventHandler> it = FlowVisor.getInstance()
+				.getHandlersCopy().iterator(); it.hasNext();) {
+			FVEventHandler eventHandler = it.next();
+			if (eventHandler instanceof FVClassifier) {
+				FVClassifier classifier = (FVClassifier) eventHandler;
+				if (!classifier.isIdentified()) 
+					continue;
+				fvSlicer = classifier.getSlicerByName(sliceName);
+				if (fvSlicer != null) {
+					break;
+				}
+			}
+		}
+		return fvSlicer;
+	}
+	
+	public static SlicerLimits getSliceLimits() throws DPIDNotFound{
+		for (Iterator<FVEventHandler> it = FlowVisor.getInstance()
+				.getHandlersCopy().iterator(); it.hasNext();) {
+			FVEventHandler eventHandler = it.next();
+			if (eventHandler instanceof FVClassifier) {
+				FVClassifier classifier = (FVClassifier) eventHandler;
+				return classifier.getSlicerLimits();
+			}
+		}
+		throw new DPIDNotFound("No classifier found, therefore no limits accessible");
+	}
+	
+	
+	public static List<String> getAllDevices() {
+		List<String> dpids = new LinkedList<String>();
+		for (FVClassifier classifier : HandlerUtils.getAllClassifiers())
+			dpids.add(FlowSpaceUtil.dpidToString(classifier.getDPID()));
+		return dpids;
+	}
+	
+	public static List<String> getAllSlices() throws ConfigError {
+		return SliceImpl.getProxy().getAllSliceNames();
+	}
+	
+	public static boolean sliceExists(String sliceName) 
+			throws ConfigError {
+		return getAllSlices().contains(sliceName);
 	}
 	
 	private static final String INPORT = "in-port";

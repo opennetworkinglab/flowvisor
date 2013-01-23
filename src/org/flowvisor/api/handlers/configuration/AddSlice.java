@@ -1,14 +1,17 @@
-package org.flowvisor.api.handlers;
+package org.flowvisor.api.handlers.configuration;
 
 import java.util.List;
 import java.util.Map;
 
 import org.flowvisor.api.APIAuth;
 import org.flowvisor.api.APIUserCred;
+import org.flowvisor.api.handlers.*;
+import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
 import org.flowvisor.config.InvalidDropPolicy;
 import org.flowvisor.config.SliceImpl;
+import org.flowvisor.config.SwitchImpl;
 
 import org.flowvisor.exceptions.DuplicateControllerException;
 import org.flowvisor.exceptions.MissingRequiredField;
@@ -52,11 +55,15 @@ public class AddSlice implements ApiHandler<Map<String, Object>> {
 			String adminInfo = HandlerUtils.<String>fetchField(ADMIN, params, true, null);
 			String password = HandlerUtils.<String>fetchField(PASS, params, true, null);
 			Number maxFM =  HandlerUtils.<Number>fetchField(MAX, params, false, -1);
+			Number rate = HandlerUtils.<Number>fetchField(RATE, params, false, -1);
 			validateSliceName(sliceName);
 			validateDropPolicy(dropPolicy);
 			SliceImpl.getProxy().createSlice(sliceName, list[1], ctrlPort, 
 					dropPolicy, password, APIAuth.getSalt(), adminInfo, APIUserCred.getUserName(),
 					lldpOptIn, maxFM.intValue(), 1, FlowMap.type.FEDERATED.ordinal() );
+			for (FVClassifier classifier : HandlerUtils.getAllClassifiers())
+				SwitchImpl.getProxy().setRateLimit(sliceName, classifier.getDPID(), rate.intValue());
+			
 			resp = new JSONRPC2Response(true, 0);
 		} catch (ConfigError e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 

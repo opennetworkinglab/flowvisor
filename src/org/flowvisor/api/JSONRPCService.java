@@ -9,6 +9,8 @@ import java.io.Writer;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.flowvisor.api.handlers.ConfigurationHandler;
+import org.flowvisor.api.handlers.MonitoringHandler;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 
@@ -25,6 +27,7 @@ public class JSONRPCService {
 	
 	public JSONRPCService() {
 		dispatcher.register(new ConfigurationHandler());
+		dispatcher.register(new MonitoringHandler());
 	}
 	
 	public void dispatch(HttpServletRequest req, HttpServletResponse resp) { 

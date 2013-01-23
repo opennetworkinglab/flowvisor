@@ -1,6 +1,7 @@
-package org.flowvisor.api.handlers;
+package org.flowvisor.api.handlers.configuration;
 
 
+import org.flowvisor.api.handlers.ApiHandler;
 import org.flowvisor.config.FVConfig;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;

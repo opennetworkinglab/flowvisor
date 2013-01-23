@@ -1,14 +1,18 @@
-package org.flowvisor.api.handlers;
+package org.flowvisor.api.handlers.configuration;
 
 import java.util.List;
 import java.util.Map;
 
 import org.flowvisor.api.APIAuth;
 import org.flowvisor.api.APIUserCred;
+import org.flowvisor.api.handlers.ApiHandler;
+import org.flowvisor.api.handlers.HandlerUtils;
+import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
 import org.flowvisor.config.InvalidDropPolicy;
 import org.flowvisor.config.SliceImpl;
+import org.flowvisor.config.SwitchImpl;
 
 import org.flowvisor.exceptions.DuplicateControllerException;
 import org.flowvisor.exceptions.MissingRequiredField;
@@ -41,6 +45,7 @@ public class UpdateSlice implements ApiHandler<Map<String, Object>> {
 			Number maxFM =  HandlerUtils.<Number>fetchField(MAX, params, false, null);
 			String dropPolicy = HandlerUtils.<String>fetchField(DROP, params, false, null);
 			Boolean lldpOptIn = HandlerUtils.<Boolean>fetchField(LLDP, params, false, null);
+			Number rate = HandlerUtils.<Number>fetchField(RATE, params, false, null);
 			
 			validateSliceName(sliceName);
 			updateCtrl(sliceName, ctrlHost, ctrlPort);
@@ -48,6 +53,7 @@ public class UpdateSlice implements ApiHandler<Map<String, Object>> {
 			updateAdminInfo(sliceName, adminInfo);	
 			updateMaxFM(sliceName, maxFM);
 			updateLLDP(sliceName, lldpOptIn);
+			updateRate(sliceName, rate);
 			
 			resp = new JSONRPC2Response(true, 0);
 		} catch (ConfigError e) {
@@ -70,6 +76,15 @@ public class UpdateSlice implements ApiHandler<Map<String, Object>> {
 					cmdName() + ": " + e.getMessage()), 0);
 		} 
 		return resp;
+		
+	}
+
+
+	private void updateRate(String sliceName, Number rate) throws ConfigError {
+		if (rate == null)
+			return;
+		for (FVClassifier classifier : HandlerUtils.getAllClassifiers())
+			SwitchImpl.getProxy().setRateLimit(sliceName, classifier.getDPID(), rate.intValue());
 		
 	}
 

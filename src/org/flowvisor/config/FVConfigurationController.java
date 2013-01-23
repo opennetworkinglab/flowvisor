@@ -18,7 +18,7 @@ public class FVConfigurationController {
 	private FVConfigurationController(ConfDBSettings settings) {
 		this.settings  = settings;
 		this.listeners = new HashMap<Object, Set<ChangedListener>>();
-		executor = Executors.newFixedThreadPool(10);
+		//executor = Executors.newFixedThreadPool(10);
 	}
 	
 	public static FVConfigurationController instance() {
@@ -80,9 +80,13 @@ public class FVConfigurationController {
 		return configProxy;
 	}
 	
+	public ConfDBSettings getSettings() {
+		return settings;
+	}
+	
 	public void shutdown() {
 		settings.shutdown();
-		executor.shutdown();
+		//executor.shutdown();
 	}
 
 	

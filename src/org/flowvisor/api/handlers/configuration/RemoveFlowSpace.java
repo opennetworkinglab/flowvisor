@@ -1,7 +1,8 @@
-package org.flowvisor.api.handlers;
+package org.flowvisor.api.handlers.configuration;
 
 import java.util.List;
 
+import org.flowvisor.api.handlers.ApiHandler;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FlowSpaceImpl;
 

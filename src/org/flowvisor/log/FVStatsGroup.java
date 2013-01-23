@@ -1,6 +1,8 @@
 package org.flowvisor.log;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.flowvisor.classifier.FVSendMsg;
@@ -69,6 +71,16 @@ public class FVStatsGroup {
 
 		return ret.toString();
 	}
+	
+	public synchronized HashMap<String, Object> toMap() {
+		HashMap<String, Object> ret = new HashMap<String,Object>();
+		for (FVSendMsg fvSendMsg : group.keySet())
+			ret.put(fvSendMsg.getName(), group.get(fvSendMsg).toMap());
+		
+		ret.put("Total", total.toMap());
+		
+		return ret;
+	}
 
 	/**
 	 * Creates a shared reference to a stats group; this is used by all slicer
@@ -85,5 +97,7 @@ public class FVStatsGroup {
 		}
 		return sharedStats.get(owner);
 	}
+
+
 
 }
