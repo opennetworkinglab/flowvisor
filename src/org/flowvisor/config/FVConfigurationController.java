@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 public class FVConfigurationController {
 
@@ -18,7 +19,7 @@ public class FVConfigurationController {
 	private FVConfigurationController(ConfDBSettings settings) {
 		this.settings  = settings;
 		this.listeners = new HashMap<Object, Set<ChangedListener>>();
-		//executor = Executors.newFixedThreadPool(10);
+		executor = Executors.newFixedThreadPool(1);
 	}
 	
 	public static FVConfigurationController instance() {
@@ -80,13 +81,17 @@ public class FVConfigurationController {
 		return configProxy;
 	}
 	
+	public void execute(FutureTask<Object> future) {
+		executor.execute(future);
+	}
+	
 	public ConfDBSettings getSettings() {
 		return settings;
 	}
 	
 	public void shutdown() {
 		settings.shutdown();
-		//executor.shutdown();
+		executor.shutdown();
 	}
 
 	

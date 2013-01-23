@@ -4,12 +4,15 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 
 import org.flowvisor.api.APIUserCred;
 import org.flowvisor.api.handlers.ApiHandler;
 import org.flowvisor.api.handlers.HandlerUtils;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
+import org.flowvisor.config.FVConfigurationController;
 import org.flowvisor.config.FlowSpace;
 import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.exceptions.MissingRequiredField;
@@ -35,15 +38,22 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 	public JSONRPC2Response process(List<Map<String, Object>> params) {
 		JSONRPC2Response resp = null;
 		try {
-			/*
-			 * TODO: Add java future here.
-			 */
-			FlowMap flowSpace = FVConfig.getFlowSpaceFlowMap();
-			processFlows(params, flowSpace);
-			FVLog.log(LogLevel.INFO, null,
-					"Signalling FlowSpace Update to all event handlers");
-			FlowSpaceImpl.getProxy().notifyChange(flowSpace);
-			
+			final FlowMap flowSpace = FVConfig.getFlowSpaceFlowMap();
+			final List<FlowEntry> list = processFlows(params, flowSpace);
+			FutureTask<Object> future = new FutureTask<Object>(
+	                new Callable<Object>() {
+	                    public Object call() {
+							
+	                    	
+	                    	addFlowEntries(list, flowSpace);
+							FVLog.log(LogLevel.INFO, null,
+									"Signalling FlowSpace Update to all event handlers");
+							FlowSpaceImpl.getProxy().notifyChange(flowSpace);
+							return null;
+	                    }
+	                });
+	                    
+			FVConfigurationController.instance().execute(future);	
 			resp = new JSONRPC2Response(true, 0);
 		} catch (ClassCastException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
@@ -59,13 +69,13 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		
 	}
 
-	private void processFlows(List<Map<String, Object>> params, FlowMap flowSpace) 
+	private List<FlowEntry> processFlows(List<Map<String, Object>> params, FlowMap flowSpace) 
 			throws ClassCastException, MissingRequiredField, ConfigError {
 		String name = null;
 		Long dpid = null;
 		Integer priority = null;
 		FlowEntry fentry = null;
-		String logMsg = null;
+		List<FlowEntry> list = new LinkedList<FlowEntry>();
 		for (Map<String,Object> fe : params) {
 			name = HandlerUtils.<String>fetchField(FSNAME, fe, false, UUID.randomUUID().toString());
 			dpid = FlowSpaceUtil
@@ -78,15 +88,28 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 			
 			fentry = new FlowEntry(name, dpid, match, 0, priority, 
 					(List<OFAction>) sliceActions);
-			FlowSpaceImpl.getProxy().addRule(fentry);
-			flowSpace.addRule(fentry);
-			logMsg = "User " + APIUserCred.getUserName() + 
-					flowspaceAddChangeLogMessage(fentry.getDpid(), 
-							fentry.getRuleMatch(), fentry.getPriority(),
-							fentry.getActionsList(), fentry.getName());
-			FVLog.log(LogLevel.INFO, null, logMsg);
+			list.add(fentry);
+			
 		}
+		return list;
 		
+	}
+	
+	private void addFlowEntries(List<FlowEntry> entries, FlowMap flowSpace) {
+		for (FlowEntry fentry : entries) {
+			try {
+				FlowSpaceImpl.getProxy().addRule(fentry);
+				
+				flowSpace.addRule(fentry);
+				String logMsg = "User " + APIUserCred.getUserName() + 
+						flowspaceAddChangeLogMessage(fentry.getDpid(), 
+								fentry.getRuleMatch(), fentry.getPriority(),
+								fentry.getActionsList(), fentry.getName());
+				FVLog.log(LogLevel.INFO, null, logMsg);
+			} catch (ConfigError e) {
+				FVLog.log(LogLevel.WARN, null, e.getMessage());
+			}
+		}	
 	}
 	
 	

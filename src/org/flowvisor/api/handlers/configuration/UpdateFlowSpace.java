@@ -3,12 +3,15 @@ package org.flowvisor.api.handlers.configuration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 
 import org.flowvisor.api.APIUserCred;
 import org.flowvisor.api.handlers.ApiHandler;
 import org.flowvisor.api.handlers.HandlerUtils;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
+import org.flowvisor.config.FVConfigurationController;
 import org.flowvisor.config.FlowSpace;
 import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.exceptions.FlowEntryNotFound;
@@ -31,18 +34,28 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 	
 	
 	@Override
-	public JSONRPC2Response process(List<Map<String, Object>> params) {
+	public JSONRPC2Response process(final List<Map<String, Object>> params) {
 		JSONRPC2Response resp = null;
 		try {
 			/*
 			 * TODO: Add java future here.
 			 */
-			FlowMap flowSpace = FVConfig.getFlowSpaceFlowMap();
-			processFlows(params, flowSpace);
-			FVLog.log(LogLevel.INFO, null,
-					"Signalling FlowSpace Update to all event handlers");
-			FlowSpaceImpl.getProxy().notifyChange(flowSpace);
-			
+			final FlowMap flowSpace = FVConfig.getFlowSpaceFlowMap();
+			final List<FlowEntry> list = processFlows(params, flowSpace);
+			FutureTask<Object> future = new FutureTask<Object>(
+	                new Callable<Object>() {
+	                    public Object call() {
+							
+	                    	for (FlowEntry fe : list)
+	                    		updateFlowEntry(flowSpace, fe);
+							FVLog.log(LogLevel.INFO, null,
+									"Signalling FlowSpace Update to all event handlers");
+							FlowSpaceImpl.getProxy().notifyChange(flowSpace);
+							return null;
+	                    }
+	                });
+	                    
+			FVConfigurationController.instance().execute(future);	
 			resp = new JSONRPC2Response(true, 0);
 		} catch (ClassCastException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
@@ -62,19 +75,19 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		
 	}
 
-	private void processFlows(List<Map<String, Object>> params, FlowMap flowSpace) 
+	private List<FlowEntry> processFlows(List<Map<String, Object>> params, FlowMap flowSpace) 
 			throws ClassCastException, MissingRequiredField, ConfigError, FlowEntryNotFound {
 		String name = null;
 		Long dpid = null;
 		Integer priority = null;
 		FlowEntry update = null;
+		LinkedList<FlowEntry> list = new LinkedList<FlowEntry>();
 		String logMsg = APIUserCred.getUserName() + " updated";
 		for (Map<String,Object> fe : params) {
 			name = HandlerUtils.<String>fetchField(FSNAME, fe, false, null);
 			if (name == null)
 				throw new MissingRequiredField("Cannot update flowspace entry without a name.");
 			update = flowSpace.findRuleByName(name);
-			flowSpace.removeRule(update.getId());
 		
 			
 			String dpidStr = HandlerUtils.<String>fetchField(FlowSpace.DPID, fe, false, null);
@@ -106,20 +119,28 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 				logMsg += " actions=" + sacts;
 			}
 			
-			updateFlowEntry(flowSpace, update);
+			list.add(update);
+			//updateFlowEntry(flowSpace, update);
 			
-			FVLog.log(LogLevel.INFO, null, logMsg);
+			FVLog.log(LogLevel.DEBUG, null, logMsg);
 		}
+		return list;
 		
 	}
 	
 	
 
-	private void updateFlowEntry(FlowMap flowSpace, FlowEntry update)
-			throws ConfigError {
-		FlowSpaceImpl.getProxy().removeRule(update.getId());
-		FlowSpaceImpl.getProxy().addRule(update);
-		flowSpace.addRule(update);
+	private void updateFlowEntry(FlowMap flowSpace, FlowEntry update) {
+		try {
+			flowSpace.removeRule(update.getId());
+			FlowSpaceImpl.getProxy().removeRule(update.getId());
+			FlowSpaceImpl.getProxy().addRule(update);
+			flowSpace.addRule(update);
+		} catch (FlowEntryNotFound e) {
+			FVLog.log(LogLevel.WARN, null, "Unable to find flowEntry ", update);
+		} catch (ConfigError e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+		}
 	}
 
 	
