@@ -12,10 +12,14 @@ def getPassword(opts):
     return passwd
 
 def addCommonOpts (parser):
-    parser.add_option("-n", "--hostname", dest="host", default="localhost")
-    parser.add_option("-p", "--port", dest="port", default="8080")
-    parser.add_option("--user", dest="fv_user", default="fvadmin")
-    parser.add_option("--passwd-file", dest="fv_passwdfile", default=None)
+    parser.add_option("-n", "--hostname", dest="host", default="localhost",
+                    help="Specify the FlowVisor host; default='localhost'")
+    parser.add_option("-p", "--port", dest="port", default="8080",
+                    help="Specify the FlowVisor web port; default=8080")
+    parser.add_option("--user", dest="fv_user", default="fvadmin",
+                    help="FlowVisor admin user; default='fvadmin'")
+    parser.add_option("--passwd-file", dest="fv_passwdfile", default=None,
+                    help="Passord file; default=none")
 
 def getUrl(opts):
     return URL % (opts.host, opts.port)
@@ -34,18 +38,21 @@ def getError(code):
         return "Unknown Error"
      
 
-def pa_none(args):
-    parser = OptionParser()
+def pa_none(args, cmd):
+    usage = "Usage : %prog list-slices"
+    parser = OptionParser(usage=usage)
     addCommonOpts(parser)
     (options, args) = parser.parse_args(args)
     return options
 
 def do_listSlices(opts):
     data = connect(opts, "list-slices")
-    print data
     print 'Configured slices:'
     for (i, name) in enumerate(data):
-        print '{0:3d} : {1:5}'.format(i+1, name)  
+        print '{0:3d} : {1:5}'.format(i+1, name)
+
+def pa_addSlice(args)
+    parser = OptionParser()
     
 
 def connect(opts, cmd, data=None):
@@ -82,7 +89,7 @@ def parseResponse(data):
 
 
 CMDS = {
-    'list-slices' : (pa_none, do_listSlices)
+    'list-slices' : (pa_none, do_listSlices),
 #    'add-slice' : (pa_addSlice, do_addSlice),
 #    'update-slice' : (pa_updateSlice, do_updateSlice),
 #    'remove-slice' : (pa_removeSlice_parse_aergs, do_removeSlice),
@@ -121,7 +128,7 @@ if __name__ == '__main__':
     if sys.argv[1] == "--help":
       raise IndexError
     (parse_args, do_func) = CMDS[sys.argv[1]]
-    opts = parse_args(sys.argv[2:])
+    opts = parse_args(sys.argv[2:], sys.argv[1])
     do_func(opts)
   except KeyError, e:
     print e
