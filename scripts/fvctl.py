@@ -45,13 +45,13 @@ def do_listSlices(opts):
     print data
     print 'Configured slices:'
     for (i, name) in enumerate(data):
+        print name
         print '{0:3d} : {0:5}'.format(i+1, name)  
     
 
 def connect(opts, cmd, data=None):
     try:
         url = getUrl(opts)
-        print url
 
         passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
         passman.add_password(None, url, opts.fv_user, getPassword(opts))
