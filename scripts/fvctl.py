@@ -71,7 +71,7 @@ def connect(opts, cmd, data=None):
 def parseResponse(data):
     j = json.loads(data)
     if 'error' in j:
-        print "%s : %s" % (getError(j['error']['code']),j['error']['msg'])
+        print "%s : %s" % (getError(j['error']['code']),j['error']['message'])
         sys.exit(1)
     return j['result']
 
@@ -120,6 +120,7 @@ if __name__ == '__main__':
     opts = parse_args(sys.argv[2:])
     do_func(opts)
   except KeyError, e:
+    print e
     print "'%s' is not a valid command" % (sys.argv[1])
   except IndexError, e:
     print "Valid commands are:"
