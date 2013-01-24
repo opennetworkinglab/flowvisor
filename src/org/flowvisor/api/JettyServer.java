@@ -15,6 +15,7 @@ import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
 import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.security.LoginService;
+import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Request;
@@ -161,8 +162,9 @@ public class JettyServer implements Runnable{
 		knownRoles.add("user");
 		knownRoles.add("admin");
 		security.setConstraintMappings(new ConstraintMapping[] {mapping}, knownRoles);
-		security.setAuthenticator(new FlowVisorAuthenticator());
-
+		//security.setAuthenticator(new FlowVisorAuthenticator());
+		security.setAuthenticator(new BasicAuthenticator());
+		
 		LoginService loginService = new HashLoginService(REALM_NAME);
 		server.addBean(loginService);
 		security.setLoginService(loginService);
