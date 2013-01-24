@@ -50,7 +50,7 @@ def connect(opts, cmd, data=None):
         url = getUrl(opts)
 
         passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        passman.add_password(None, url, opts.user, getPassword(opts))
+        passman.add_password(None, url, opts.fv_user, getPassword(opts))
         authhandler = urllib2.HTTPBasicAuthHandler(passman)
         opener = urllib2.build_opener(authhandler)
 
