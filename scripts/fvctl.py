@@ -14,7 +14,7 @@ def getPassword(opts):
 def addCommonOpts (parser):
     parser.add_option("-n", "--hostname", dest="host", default="localhost")
     parser.add_option("-p", "--port", dest="port", default="8080")
-    parser.add_option("--user", dest="fv_user", default="foamadmin")
+    parser.add_option("--user", dest="fv_user", default="fvadmin")
     parser.add_option("--passwd-file", dest="fv_passwdfile", default=None)
 
 def getUrl(opts):
