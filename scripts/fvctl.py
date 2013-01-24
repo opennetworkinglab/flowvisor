@@ -42,7 +42,9 @@ def pa_none(args):
 
 def do_listSlices(opts):
     data = connect(opts, "list-slices")
-    print data
+    print 'Configured slices:'
+    for (i, name) in enumerate(data):
+        print "{0:5} : {}".format(i+1, name)  
     
 
 def connect(opts, cmd, data=None):
