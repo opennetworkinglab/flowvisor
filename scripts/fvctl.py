@@ -18,7 +18,7 @@ def addCommonOpts (parser):
     parser.add_option("--passwd-file", dest="fv_passwdfile", default=None)
 
 def getUrl(opts):
-    return URL % (opts.host, opts.port)#(opts.fv_user, getPassword(opts), opts.host, opts.port)
+    return URL % (opts.fv_user, getPassword(opts), opts.host, opts.port)
 
 def buildRequest(data, url, cmd):
     j = { "id" : "fvctl", "method" : cmd, "jsonrpc" : "2.0" }
@@ -48,13 +48,9 @@ def do_listSlices(opts):
 def connect(opts, cmd, data=None):
     try:
         url = getUrl(opts)
-        passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        passman.add_password("JETTYREALM", url,opts.fv_user, getPassword(opts))
-        authhandler = urllib2.HTTPBasicAuthHandler(passman)
-        opener = urllib2.build_opener(authhandler)
 
         req = buildRequest(data, url, cmd)
-        ph = opener.open(req)
+        ph = urllib2.urlopen(req)
         return parseResponse(ph.read())
     except urllib2.HTTPError, e:
         if e.code == 401:
@@ -110,7 +106,7 @@ ERRORS = {
     -32603 : "Internal Error"
 }
 
-URL = "https://%s:%s"
+URL = "https://%s:%s@%s:%s"
 
 if __name__ == '__main__':
   try:
