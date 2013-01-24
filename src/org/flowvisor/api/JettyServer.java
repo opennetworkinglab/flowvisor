@@ -19,6 +19,7 @@ import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
@@ -116,8 +117,7 @@ public class JettyServer implements Runnable{
 		throws IOException, ServletException
 		{
 			if(baseRequest.getAuthentication().equals(Authentication.UNAUTHENTICATED)){
-				//response.sendError(Response.SC_UNAUTHORIZED, "Permission denied.");
-				sendUnauthorizedMsg(response);
+				response.sendError(Response.SC_UNAUTHORIZED, "Permission denied.");
 				baseRequest.setHandled(true);
 				return;
 			}
@@ -127,22 +127,6 @@ public class JettyServer implements Runnable{
 		}
 	}
 	
-	private void sendUnauthorizedMsg(HttpServletResponse response)
-		throws IOException {
-		/*
-		 * Should the response include the same id as request in case
-		 * of unauthorized?
-		 */
-		JSONRPC2Response jresp = new JSONRPC2Response(new JSONRPC2Error(
-				JSONRPC2Error.INVALID_REQUEST.getCode(), 
-				"Authentication failed: Permission denied."), 0);
-		response.setContentType("text/json; charset=utf-8");
-		String json = jresp.toJSONString();
-		Writer writer = response.getWriter();
-		FVLog.log(LogLevel.DEBUG, null, "---------JSON RPC response:", json);
-		writer.write(json);
-	}
-
 	private ConstraintSecurityHandler createAuthenticationHandler(Server server){
 		ConstraintSecurityHandler security = new ConstraintSecurityHandler();
 		security.setRealmName(REALM_NAME);
@@ -162,10 +146,10 @@ public class JettyServer implements Runnable{
 		knownRoles.add("user");
 		knownRoles.add("admin");
 		security.setConstraintMappings(new ConstraintMapping[] {mapping}, knownRoles);
-		security.setAuthenticator(new FlowVisorAuthenticator());
+		security.setAuthenticator(new BasicAuthenticator());
 		
 		
-		LoginService loginService = new HashLoginService(REALM_NAME);
+		LoginService loginService = new FlowVisorLoginService();
 		server.addBean(loginService);
 		security.setLoginService(loginService);
 		security.setStrict(false);
