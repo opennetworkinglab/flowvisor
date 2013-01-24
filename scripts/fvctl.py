@@ -51,7 +51,7 @@ def do_listSlices(opts):
     for (i, name) in enumerate(data):
         print '{0:3d} : {1:5}'.format(i+1, name)
 
-def pa_addSlice(args)
+def pa_addSlice(args):
     parser = OptionParser()
     
 
