@@ -21,11 +21,11 @@ def getUrl(opts):
     return URL % (opts.host, opts.port)#(opts.fv_user, getPassword(opts), opts.host, opts.port)
 
 def buildRequest(data, url, cmd):
-    json = { "id" : "fvctl", "method" : cmd, "jsonrpc" : "2.0" }
+    j = { "id" : "fvctl", "method" : cmd, "jsonrpc" : "2.0" }
     h = {"Content-Type" : "application/json"}    
     if data is not None:
-        json['params'] = json.dumps(data)
-    return urllib2.Request(url, json, h)
+        j['params'] = data
+    return urllib2.Request(url, json.dumps(j), h)
 
 def getError(code):
     try:
