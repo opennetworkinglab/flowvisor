@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Copyright (c) 2012-2013  The Board of Trustees of The Leland Stanford Junior University
 
-import urllib2, urlparse, sys, getpass, functools
+import urllib2, urlparse, sys, getpass, functools, json
 from optparse import OptionParser
 
 def getPassword(opts):
