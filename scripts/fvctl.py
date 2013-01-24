@@ -18,7 +18,7 @@ def addCommonOpts (parser):
     parser.add_option("--passwd-file", dest="fv_passwdfile", default=None)
 
 def getUrl(opts):
-    return URL % (opts.fv_user, getPassword(opts), opts.host, opts.port)
+    return URL % (opts.host, opts.port)#(opts.fv_user, getPassword(opts), opts.host, opts.port)
 
 def buildRequest(data, url, cmd):
     json = { "id" : "fvctl", "method" : cmd, "jsonrpc" : "2.0" }
@@ -110,7 +110,7 @@ ERRORS = {
     -32603 : "Internal Error"
 }
 
-URL = "https://%s:%s@%s:%s"
+URL = "https://%s:%s"
 
 if __name__ == '__main__':
   try:
