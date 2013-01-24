@@ -19,7 +19,7 @@ def addCommonOpts (parser):
     parser.add_option("--user", dest="fv_user", default="fvadmin",
                     help="FlowVisor admin user; default='fvadmin'")
     parser.add_option("--passwd-file", dest="fv_passwdfile", default=None,
-                    help="Passord file; default=none")
+                    help="Password file; default=none")
 
 def getUrl(opts):
     return URL % (opts.host, opts.port)
@@ -39,21 +39,35 @@ def getError(code):
      
 
 def pa_none(args, cmd):
-    usage = "Usage : %prog list-slices"
-    parser = OptionParser(usage=usage)
+    parser = OptionParser(usage=USAGE % cmd)
     addCommonOpts(parser)
     (options, args) = parser.parse_args(args)
-    return options
+    return (options, args)
 
-def do_listSlices(opts):
+def do_listSlices(opts, args):
     data = connect(opts, "list-slices")
     print 'Configured slices:'
     for (i, name) in enumerate(data):
         print '{0:3d} : {1:5}'.format(i+1, name)
 
-def pa_addSlice(args):
-    parser = OptionParser()
-    
+def pa_addSlice(args, cmd):
+    usage = "%s <slicename> <controller-url> \
+                <admin-email> <password>" % (USAGE % cmd) 
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    parser.add_option("-d", "--drop-policy", dest="drop", default="exact",
+            help="Drop rule type; default='exact'")
+    parser.add_option("-l", "--recv-lldp", type="boolean", default=False,
+            help="Slice to receive unknown LLDP; default=False")         
+    parser.add_option("-f", "--flowmod-limit", type="int", default=-1,
+            help="Slice tcam usage; default is none (-1)")
+    parser.add_option("-r", "--rate-limit", type="int", default=-1,
+            help="Slice control path rate limit; default is none (-1)")
+    (options, args) = parser.parse_args(args)
+    return (options, args)
+
+def do_addSlice(opts, args):
+    print "yay"
 
 def connect(opts, cmd, data=None):
     try:
@@ -90,7 +104,7 @@ def parseResponse(data):
 
 CMDS = {
     'list-slices' : (pa_none, do_listSlices),
-#    'add-slice' : (pa_addSlice, do_addSlice),
+    'add-slice' : (pa_addSlice, do_addSlice)
 #    'update-slice' : (pa_updateSlice, do_updateSlice),
 #    'remove-slice' : (pa_removeSlice_parse_aergs, do_removeSlice),
 #    'update-slice-password' : (pa_updateSlicePassword, do_updateSlicePassword),
@@ -121,6 +135,8 @@ ERRORS = {
     -32603 : "Internal Error"
 }
 
+USAGE="%prog %s [options]"
+
 URL = "https://%s:%s"
 
 if __name__ == '__main__':
@@ -128,8 +144,8 @@ if __name__ == '__main__':
     if sys.argv[1] == "--help":
       raise IndexError
     (parse_args, do_func) = CMDS[sys.argv[1]]
-    opts = parse_args(sys.argv[2:], sys.argv[1])
-    do_func(opts)
+    (opts, args) = parse_args(sys.argv[2:], sys.argv[1])
+    do_func(opts, args)
   except KeyError, e:
     print e
     print "'%s' is not a valid command" % (sys.argv[1])
