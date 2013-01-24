@@ -48,6 +48,7 @@ def do_listSlices(opts):
 def connect(opts, cmd, data=None):
     try:
         url = getUrl(opts)
+        print url
 
         passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
         passman.add_password(None, url, opts.fv_user, getPassword(opts))
