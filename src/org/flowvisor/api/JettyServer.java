@@ -2,7 +2,6 @@ package org.flowvisor.api;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Writer;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.security.Constraint;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.security.LoginService;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.server.Authentication;
@@ -29,8 +27,6 @@ import org.flowvisor.log.FVLog;
 import org.flowvisor.log.JettyLog;
 import org.flowvisor.log.LogLevel;
 
-import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
-import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 
 public class JettyServer implements Runnable{
 
