@@ -39,7 +39,7 @@ def getError(code):
      
 
 def pa_none(args, cmd):
-    parser = OptionParser(usage=USAGE % cmd)
+    parser = OptionParser(usage=USAGE.format(cmd))
     addCommonOpts(parser)
     (options, args) = parser.parse_args(args)
     return (options, args)
@@ -51,23 +51,39 @@ def do_listSlices(opts, args):
         print '{0:3d} : {1:5}'.format(i+1, name)
 
 def pa_addSlice(args, cmd):
-    usage = "%s <slicename> <controller-url> \
-                <admin-email> <password>" % (USAGE % cmd) 
+    usage = ("%s <slicename> <controller-url> " 
+               "<admin-email>") % USAGE.format(cmd) 
     parser = OptionParser(usage=usage)
     addCommonOpts(parser)
     parser.add_option("-d", "--drop-policy", dest="drop", default="exact",
             help="Drop rule type; default='exact'")
-    parser.add_option("-l", "--recv-lldp", type="boolean", default=False,
+    parser.add_option("-l", "--recv-lldp", action="store_true", default=False, dest="lldp",
             help="Slice to receive unknown LLDP; default=False")         
-    parser.add_option("-f", "--flowmod-limit", type="int", default=-1,
+    parser.add_option("-f", "--flowmod-limit", type="int", default=-1, dest="flow",
             help="Slice tcam usage; default is none (-1)")
-    parser.add_option("-r", "--rate-limit", type="int", default=-1,
+    parser.add_option("-r", "--rate-limit", type="int", default=-1, dest="rate",
             help="Slice control path rate limit; default is none (-1)")
+    parser.add_option("-s", "--slice-secret", dest="passwd", default=None, 
+            help="Slice password")
     (options, args) = parser.parse_args(args)
     return (options, args)
 
 def do_addSlice(opts, args):
-    print "yay"
+    if len(args) != 3:
+        print "Must specify at least the slice name, controller url and admin contact"
+        sys.exit()
+    req = { "slice-name" : args[0], "controller-url" : args[1], "admin-contact" : args[2] }
+    if opts.passwd is None:
+        req['password'] = getpass.getpass("Slice password: ")
+    else:
+        req['password'] = opts.passwd
+    req['drop-policy'] = opts.drop
+    req['recv-lldp'] = opts.lldp
+    req['flowmod-limit'] = opts.flow
+    req['rate-limit'] = opts.rate
+    ret = connect(opts, "add-slice", data=req)
+    if ret:
+        print "Slice %s was successfully created" % args[0]
 
 def connect(opts, cmd, data=None):
     try:
@@ -135,7 +151,7 @@ ERRORS = {
     -32603 : "Internal Error"
 }
 
-USAGE="%prog %s [options]"
+USAGE="%prog {} [options]"
 
 URL = "https://%s:%s"
 
