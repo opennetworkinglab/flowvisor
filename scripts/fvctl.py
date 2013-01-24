@@ -69,11 +69,11 @@ def connect(opts, cmd, data=None):
         print e
 
 def parseResponse(data):
-    json = json.loads(data)
+    j = json.loads(data)
     if 'error' in json:
-        print "%s : %s" % (getErrorType(json['error']['code']),json['error']['msg'])
+        print "%s : %s" % (getErrorType(j['error']['code']),j['error']['msg'])
         sys.exit(1)
-    return json['result']
+    return j['result']
 
 
 
