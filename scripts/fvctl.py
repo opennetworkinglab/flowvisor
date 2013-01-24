@@ -48,8 +48,8 @@ def do_listSlices(opts):
 def connect(opts, cmd, data=None):
     try:
         url = getUrl(opts)
-
         req = buildRequest(data, url, cmd)
+        print req
         ph = urllib2.urlopen(req)
         return parseResponse(ph.read())
     except urllib2.HTTPError, e:
