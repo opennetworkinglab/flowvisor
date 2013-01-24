@@ -45,8 +45,7 @@ def do_listSlices(opts):
     print data
     print 'Configured slices:'
     for (i, name) in enumerate(data):
-        print name
-        print '{0:3d} : {0:10}'.format(i+1, name)  
+        print '{0:3d} : {1:5}'.format(i+1, name)  
     
 
 def connect(opts, cmd, data=None):
