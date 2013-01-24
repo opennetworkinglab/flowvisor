@@ -70,8 +70,8 @@ def connect(opts, cmd, data=None):
 
 def parseResponse(data):
     j = json.loads(data)
-    if 'error' in json:
-        print "%s : %s" % (getErrorType(j['error']['code']),j['error']['msg'])
+    if 'error' in j:
+        print "%s : %s" % (getError(j['error']['code']),j['error']['msg'])
         sys.exit(1)
     return j['result']
 
