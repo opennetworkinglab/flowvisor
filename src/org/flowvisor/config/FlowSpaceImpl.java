@@ -978,15 +978,10 @@ public class FlowSpaceImpl implements FlowSpace {
 					"REFERENCES FlowSpaceRule (id) ON DELETE CASCADE");
 			version++;
 		}
-		/*if (version == 1) {
-			processAlter("CREATE TABLE PreservedFlowSpaceRules (" +
-						"id INT GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1) ," +
-						"dpid BIGINT,priority INT NOT NULL,in_port SMALLINT,dl_vlan SMALLINT," +
-						"dl_vpcp SMALLINT,dl_src BIGINT,dl_dst BIGINT,dl_type SMALLINT," +
-						"nw_src INT,nw_dst INT,nw_proto SMALLINT,nw_tos SMALLINT,tp_src SMALLINT," +
-						"tp_dst SMALLINT,forced_queue INT DEFAULT -1,wildcards INT," +
-						"slicename VARCHAR(45) NOT NULL, slice_action INT, PRIMARY KEY (id));");
-		}*/
+		if (version == 1) {
+			processAlter("ALTER TABLE FlowSpaceRule ADD COLUMN " + NAME + " VARCHAR(64)");
+			version++;
+		}
 		
 		
 	}

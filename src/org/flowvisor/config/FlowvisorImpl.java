@@ -953,6 +953,10 @@ public class FlowvisorImpl implements Flowvisor {
 			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + DB_VERSION + " INT");
 			version++;
 		}
+		if (version == 1) {
+			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + FSCACHE + " INT DEFAULT 30");
+			version++;
+		}
 		processAlter("UPDATE FlowVisor SET " + DB_VERSION + " = " + FlowVisor.FLOWVISOR_DB_VERSION);
 		
 	}
