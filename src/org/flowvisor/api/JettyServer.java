@@ -162,8 +162,8 @@ public class JettyServer implements Runnable{
 		knownRoles.add("user");
 		knownRoles.add("admin");
 		security.setConstraintMappings(new ConstraintMapping[] {mapping}, knownRoles);
-		//security.setAuthenticator(new FlowVisorAuthenticator());
-		security.setAuthenticator(new BasicAuthenticator());
+		security.setAuthenticator(new FlowVisorAuthenticator());
+		
 		
 		LoginService loginService = new HashLoginService(REALM_NAME);
 		server.addBean(loginService);
