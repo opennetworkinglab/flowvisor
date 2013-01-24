@@ -21,7 +21,7 @@ public class FlowVisorLoginService implements LoginService {
 
 	@Override
 	public UserIdentity login(String username, Object credentials) {
-		System.out.println("Creds : " + credentials);
+		System.out.println("Creds : " + credentials.toString());
 		return null;
 	}
 
