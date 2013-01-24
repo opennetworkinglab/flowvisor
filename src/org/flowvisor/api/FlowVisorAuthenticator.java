@@ -21,10 +21,10 @@ public class FlowVisorAuthenticator extends BasicAuthenticator {
 			ServletResponse arg1, boolean arg2) throws ServerAuthException {
 		String credentials = ((HttpServletRequest) req).getHeader(HttpHeaders.AUTHORIZATION);
 		try {
-			System.out.println("CREDS " + credentials);
+			
 			byte[] b64 = new Base64().decode(credentials.substring(6).getBytes());
 			String decoded = new String(b64);
-			System.out.println("decoded " + decoded);
+			
 			
 			String username = decoded.substring(0, decoded.indexOf(":"));
 			String password = decoded.substring(decoded.indexOf(":") + 1);

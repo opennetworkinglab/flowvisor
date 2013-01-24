@@ -49,7 +49,7 @@ def connect(opts, cmd, data=None):
     try:
         url = getUrl(opts)
         passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        passman.add_password(None, url,opts.fv_user, getPassword(opts))
+        passman.add_password("JETTYREALM", url,opts.fv_user, getPassword(opts))
         authhandler = urllib2.HTTPBasicAuthHandler(passman)
         opener = urllib2.build_opener(authhandler)
 
