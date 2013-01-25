@@ -206,15 +206,14 @@ def pa_listFlowSpace(args, cmd):
 def do_listFlowSpace(opts, args):
     passwd = getPassword(opts)
     req = {}
+    out = "Configured Flow entries:"
     if opts.slice is not None:
         req['slice-name'] = opts.slice
+        out = "Configured Flow entries for slice %s:" % opts.slice
     ret = connect(opts, "list-flowspace", passwd, data=req)
-    for item in ret:
-        print item
-
-
-
-
+    print out
+    pp = pprint.PrettyPrinter(indent=1)
+    pp.print(ret)
 
 def connect(opts, cmd, passwd, data=None):
     try:
