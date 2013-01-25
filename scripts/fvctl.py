@@ -110,9 +110,9 @@ def do_updateSlice(opts,args):
     if len(args) != 1:
         print "update-slice : Must specify the slice that you want to update" 
     req = { "slice-name" : args[0] }
-    if opts.host is not None:
+    if opts.chost is not None:
         req['controller-host'] = opts.chost
-    if opts.port is not None:
+    if opts.cport is not None:
         req['controller-port'] = opts.cport
     if opts.admin is not None:
         req['admin-contact'] = opts.admin
