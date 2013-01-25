@@ -45,7 +45,8 @@ def pa_none(args, cmd):
     return (options, args)
 
 def do_listSlices(opts, args):
-    data = connect(opts, "list-slices")
+    passwd = getPassword(opts)
+    data = connect(opts, "list-slices", passwd)
     print 'Configured slices:'
     for (i, name) in enumerate(data):
         print '{0:3d} : {1:5}'.format(i+1, name)
@@ -72,6 +73,7 @@ def do_addSlice(opts, args):
     if len(args) != 3:
         print "add-slice : Must specify the slice name, controller url and admin contact" 
         sys.exit()
+    passwd = getPassword(opts)
     req = { "slice-name" : args[0], "controller-url" : args[1], "admin-contact" : args[2] }
     if opts.passwd is None:
         req['password'] = getpass.getpass("Slice password: ")
@@ -81,7 +83,7 @@ def do_addSlice(opts, args):
     req['recv-lldp'] = opts.lldp
     req['flowmod-limit'] = opts.flow
     req['rate-limit'] = opts.rate
-    ret = connect(opts, "add-slice", data=req)
+    ret = connect(opts, "add-slice", passwd, data=req)
     if ret:
         print "Slice %s was successfully created" % args[0]
 
@@ -109,6 +111,8 @@ def pa_updateSlice(args, cmd):
 def do_updateSlice(opts,args):
     if len(args) != 1:
         print "update-slice : Must specify the slice that you want to update." 
+        sys.exit()
+    passwd = getPassword(opts)
     req = { "slice-name" : args[0] }
     if opts.chost is not None:
         req['controller-host'] = opts.chost
@@ -124,7 +128,7 @@ def do_updateSlice(opts,args):
         req['flowmod-limit'] = opts.flow
     if opts.rate is not None:
         req['rate-limit'] = opts.rate
-    ret = connect(opts, "update-slice", data=req)
+    ret = connect(opts, "update-slice", passwd, data=req)
     if ret:
         print "Slice %s has been successfully updated" % args[0]
 
@@ -139,10 +143,12 @@ def pa_removeSlice(args, cmd):
 def do_removeSlice(opts, args):
     if len(args) != 1:
         print "remove-slice : Must specify the slice that you want to remove."
+        sys.exit()
+    passwd = getPassword(opts)
     req = { "slice-name" : args[0] } 
     if opts.preserve is not None:
         req['preserve-flowspace'] = True
-    ret = connect(opts, "remove-slice", data=req)
+    ret = connect(opts, "remove-slice", passwd, data=req)
     if ret:
         print "Slice %s has been deleted" % args[0]
 
@@ -158,12 +164,14 @@ def pa_updateSlicePassword(args, cmd):
 def do_updateSlicePassword(opts, args):
     if len(args) != 1:
         print "update-slice-password : Must specify the slice."
+        sys.exit()
+    passwd = getPassword(opts)
     req = { "slice-name" : args[0] } 
     if opts.passwd is not None:
         req['password'] = opts.passwd
     else:
         req['password'] = getpass.getpass("New slice password: ")
-    ret = connect(opts, "update-slice-password", data=req)
+    ret = connect(opts, "update-slice-password", passwd, data=req)
     if ret:
         print "Slice password for %s has been updated." % args[0]
 
@@ -177,24 +185,22 @@ def pa_updateAdminPassword(args, cmd):
     return parser.parse_args(args)
 
 def do_updateAdminPassword(opts, args):
+    passwd = getPassword(opts)
     req = {}
     if opts.passwd is not None:
         req['password'] = opts.passwd
     else:
         req['password'] = getpass.getpass("New admin password: ")
-    ret = connect(opts, "update-admin-password", data=req)
+    ret = connect(opts, "update-admin-password", passwd, data=req)
     if ret:
         print "Admin password has been updated."
 
 
-
-
-
-def connect(opts, cmd, data=None):
+def connect(opts, cmd, passwd, data=None):
     try:
         url = getUrl(opts)
         passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
-        passman.add_password(None, url, opts.fv_user, getPassword(opts))
+        passman.add_password(None, url, opts.fv_user, passwd)
         authhandler = urllib2.HTTPBasicAuthHandler(passman)
         opener = urllib2.build_opener(authhandler)
 
