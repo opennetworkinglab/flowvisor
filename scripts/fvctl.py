@@ -221,7 +221,7 @@ def do_listFlowSpace(opts, args):
             print json.dumps(item)
 
 
-def pa_removeFlowSpace(opts, cmd):
+def pa_removeFlowSpace(args, cmd):
     usage = "%s <flowspace-name> [<flowspace-name>...]" % USAGE.format(cmd)
     parser = OptionParser(usage=usage)
     addCommonOpts(parser)
