@@ -12,9 +12,9 @@ def getPassword(opts):
     return passwd
 
 def addCommonOpts (parser):
-    parser.add_option("-n", "--hostname", dest="host", default="localhost",
+    parser.add_option("--hostname", dest="host", default="localhost",
                     help="Specify the FlowVisor host; default='localhost'")
-    parser.add_option("-p", "--port", dest="port", default="8080",
+    parser.add_option("--port", dest="port", default="8080",
                     help="Specify the FlowVisor web port; default=8080")
     parser.add_option("--user", dest="fv_user", default="fvadmin",
                     help="FlowVisor admin user; default='fvadmin'")
@@ -63,14 +63,14 @@ def pa_addSlice(args, cmd):
             help="Slice tcam usage; default is none (-1)")
     parser.add_option("-r", "--rate-limit", type="int", default=-1, dest="rate",
             help="Slice control path rate limit; default is none (-1)")
-    parser.add_option("-s", "--slice-secret", dest="passwd", default=None, 
+    parser.add_option("-p", "--password", dest="passwd", default=None, 
             help="Slice password")
     (options, args) = parser.parse_args(args)
     return (options, args)
 
 def do_addSlice(opts, args):
     if len(args) != 3:
-        print "Must specify at least the slice name, controller url and admin contact"
+        print "%s : Must specify the slice name, controller url and admin contact" % cmd
         sys.exit()
     req = { "slice-name" : args[0], "controller-url" : args[1], "admin-contact" : args[2] }
     if opts.passwd is None:
@@ -84,6 +84,51 @@ def do_addSlice(opts, args):
     ret = connect(opts, "add-slice", data=req)
     if ret:
         print "Slice %s was successfully created" % args[0]
+
+def pa_updateSlice(args, cmd):
+    usage = "%s <slicename>" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    parser.add_option("-n", "--controller-hostname", dest="host", default=None,
+            help="Specify new controller hostname")
+    parser.add_option("-p", "--controller-port", dest="port", default=None,
+            help="Specify new controller port")
+    parser.add_option("-a", "--admin-contact", dest="admin", default=None,
+            help="Specify new admin contact")
+    parser.add_option("-d", "--drop-policy", dest="drop", default=None,
+            help="Specify new drop policy")
+    parser.add_option("-l", "--recv-lldp", action="store_true", default=None, dest="lldp",
+            help="Specify whether slice should receive unknown LLDPs")
+    parser.add_option("-f", "--flowmod-limit", type="int", default=None, dest="flow",
+            help="Specify new value for slice tcam usage")
+    parser.add_option("-r", "--rate-limit", type="int", default=None, dest="rate",
+            help="Specify new value for slice control path rate limit")
+    (options, args) = parser.parse_args(args)
+    return (options, args)
+
+def do_updateSlice(opts,args):
+    if len(args) != 1:
+        print "%s : Must specify the slice that you want to update" % cmd
+    req = { "slice-name" : args[0] }
+    if opts.host is not None:
+        req['controller-host'] = opts.host
+    if opts.port is not None:
+        req['controller-port'] = opts.port
+    if opts.admin is not None:
+        req['admin-contact'] = opts.admin
+    if opts.drop is not None:
+        req['drop-policy'] = opts.drop
+    if opts.lldp is not None:
+        req['recv-lldp'] = opts.lldp
+    if opts.flow is not None:
+        req['flowmod-limit'] = opts.flow
+    if opts.rate is not None:
+        req['rate-limit'] = opts.rate
+    ret = connect(opts, cmd, data=req)
+    if ret:
+        print "Slice %s has been successfully updated" % args[0]
+    
+
 
 def connect(opts, cmd, data=None):
     try:
@@ -120,8 +165,8 @@ def parseResponse(data):
 
 CMDS = {
     'list-slices' : (pa_none, do_listSlices),
-    'add-slice' : (pa_addSlice, do_addSlice)
-#    'update-slice' : (pa_updateSlice, do_updateSlice),
+    'add-slice' : (pa_addSlice, do_addSlice),
+    'update-slice' : (pa_updateSlice, do_updateSlice)
 #    'remove-slice' : (pa_removeSlice_parse_aergs, do_removeSlice),
 #    'update-slice-password' : (pa_updateSlicePassword, do_updateSlicePassword),
 #    'update-admin-password' : (pa_updateAdminPassword, do_updateAdminPassword),
