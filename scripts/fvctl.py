@@ -133,7 +133,7 @@ def pa_removeSlice(args, cmd):
     parser = OptionParser(usage=usage)
     addCommonOpts(parser)
     parser.add_option("-p", "--preserve-flowspace", action="store_true", default=None, dest="preserve", 
-            help="Preserve flowspace; NOT YET IMPLEMENTED"
+            help="Preserve flowspace; NOT YET IMPLEMENTED")
     return parser.parse_args(args)
 
 def do_removeSlice(opts, args):
