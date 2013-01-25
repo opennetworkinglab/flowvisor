@@ -227,7 +227,7 @@ def pa_removeFlowSpace(opts, cmd):
     addCommonOpts(parser)
     return parser.parse_args(args)
 
- def do_removeFlowSpace(opts, args):
+def do_removeFlowSpace(opts, args):
     if len(args) < 1:
         print "remove-flowpace : Must specify the name of the flowspace to remove."
         sys.exit()
