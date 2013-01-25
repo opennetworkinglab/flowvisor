@@ -195,6 +195,26 @@ def do_updateAdminPassword(opts, args):
     if ret:
         print "Admin password has been updated."
 
+def pa_listFlowspace(args, cmd):
+    usage = "%s " % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    parser.add_option("-s", "--slice-name", default=None, dest="slice", 
+            help="Fetch flowspace for specified slice.")
+    return parser.parse_args(args)
+
+def do_updateAdminPassword(opts, args):
+    passwd = getPassword(opts)
+    req = {}
+    if opts.slice is not None:
+        req['slice-name'] = opts.slice
+    ret = connect(opts, "update-admin-password", passwd, data=req)
+    for item in ret:
+        print item
+
+
+
+
 
 def connect(opts, cmd, passwd, data=None):
     try:
