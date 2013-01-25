@@ -226,8 +226,8 @@ CMDS = {
     'add-slice' : (pa_addSlice, do_addSlice),
     'update-slice' : (pa_updateSlice, do_updateSlice),
     'remove-slice' : (pa_removeSlice, do_removeSlice),
-    'update-slice-password' : (pa_updateSlicePassword, do_updateSlicePassword)
-#    'update-admin-password' : (pa_updateAdminPassword, do_updateAdminPassword),
+    'update-slice-password' : (pa_updateSlicePassword, do_updateSlicePassword),
+    'update-admin-password' : (pa_updateAdminPassword, do_updateAdminPassword)
 #    'list-flowspace' : (pa_listFlowSpace, do_listFlowSpace),
 #    'add-flowspace' : (pa_addFlowSpace, do_addFlowSpace),
 #    'update-flowspace' : (pa_updateFlowSpace, do_updateFlowSpace),
