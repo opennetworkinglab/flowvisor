@@ -121,6 +121,8 @@ public class UpdateSlice implements ApiHandler<Map<String, Object>> {
 		if (ctrlHost == null)
 			ctrlHost = SliceImpl.getProxy().getcontroller_hostname(sliceName);
 		checkDupCtrl(sliceName, ctrlHost, ctrlPort.intValue());
+		SliceImpl.getProxy().setcontroller_hostname(sliceName, ctrlHost);
+		SliceImpl.getProxy().setcontroller_port(sliceName, ctrlPort.intValue());
 	}
 
 
