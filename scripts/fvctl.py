@@ -212,9 +212,8 @@ def do_listFlowSpace(opts, args):
         out = "Configured Flow entries for slice %s:" % opts.slice
     ret = connect(opts, "list-flowspace", passwd, data=req)
     print out
-    pp = pprint.PrettyPrinter(indent=1)
     for item in ret:
-        pp.pprint(item)
+        print json.dumps(item, sort_keys=True, indent=1)
 
 def connect(opts, cmd, passwd, data=None):
     try:
