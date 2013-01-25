@@ -218,7 +218,7 @@ def do_listFlowSpace(opts, args):
         if opts.pretty:
             print json.dumps(item, sort_keys=True, indent=1)
         else:
-            print item
+            print json.dumps(item)
 
 def connect(opts, cmd, passwd, data=None):
     try:
