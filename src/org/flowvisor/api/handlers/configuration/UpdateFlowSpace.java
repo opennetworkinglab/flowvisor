@@ -37,9 +37,7 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 	public JSONRPC2Response process(final List<Map<String, Object>> params) {
 		JSONRPC2Response resp = null;
 		try {
-			/*
-			 * TODO: Add java future here.
-			 */
+			
 			final FlowMap flowSpace = FVConfig.getFlowSpaceFlowMap();
 			final List<FlowEntry> list = processFlows(params, flowSpace);
 			FutureTask<Object> future = new FutureTask<Object>(

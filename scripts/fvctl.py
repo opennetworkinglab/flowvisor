@@ -108,7 +108,7 @@ def pa_updateSlice(args, cmd):
 
 def do_updateSlice(opts,args):
     if len(args) != 1:
-        print "update-slice : Must specify the slice that you want to update" 
+        print "update-slice : Must specify the slice that you want to update." 
     req = { "slice-name" : args[0] }
     if opts.chost is not None:
         req['controller-host'] = opts.chost
@@ -124,17 +124,31 @@ def do_updateSlice(opts,args):
         req['flowmod-limit'] = opts.flow
     if opts.rate is not None:
         req['rate-limit'] = opts.rate
-    print req
     ret = connect(opts, "update-slice", data=req)
     if ret:
         print "Slice %s has been successfully updated" % args[0]
-    
 
+def pa_removeSlice(args, cmd):
+    usage = "%s <slicename>" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    parser.add_option("-p", "--preserve-flowspace", action="store_true", default=None, dest="preserve", 
+            help="Preserve flowspace; NOT YET IMPLEMENTED"
+    return parser.parse_args(args)
+
+def do_removeSlice(opts, args):
+    if len(args) != 1:
+        print "remove-slice : Must specify the slice that you want to remove."
+    req = { "slice-name" : args[0] } 
+    if opts.preserve is not None:
+        req['preserve-flowspace'] = True
+    ret = connect(opts, "remove-slice", data=req)
+    if ret:
+        print "Slice %s has been deleted" % args[0]
 
 def connect(opts, cmd, data=None):
     try:
         url = getUrl(opts)
-        print url
         passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
         passman.add_password(None, url, opts.fv_user, getPassword(opts))
         authhandler = urllib2.HTTPBasicAuthHandler(passman)
@@ -167,8 +181,8 @@ def parseResponse(data):
 CMDS = {
     'list-slices' : (pa_none, do_listSlices),
     'add-slice' : (pa_addSlice, do_addSlice),
-    'update-slice' : (pa_updateSlice, do_updateSlice)
-#    'remove-slice' : (pa_removeSlice_parse_aergs, do_removeSlice),
+    'update-slice' : (pa_updateSlice, do_updateSlice),
+    'remove-slice' : (pa_removeSlice_parse_aergs, do_removeSlice)
 #    'update-slice-password' : (pa_updateSlicePassword, do_updateSlicePassword),
 #    'update-admin-password' : (pa_updateAdminPassword, do_updateAdminPassword),
 #    'list-flowspace' : (pa_listFlowSpace, do_listFlowSpace),
