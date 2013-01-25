@@ -177,6 +177,7 @@ def pa_updateAdminPassword(args, cmd):
     return parser.parse_args(args)
 
 def do_updateAdminPassword(opts, args):
+    req = {}
     if opts.passwd is not None:
         req['password'] = opts.passwd
     else:
