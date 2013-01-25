@@ -220,6 +220,22 @@ def do_listFlowSpace(opts, args):
         else:
             print json.dumps(item)
 
+
+def pa_removeFlowSpace(opts, cmd):
+    usage = "%s <flowspace-name> [<flowspace-name>...]" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    return parser.parse_args(args)
+
+ def do_removeFlowSpace(opts, args):
+    if len(args) < 1:
+        print "remove-flowpace : Must specify the name of the flowspace to remove."
+        sys.exit()
+    passwd = getPassword(opts)
+    ret = connect(opts, "remove-flowspace", passwd, data=args)  
+    if ret:
+        print "Flowspace entries have been removed."
+
 def connect(opts, cmd, passwd, data=None):
     try:
         url = getUrl(opts)
@@ -259,10 +275,10 @@ CMDS = {
     'remove-slice' : (pa_removeSlice, do_removeSlice),
     'update-slice-password' : (pa_updateSlicePassword, do_updateSlicePassword),
     'update-admin-password' : (pa_updateAdminPassword, do_updateAdminPassword),
-    'list-flowspace' : (pa_listFlowSpace, do_listFlowSpace)
+    'list-flowspace' : (pa_listFlowSpace, do_listFlowSpace),
 #    'add-flowspace' : (pa_addFlowSpace, do_addFlowSpace),
 #    'update-flowspace' : (pa_updateFlowSpace, do_updateFlowSpace),
-#    'remove-flowspace' : (pa_removeFlowSpace, do_removeFlowSpace),
+    'remove-flowspace' : (pa_removeFlowSpace, do_removeFlowSpace)
 #    'list-version' : (pa_none, do_listVersion),
 #    'save-config' : (pa_none, do_saveConfig),
 #    'get-config' : (pa_getConfig, do_getConfig),
