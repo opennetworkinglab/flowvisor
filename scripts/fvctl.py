@@ -168,6 +168,26 @@ def do_updateSlicePassword(opts, args):
         print "Slice password for %s has been updated." % args[0]
 
 
+def pa_updateSlicePassword(args, cmd):
+    usage = "%s " % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    parser.add_option("-p", "--password", default=None, dest="passwd", 
+            help="New password for admin.")
+    return parser.parse_args(args)
+
+def do_updateSlicePassword(opts, args):
+    if opts.passwd is not None:
+        req['password'] = opts.passwd
+    else:
+        req['password'] = getpass.getpass("New admin password: ")
+    ret = connect(opts, "update-admin-password", data=req)
+    if ret:
+        print "Admin password has been updated." % args[0]
+
+
+
+
 
 def connect(opts, cmd, data=None):
     try:
