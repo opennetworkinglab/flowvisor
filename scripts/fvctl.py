@@ -213,7 +213,7 @@ def do_listFlowSpace(opts, args):
     ret = connect(opts, "list-flowspace", passwd, data=req)
     print out
     pp = pprint.PrettyPrinter(indent=1)
-    pp.print(ret)
+    pp.pprint(ret)
 
 def connect(opts, cmd, passwd, data=None):
     try:
