@@ -208,7 +208,7 @@ def do_listFlowSpace(opts, args):
     req = {}
     if opts.slice is not None:
         req['slice-name'] = opts.slice
-    ret = connect(opts, "update-admin-password", passwd, data=req)
+    ret = connect(opts, "list-flowspace", passwd, data=req)
     for item in ret:
         print item
 
