@@ -146,6 +146,29 @@ def do_removeSlice(opts, args):
     if ret:
         print "Slice %s has been deleted" % args[0]
 
+
+def pa_updateSlicePassword(args, cmd):
+    usage = "%s <slicename>" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    parser.add_option("-p", "--password", default=None, dest="passwd", 
+            help="New password for slice.")
+    return parser.parse_args(args)
+
+def do_updateSlicePassword(opts, args):
+    if len(args) != 1:
+        print "update-slice-password : Must specify the slice."
+    req = { "slice-name" : args[0] } 
+    if opts.passwd is not None:
+        req['password'] = opts.passwd
+    else:
+        req['password'] = getpass.getpass("New slice password: ")
+    ret = connect(opts, "update-slice-password", data=req)
+    if ret:
+        print "Slice password for %s has been updated." % args[0]
+
+
+
 def connect(opts, cmd, data=None):
     try:
         url = getUrl(opts)
@@ -182,8 +205,8 @@ CMDS = {
     'list-slices' : (pa_none, do_listSlices),
     'add-slice' : (pa_addSlice, do_addSlice),
     'update-slice' : (pa_updateSlice, do_updateSlice),
-    'remove-slice' : (pa_removeSlice, do_removeSlice)
-#    'update-slice-password' : (pa_updateSlicePassword, do_updateSlicePassword),
+    'remove-slice' : (pa_removeSlice, do_removeSlice),
+    'update-slice-password' : (pa_updateSlicePassword, do_updateSlicePassword)
 #    'update-admin-password' : (pa_updateAdminPassword, do_updateAdminPassword),
 #    'list-flowspace' : (pa_listFlowSpace, do_listFlowSpace),
 #    'add-flowspace' : (pa_addFlowSpace, do_addFlowSpace),
