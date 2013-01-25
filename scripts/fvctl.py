@@ -201,6 +201,8 @@ def pa_listFlowSpace(args, cmd):
     addCommonOpts(parser)
     parser.add_option("-s", "--slice-name", default=None, dest="slice", 
             help="Fetch flowspace for specified slice.")
+    parser.add_option("-p", "--pretty-print", default=False, dest="pretty", action="store_true",
+            help="Pretty print output")
     return parser.parse_args(args)
 
 def do_listFlowSpace(opts, args):
@@ -213,7 +215,10 @@ def do_listFlowSpace(opts, args):
     ret = connect(opts, "list-flowspace", passwd, data=req)
     print out
     for item in ret:
-        print json.dumps(item, sort_keys=True, indent=1)
+        if opts.pretty:
+            print json.dumps(item, sort_keys=True, indent=1)
+        else:
+            print item
 
 def connect(opts, cmd, passwd, data=None):
     try:
