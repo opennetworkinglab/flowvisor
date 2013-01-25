@@ -182,7 +182,7 @@ CMDS = {
     'list-slices' : (pa_none, do_listSlices),
     'add-slice' : (pa_addSlice, do_addSlice),
     'update-slice' : (pa_updateSlice, do_updateSlice),
-    'remove-slice' : (pa_removeSlice_parse_aergs, do_removeSlice)
+    'remove-slice' : (pa_removeSlice, do_removeSlice)
 #    'update-slice-password' : (pa_updateSlicePassword, do_updateSlicePassword),
 #    'update-admin-password' : (pa_updateAdminPassword, do_updateAdminPassword),
 #    'list-flowspace' : (pa_listFlowSpace, do_listFlowSpace),
