@@ -70,7 +70,7 @@ def pa_addSlice(args, cmd):
 
 def do_addSlice(opts, args):
     if len(args) != 3:
-        print "%s : Must specify the slice name, controller url and admin contact" % cmd
+        print "add-slice : Must specify the slice name, controller url and admin contact" 
         sys.exit()
     req = { "slice-name" : args[0], "controller-url" : args[1], "admin-contact" : args[2] }
     if opts.passwd is None:
@@ -108,7 +108,7 @@ def pa_updateSlice(args, cmd):
 
 def do_updateSlice(opts,args):
     if len(args) != 1:
-        print "%s : Must specify the slice that you want to update" % cmd
+        print "update-slice : Must specify the slice that you want to update" 
     req = { "slice-name" : args[0] }
     if opts.host is not None:
         req['controller-host'] = opts.host
@@ -124,7 +124,7 @@ def do_updateSlice(opts,args):
         req['flowmod-limit'] = opts.flow
     if opts.rate is not None:
         req['rate-limit'] = opts.rate
-    ret = connect(opts, cmd, data=req)
+    ret = connect(opts, "update-slice", data=req)
     if ret:
         print "Slice %s has been successfully updated" % args[0]
     
