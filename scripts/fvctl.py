@@ -124,6 +124,7 @@ def do_updateSlice(opts,args):
         req['flowmod-limit'] = opts.flow
     if opts.rate is not None:
         req['rate-limit'] = opts.rate
+    print req
     ret = connect(opts, "update-slice", data=req)
     if ret:
         print "Slice %s has been successfully updated" % args[0]
