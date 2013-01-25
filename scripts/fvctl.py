@@ -89,9 +89,9 @@ def pa_updateSlice(args, cmd):
     usage = "%s <slicename>" % USAGE.format(cmd)
     parser = OptionParser(usage=usage)
     addCommonOpts(parser)
-    parser.add_option("-n", "--controller-hostname", dest="host", default=None,
+    parser.add_option("-n", "--controller-hostname", dest="chost", default=None,
             help="Specify new controller hostname")
-    parser.add_option("-p", "--controller-port", dest="port", default=None,
+    parser.add_option("-p", "--controller-port", dest="cport", default=None,
             help="Specify new controller port")
     parser.add_option("-a", "--admin-contact", dest="admin", default=None,
             help="Specify new admin contact")
@@ -111,9 +111,9 @@ def do_updateSlice(opts,args):
         print "update-slice : Must specify the slice that you want to update" 
     req = { "slice-name" : args[0] }
     if opts.host is not None:
-        req['controller-host'] = opts.host
+        req['controller-host'] = opts.chost
     if opts.port is not None:
-        req['controller-port'] = opts.port
+        req['controller-port'] = opts.cport
     if opts.admin is not None:
         req['admin-contact'] = opts.admin
     if opts.drop is not None:
