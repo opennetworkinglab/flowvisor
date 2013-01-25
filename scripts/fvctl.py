@@ -168,7 +168,7 @@ def do_updateSlicePassword(opts, args):
         print "Slice password for %s has been updated." % args[0]
 
 
-def pa_updateSlicePassword(args, cmd):
+def pa_updateAdminPassword(args, cmd):
     usage = "%s " % USAGE.format(cmd)
     parser = OptionParser(usage=usage)
     addCommonOpts(parser)
@@ -176,7 +176,7 @@ def pa_updateSlicePassword(args, cmd):
             help="New password for admin.")
     return parser.parse_args(args)
 
-def do_updateSlicePassword(opts, args):
+def do_updateAdminPassword(opts, args):
     if opts.passwd is not None:
         req['password'] = opts.passwd
     else:
