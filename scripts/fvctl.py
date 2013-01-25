@@ -184,7 +184,7 @@ def do_updateAdminPassword(opts, args):
         req['password'] = getpass.getpass("New admin password: ")
     ret = connect(opts, "update-admin-password", data=req)
     if ret:
-        print "Admin password has been updated." % args[0]
+        print "Admin password has been updated."
 
 
 
