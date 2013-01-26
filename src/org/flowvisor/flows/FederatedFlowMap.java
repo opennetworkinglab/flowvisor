@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.SortedSet;
 
 import org.flowvisor.exceptions.FlowEntryNotFound;
+import org.flowvisor.log.FVLog;
+import org.flowvisor.log.LogLevel;
 import org.flowvisor.openflow.protocol.FVMatch;
 
 
@@ -101,9 +103,11 @@ public class FederatedFlowMap implements FlowMap, Cloneable {
 	 */
 	@Override
 	public FlowEntry findRuleByName(String name) {
-		for (FlowEntry fe : getRules()) 
+		for (FlowEntry fe : getRules()) {
+			FVLog.log(LogLevel.DEBUG, null, "Name: " + fe.getName());
 			if (fe.getName().equals(name))
 				return fe;
+		}
 		return null;
 		
 	}
