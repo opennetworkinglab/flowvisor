@@ -38,7 +38,9 @@ public class RemoveFlowSpace implements ApiHandler<List<String>> {
 		} catch (FlowEntryNotFound e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
 					"remove-flowspace: unable to find flow entry : " + e.getMessage()), 0);
-		}  
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+		}
 		return resp;
 		
 	}
