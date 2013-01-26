@@ -503,7 +503,7 @@ public class FlowSpaceImpl implements FlowSpace {
 			for (int i = 0 ; i < names.size() ; i++)
 				ps.setString(i+1, names.get(i));
 			int affected = -1;
-			if ((affected = ps.executeUpdate()) != 1) {
+			if ((affected = ps.executeUpdate()) < 1) {
 				FVLog.log(LogLevel.ALERT, null, "Failed to delete rules by name  : rows affected ", affected);
 				throw new ConfigError("Unable to remove rule by names");
 			}
