@@ -177,7 +177,7 @@ public class FlowSpaceImpl implements FlowSpace {
 				while (queueSet.next()) {
 					queueList.add(queueSet.getInt(QUEUE));
 				}
-				fe = new FlowEntry(set.getLong(DPID), match, set.getInt("id"),set.getInt(PRIO) , actionsList);
+				fe = new FlowEntry(set.getString(NAME), set.getLong(DPID), match, set.getInt("id"),set.getInt(PRIO) , actionsList);
 				fe.setQueueId(queueList);
 				fe.setForcedQueue(set.getInt(FORCED_QUEUE));
 				map.addRule(fe);
