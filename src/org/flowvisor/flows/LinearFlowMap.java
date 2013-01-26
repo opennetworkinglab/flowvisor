@@ -214,11 +214,11 @@ public class LinearFlowMap implements FlowMap, Cloneable {
 	}
 
 	@Override
-	public FlowEntry findRuleByName(String name) {
+	public FlowEntry findRuleByName(String name) throws FlowEntryNotFound {
 		for (FlowEntry fe : rules) 
 			if (fe.getName().equals(name))
 				return fe;
-		return null;
+		throw new FlowEntryNotFound(name);
 		
 	}
 

@@ -152,7 +152,7 @@ public interface FlowMap {
 	 * Finds a rule by name.
 	 */
 	
-	public FlowEntry findRuleByName(String name);
+	public FlowEntry findRuleByName(String name) throws FlowEntryNotFound;
 
 	/**
 	 * Clone()
