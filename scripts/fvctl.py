@@ -323,8 +323,10 @@ def toStr(val):
     return str(val)
 
 def toList(val):
+    print val
     l = []
     for v in val.split(','):
+        print v
         l.append(int(v))
 
 MATCHSTRS = {
