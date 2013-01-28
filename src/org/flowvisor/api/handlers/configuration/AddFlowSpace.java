@@ -67,7 +67,7 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
 					cmdName() + ": failed to insert flowspace entry" + e.getMessage()), 0);
 		} catch (UnknownMatchField e) {
-			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
+			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					cmdName() + ": Unknown field(s) in match struct : " + e.getMessage()), 0);
 		}
 		return resp;

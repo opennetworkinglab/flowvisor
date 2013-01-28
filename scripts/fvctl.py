@@ -320,7 +320,7 @@ def toInt(val):
     return int(val)
 
 def toStr(val):
-    str(val)
+    return str(val)
 
 def toList(val):
     return val.split(',')
