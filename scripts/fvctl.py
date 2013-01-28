@@ -319,6 +319,16 @@ def parseResponse(data):
         sys.exit(1)
     return j['result']
 
+def toInt(val):
+    return int(val)
+
+def toStr(val):
+    str(val)
+
+def toList(val):
+    return val.split(',')
+ 
+
 MATCHSTRS = {
     'in_port' : ('in_port', toInt),
     'input_port' : ('in_port', toInt),
@@ -339,17 +349,6 @@ MATCHSTRS = {
     'queues' : ('queues',toList),
     'force_queue' : ('force-queue',toInt)
 }
-
-def toInt(val):
-    return int(val)
-
-def toStr(val):
-    str(val)
-
-def toList(val):
-    return val.split(',')
-   
-    
 
 
 CMDS = {
