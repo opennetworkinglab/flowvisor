@@ -248,7 +248,7 @@ def pa_addFlowSpace(args, cmd):
     parser = OptionParser(usage=usage)
     addCommonOpts(parser)
     parser.add_option("-q", "--queues", default=None, dest="queues", type="string",
-            action="callback", callback="list_callback", 
+            action="callback", callback=list_callback, 
             help="Define list of queues permitted on this flowspace.")
     parser.add_option("-f", "--forced-queue", default=None, dest="fqueue", type="int",
             help="Force a queue id upon output action.")
