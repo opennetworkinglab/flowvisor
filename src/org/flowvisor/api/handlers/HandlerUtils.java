@@ -137,13 +137,14 @@ public class HandlerUtils {
 		
 		Number tp_dst = HandlerUtils.<Number>fetchField(FVMatch.STR_TP_DST, map, false, null);
 		if (tp_dst != null) {
-			match.setTransportSource(U16.t(tp_dst.intValue()));
+			match.setTransportDestination(U16.t(tp_dst.intValue()));
 			wildcards &= ~FVMatch.OFPFW_TP_DST;
 			map.remove(FVMatch.STR_TP_DST);
 		}
 		
 		match.setQueues(HandlerUtils.<List<Integer>>fetchField(FVMatch.STR_QUEUE, map, false, 
 				new LinkedList<Integer>()));
+		System.out.println("queues " + match.getQueues());
 		map.remove(FVMatch.STR_QUEUE);
 		
 		Number fqueue = HandlerUtils.<Number>fetchField(FVMatch.STR_FORCE, map, false, null);
