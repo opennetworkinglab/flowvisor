@@ -288,6 +288,7 @@ def makeMatch(matchStr):
         except KeyError, e:
             print "Unknown match item %s" % it[0]
             sys.exit()
+    print "returning %s" % match 
     return match
         
 
