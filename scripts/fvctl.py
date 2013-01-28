@@ -269,6 +269,7 @@ def do_addFlowSpace(opts, args):
         print "Flowspace entries has been created."
 
 def makeMatch(matchStr):
+    print matchStr
     pat = re.compile(r'''((?:[^,"']|"[^"]*"|'[^']*')+)''')
     matchItems = pat.split(matchStr)
     match = {}
