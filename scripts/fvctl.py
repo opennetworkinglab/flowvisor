@@ -244,9 +244,14 @@ def do_removeFlowSpace(opts, args):
         print "Flowspace entries have been removed."
 
 def pa_addFlowSpace(args, cmd):
-    usage = "%s <flowspace-name> <dpid> <priority> <match> <slice-perm>" % USAGE.format(cmd)
+    usage = "%s [options] <flowspace-name> <dpid> <priority> <match> <slice-perm>" % USAGE.format(cmd)
     parser = OptionParser(usage=usage)
     addCommonOpts(parser)
+    parser.add_option("-q", "--queues", default=None, dest="queues", type="list" 
+            help="Define list of queues permitted on this flowspace.")
+    parser.add_option("-f", "--forced-queue", default=None, dest="fqueue", type="int" 
+            help="Force a queue id upon output action.")
+
     return parser.parse_args(args)
 
 def do_addFlowSpace(opts, args):
@@ -256,6 +261,10 @@ def do_addFlowSpace(opts, args):
         sys.exit()
     passwd = getPassword(opts)
     match = makeMatch(args[3])
+    if opts.queue is not None:
+        match['queues'] = opts.queues
+    if opts.fqueue is not None:
+        match['force_enqueue'] = opts.fqueue
     req = { "name" : args[0], "dpid" : args[1], "priority" : int(args[2]), "match" : match }
     actions = args[4].split(',')
     acts = []
@@ -269,10 +278,7 @@ def do_addFlowSpace(opts, args):
         print "Flowspace entries has been created."
 
 def makeMatch(matchStr):
-    print matchStr
-    pat = re.compile(r''';(?=(?:[^'"]|'[^']*'|"[^"]*")*$)''')
-    matchItems = pat.split(matchStr)[1::2]
-    print matchItems
+    matchItems = matchStr.split(',')
     match = {}
     for item in matchItems:
         it = item.split('=')
@@ -324,10 +330,8 @@ def toStr(val):
     return str(val)
 
 def toList(val):
-    print val
     l = []
     for v in val.split(','):
-        print v
         l.append(int(v))
 
 MATCHSTRS = {
@@ -347,8 +351,6 @@ MATCHSTRS = {
     'nw_tos' : ('nw_tos',toInt),
     'tp_src' : ('tp_src',toInt),
     'tp_dst' : ('tp_dst', toInt),
-    'queues' : ('queues',toList),
-    'force_queue' : ('force-queue',toInt)
 }
 
 
