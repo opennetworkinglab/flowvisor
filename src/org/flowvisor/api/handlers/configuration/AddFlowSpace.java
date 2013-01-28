@@ -85,7 +85,7 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 			name = HandlerUtils.<String>fetchField(FSNAME, fe, false, UUID.randomUUID().toString());
 			dpid = FlowSpaceUtil
 					.parseDPID(HandlerUtils.<String>fetchField(FlowSpace.DPID, fe, true, "any"));
-			priority = HandlerUtils.<Integer>fetchField(FlowSpace.PRIO, fe, true, FlowEntry.DefaultPriority);
+			priority = HandlerUtils.<Number>fetchField(FlowSpace.PRIO, fe, true, FlowEntry.DefaultPriority).intValue();
 			FVMatch match = HandlerUtils.matchFromMap(
 					HandlerUtils.<Map<String, Object>>fetchField(MATCH, fe, true, null));
 			List<OFAction> sliceActions = parseSliceActions(
