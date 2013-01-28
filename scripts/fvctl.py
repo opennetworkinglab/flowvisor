@@ -274,7 +274,7 @@ def makeMatch(matchStr):
     match = {}
     for item in matchItems:
         it = item.split('=')
-        if len(item != 2)
+        if len(item) != 2:
             print "Match items must be of the form <key>=<val>"
         try:
             mstr = MATCHSTRS[it[0].lower()]
