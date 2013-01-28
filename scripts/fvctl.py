@@ -264,7 +264,7 @@ def do_addFlowSpace(opts, args):
         act = { 'slice-name' : parts[0], "permission" : int(parts[1]) }
         acts.append(act)
     req['slice-action'] = acts
-    ret = connect(opts, "add-flowspace", passwd, data=req)  
+    ret = connect(opts, "add-flowspace", passwd, data=[req])  
     if ret:
         print "Flowspace entries has been created."
 
