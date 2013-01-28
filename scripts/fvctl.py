@@ -270,7 +270,7 @@ def do_addFlowSpace(opts, args):
 
 def makeMatch(matchStr):
     print matchStr
-    pat = re.compile(r'''((?:[^,"']|"[^"]*"|'[^']*')+)''')
+    pat = re.compile(r''';(?=(?:[^'"]|'[^']*'|"[^"]*")*$)''')
     matchItems = pat.split(matchStr)[1::2]
     match = {}
     for item in matchItems:
