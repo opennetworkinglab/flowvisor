@@ -324,7 +324,7 @@ def toStr(val):
 
 def toList(val):
     l = []
-    for v in val.split(',')
+    for v in val.split(','):
         l.append(int(v))
 
 MATCHSTRS = {
