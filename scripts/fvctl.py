@@ -262,7 +262,7 @@ def do_addFlowSpace(opts, args):
         sys.exit()
     passwd = getPassword(opts)
     match = makeMatch(args[3])
-    if opts.queue is not None:
+    if opts.queues is not None:
         match['queues'] = opts.queues
     if opts.fqueue is not None:
         match['force_enqueue'] = opts.fqueue
