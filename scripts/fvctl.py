@@ -281,7 +281,7 @@ def makeMatch(matchStr):
             print "Match items must be of the form <key>=<val>"
         try:
             (mstr, func) = MATCHSTRS[it[0].lower()]
-             match[mstr] = func(it[1])
+            match[mstr] = func(it[1])
         except KeyError, e:
             print "Unknown match item %s" % it[0]
             sys.exit()
