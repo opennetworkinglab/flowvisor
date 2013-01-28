@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 # Copyright (c) 2012-2013  The Board of Trustees of The Leland Stanford Junior University
 
-import urllib2, urlparse, sys, getpass, functools, json, pprint
+import urllib2
+import urlparse
+import sys
+import getpass
+import functools
+import json
+import pprint
+import re
 from optparse import OptionParser
 
 def getPassword(opts):
@@ -236,6 +243,51 @@ def do_removeFlowSpace(opts, args):
     if ret:
         print "Flowspace entries have been removed."
 
+def pa_addFlowSpace(args, cmd):
+    usage = "%s <flowspace-name> <dpid> <priority> <match> <slice-perm>" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    return parser.parse_args(args)
+
+def do_addFlowSpace(opts, args):
+    if len(args) != 5:
+        print "add-flowpace : Requires 5 arguments; only %d given" % len(args)
+        print "add-flowspace: <flowspace-name> <dpid> <priority> <match> <slice-perm>"
+        sys.exit()
+    passwd = getPassword(opts)
+    match = makeMatch(args[3])
+    req = { "name" : args[0], "dpid" : args[1], "priority" : int(args[2]), "match" : match }
+    actions = args[4].split(',')
+    acts = []
+    for action in actions:
+        parts = action.split('=')
+        act = { 'slice-name' : parts[0], "permission" : int(parts[1]) }
+        acts.append(act)
+    req['slice-action'] = acts
+    ret = connect(opts, "add-flowspace", passwd, data=args)  
+    if ret:
+        print "Flowspace entries have been removed."
+
+def makeMatch(matchStr):
+    pat = re.compile(r'''((?:[^,"']|"[^"]*"|'[^']*')+)''')
+    matchItems = pat.split(matchStr)
+    match = {}
+    for item in matchItems:
+        it = item.split('=')
+        if len(item != 2)
+            print "Match items must be of the form <key>=<val>"
+        try:
+            mstr = MATCHSTRS[it[0].lower()]
+            if mstr == 'queues':
+                match[mstr] = it[1].split(',')
+            else:
+                match[mstr] = it[1]
+        except KeyError, e:
+            print "Unknown match item %s" % it[0]
+            sys.exit()
+    return match
+        
+
 def connect(opts, cmd, passwd, data=None):
     try:
         url = getUrl(opts)
@@ -262,10 +314,32 @@ def connect(opts, cmd, passwd, data=None):
 def parseResponse(data):
     j = json.loads(data)
     if 'error' in j:
-        print "%s : %s" % (getError(j['error']['code']),j['error']['message'])
+        print "%s" % (getError(j['error']['code']),j['error']['message'])
         sys.exit(1)
     return j['result']
 
+MATCHSTRS = {
+    'in_port' : 'in_port',
+    'input_port' : 'in_port',
+    'dl_dst' : 'dl_dst',
+    'eth_dst' : 'dl_dst',
+    'dl_src' : 'dl_src',
+    'eth_src' : 'dl_src',
+    'dl_type' : 'dl_type',
+    'eth_type' : 'dl_type',
+    'dl_vlan' : 'dl_vlan',
+    'dl_vlan_pcp' : 'dl_vlan_pcp',
+    'nw_dst' : 'nw_dst',
+    'nw_src' : 'nw_src',
+    'nw_proto' : 'nw_proto',
+    'nw_tos' : 'nw_tos',
+    'tp_src' : 'tp_src',
+    'tp_dst' : 'tp_dst',
+    'queues' : 'queues',
+    'force_queue' : 'force-queue'
+}
+      
+    
 
 
 CMDS = {
@@ -276,7 +350,7 @@ CMDS = {
     'update-slice-password' : (pa_updateSlicePassword, do_updateSlicePassword),
     'update-admin-password' : (pa_updateAdminPassword, do_updateAdminPassword),
     'list-flowspace' : (pa_listFlowSpace, do_listFlowSpace),
-#    'add-flowspace' : (pa_addFlowSpace, do_addFlowSpace),
+    'add-flowspace' : (pa_addFlowSpace, do_addFlowSpace),
 #    'update-flowspace' : (pa_updateFlowSpace, do_updateFlowSpace),
     'remove-flowspace' : (pa_removeFlowSpace, do_removeFlowSpace)
 #    'list-version' : (pa_none, do_listVersion),

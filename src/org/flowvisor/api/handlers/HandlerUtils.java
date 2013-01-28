@@ -12,6 +12,7 @@ import org.flowvisor.config.SliceImpl;
 import org.flowvisor.events.FVEventHandler;
 import org.flowvisor.exceptions.DPIDNotFound;
 import org.flowvisor.exceptions.MissingRequiredField;
+import org.flowvisor.exceptions.UnknownMatchField;
 import org.flowvisor.flows.FlowSpaceUtil;
 import org.flowvisor.openflow.protocol.FVMatch;
 import org.flowvisor.resources.SlicerLimits;
@@ -39,30 +40,33 @@ public class HandlerUtils {
 	}
 	
 	public static FVMatch matchFromMap(Map<String, Object> map) 
-			throws ClassCastException, MissingRequiredField {
+			throws ClassCastException, MissingRequiredField, UnknownMatchField {
 		FVMatch match = new FVMatch();
 		if (map == null)
 			return match;
 		int wildcards = FVMatch.OFPFW_ALL;
-		Number inport = HandlerUtils.<Number>fetchField(INPORT, map, false, null);
+		Number inport = HandlerUtils.<Number>fetchField(FVMatch.STR_IN_PORT, map, false, null);
 		if (inport != null) {
 			match.setInputPort(U16.t(inport.intValue()));
-			wildcards &= ~FVMatch.OFPFW_IN_PORT; 
+			wildcards &= ~FVMatch.OFPFW_IN_PORT;
+			map.remove(FVMatch.STR_IN_PORT);
 		}
 		
-		String dl_dst = HandlerUtils.<String>fetchField(DLDST, map, false, null);
+		String dl_dst = HandlerUtils.<String>fetchField(FVMatch.STR_DL_DST, map, false, null);
 		if (dl_dst != null) {
 			match.setDataLayerDestination(FlowSpaceUtil.parseMac(dl_dst));
 			wildcards &= ~FVMatch.OFPFW_DL_DST; 
+			map.remove(FVMatch.STR_DL_DST);
 		}
 		
-		String dl_src = HandlerUtils.<String>fetchField(DLSRC, map, false, null);
+		String dl_src = HandlerUtils.<String>fetchField(FVMatch.STR_DL_SRC, map, false, null);
 		if (dl_src != null) {
 			match.setDataLayerSource(FlowSpaceUtil.parseMac(dl_src));
 			wildcards &= ~FVMatch.OFPFW_DL_SRC; 
+			map.remove(FVMatch.STR_DL_SRC);
 		}
 		
-		String dl_type = HandlerUtils.<String>fetchField(DLTYPE, map, false, null);
+		String dl_type = HandlerUtils.<String>fetchField(FVMatch.STR_DL_TYPE, map, false, null);
 		if (dl_type != null) {
 			if (dl_type.startsWith("0x"))
 				match.setDataLayerType(U16.t(Short
@@ -70,10 +74,11 @@ public class HandlerUtils {
 			else
 				match.setDataLayerType(U16.t(Short
                         .valueOf(dl_type)));
-			wildcards &= ~FVMatch.OFPFW_DL_TYPE; 
+			wildcards &= ~FVMatch.OFPFW_DL_TYPE;
+			map.remove(FVMatch.STR_DL_TYPE);
 		}
 		
-		String dl_vlan = HandlerUtils.<String>fetchField(DLVLAN, map, false, null);
+		String dl_vlan = HandlerUtils.<String>fetchField(FVMatch.STR_DL_VLAN, map, false, null);
 		if (dl_vlan != null) {
 			if (dl_vlan.startsWith("0x"))
 				match.setDataLayerVirtualLan(U16.t(Short
@@ -81,10 +86,11 @@ public class HandlerUtils {
 			else
 				match.setDataLayerType(U16.t(Short
                         .valueOf(dl_vlan)));
-			wildcards &= ~FVMatch.OFPFW_DL_VLAN; 
+			wildcards &= ~FVMatch.OFPFW_DL_VLAN;
+			map.remove(FVMatch.STR_DL_VLAN);
 		}
 		
-		String dl_vlan_pcp = HandlerUtils.<String>fetchField(DLVLANPCP, map, false, null);
+		String dl_vlan_pcp = HandlerUtils.<String>fetchField(FVMatch.STR_DL_VLAN_PCP, map, false, null);
 		if (dl_vlan_pcp != null) {
 			if (dl_vlan.startsWith("0x"))
 				match.setDataLayerVirtualLanPriorityCodePoint(U8.t(Short
@@ -93,48 +99,65 @@ public class HandlerUtils {
 				match.setDataLayerType(U8.t(Short
                         .valueOf(dl_vlan_pcp)));
 			wildcards &= ~FVMatch.OFPFW_DL_VLAN_PCP; 
+			map.remove(FVMatch.STR_DL_VLAN_PCP);
 		}
 		
-		String nw_dst = HandlerUtils.<String>fetchField(NWDST, map, false, null);
-		if (nw_dst != null)
+		String nw_dst = HandlerUtils.<String>fetchField(FVMatch.STR_NW_DST, map, false, null);
+		if (nw_dst != null) {
 			match.setFromCIDR(nw_dst, FVMatch.STR_NW_DST);
+			map.remove(FVMatch.STR_NW_DST);
+		}
 		
-		String nw_src = HandlerUtils.<String>fetchField(NWSRC, map, false, null);
-		if (nw_src != null)
+		String nw_src = HandlerUtils.<String>fetchField(FVMatch.STR_NW_SRC, map, false, null);
+		if (nw_src != null) {
 			match.setFromCIDR(nw_src, FVMatch.STR_NW_SRC);
+			map.remove(FVMatch.STR_NW_SRC);
+		}
 		
-		Number nw_proto = HandlerUtils.<Number>fetchField(NWPROTO, map, false, null);
+		Number nw_proto = HandlerUtils.<Number>fetchField(FVMatch.STR_NW_PROTO, map, false, null);
 		if (nw_proto != null) {
 			match.setNetworkProtocol(U8.t(nw_proto.shortValue()));
-			wildcards &= ~FVMatch.OFPFW_NW_PROTO; 
+			wildcards &= ~FVMatch.OFPFW_NW_PROTO;
+			map.remove(FVMatch.STR_NW_PROTO);
 		}
 		
-		Number nw_tos = HandlerUtils.<Number>fetchField(NWTOS, map, false, null);
+		Number nw_tos = HandlerUtils.<Number>fetchField(FVMatch.STR_NW_TOS, map, false, null);
 		if (nw_tos != null) {
 			match.setNetworkTypeOfService(U8.t(nw_tos.shortValue()));
-			wildcards &= ~FVMatch.OFPFW_NW_TOS; 
+			wildcards &= ~FVMatch.OFPFW_NW_TOS;
+			map.remove(FVMatch.STR_NW_TOS);
 		}
 		
-		Number tp_src = HandlerUtils.<Number>fetchField(TPSRC, map, false, null);
+		Number tp_src = HandlerUtils.<Number>fetchField(FVMatch.STR_TP_SRC, map, false, null);
 		if (tp_src != null) {
 			match.setTransportSource(U16.t(tp_src.intValue()));
-			wildcards &= ~FVMatch.OFPFW_TP_SRC; 
+			wildcards &= ~FVMatch.OFPFW_TP_SRC;
+			map.remove(FVMatch.STR_TP_SRC);
 		}
 		
-		Number tp_dst = HandlerUtils.<Number>fetchField(TPDST, map, false, null);
+		Number tp_dst = HandlerUtils.<Number>fetchField(FVMatch.STR_TP_DST, map, false, null);
 		if (tp_dst != null) {
 			match.setTransportSource(U16.t(tp_dst.intValue()));
-			wildcards &= ~FVMatch.OFPFW_TP_DST; 
+			wildcards &= ~FVMatch.OFPFW_TP_DST;
+			map.remove(FVMatch.STR_TP_DST);
 		}
 		
-		match.setQueues(HandlerUtils.<List<Integer>>fetchField(QUEUES, map, false, 
+		match.setQueues(HandlerUtils.<List<Integer>>fetchField(FVMatch.STR_QUEUE, map, false, 
 				new LinkedList<Integer>()));
+		map.remove(FVMatch.STR_QUEUE);
 		
-		Number fqueue = HandlerUtils.<Number>fetchField(FQUEUE, map, false, null);
-		if (fqueue != null) 
+		Number fqueue = HandlerUtils.<Number>fetchField(FVMatch.STR_FORCE, map, false, null);
+		if (fqueue != null) {
 			match.setForcedQueue(fqueue.intValue()); 
+			map.remove(FVMatch.STR_FORCE);
+		}
 		
 		match.setWildcards(wildcards);
+		
+		if (!map.isEmpty()) {
+			String unknowns = map.keySet().toString();
+			throw new UnknownMatchField(unknowns);
+		}
 		
 		return match;
 		
@@ -210,24 +233,6 @@ public class HandlerUtils {
 			throws ConfigError {
 		return getAllSlices().contains(sliceName);
 	}
-	
-	private static final String INPORT = "in-port";
-	private static final String DLDST = "dl-dst";
-	private static final String DLSRC = "dl-src";
-	private static final String DLTYPE = "dl-type";
-	private static final String DLVLAN = "dl-vlan";
-	private static final String DLVLANPCP = "dl-vlan-pcp";
-	private static final String NWDST = "nw-dst";
-	private static final String NWSRC = "nw-src";
-	private static final String NWPROTO = "nw-proto";
-	private static final String NWTOS = "nw-tos";
-	private static final String TPSRC = "tp-src";
-	private static final String TPDST = "tp-dst";
-	private static final String QUEUES = "queues";
-	private static final String FQUEUE = "force-enqueue";
-	
-		
-	
 	
 	
 }

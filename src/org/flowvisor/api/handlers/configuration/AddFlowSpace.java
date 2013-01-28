@@ -16,6 +16,7 @@ import org.flowvisor.config.FVConfigurationController;
 import org.flowvisor.config.FlowSpace;
 import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.exceptions.MissingRequiredField;
+import org.flowvisor.exceptions.UnknownMatchField;
 import org.flowvisor.flows.FlowEntry;
 import org.flowvisor.flows.FlowMap;
 import org.flowvisor.flows.FlowSpaceUtil;
@@ -64,13 +65,16 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		} catch (ConfigError e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
 					cmdName() + ": failed to insert flowspace entry" + e.getMessage()), 0);
+		} catch (UnknownMatchField e) {
+			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
+					cmdName() + ": Unknown field(s) in match struct : " + e.getMessage()), 0);
 		}
 		return resp;
 		
 	}
 
 	private List<FlowEntry> processFlows(List<Map<String, Object>> params, FlowMap flowSpace) 
-			throws ClassCastException, MissingRequiredField, ConfigError {
+			throws ClassCastException, MissingRequiredField, ConfigError, UnknownMatchField {
 		String name = null;
 		Long dpid = null;
 		Integer priority = null;

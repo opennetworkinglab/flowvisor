@@ -19,8 +19,8 @@ public class FVMatch extends OFMatch {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private static final String STR_QUEUE = "queues";
-	private static final String STR_FORCE = "force_enqueue";
+	public static final String STR_QUEUE = "queues";
+	public static final String STR_FORCE = "force_enqueue";
 	
 	private List<Integer> queues = new LinkedList<Integer>();
 	private long force_queue = -1;
