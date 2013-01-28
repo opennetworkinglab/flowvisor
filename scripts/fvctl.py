@@ -272,11 +272,9 @@ def makeMatch(matchStr):
     print matchStr
     pat = re.compile(r'''((?:[^,"']|"[^"]*"|'[^']*')+)''')
     matchItems = pat.split(matchStr)[1::2]
-    print matchItems
     match = {}
     for item in matchItems:
         it = item.split('=')
-        print it
         if len(it) != 2:
             print "Match items must be of the form <key>=<val>"
         try:
@@ -285,7 +283,6 @@ def makeMatch(matchStr):
         except KeyError, e:
             print "Unknown match item %s" % it[0]
             sys.exit()
-    print "returning %s" % match 
     return match
         
 
