@@ -317,7 +317,7 @@ def connect(opts, cmd, passwd, data=None):
 def parseResponse(data):
     j = json.loads(data)
     if 'error' in j:
-        print "%s" % (getError(j['error']['code']),j['error']['message'])
+        print "%s -> %s" % (getError(j['error']['code']),j['error']['message'])
         sys.exit(1)
     return j['result']
 
