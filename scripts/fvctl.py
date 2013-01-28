@@ -331,7 +331,10 @@ def toStr(val):
     return str(val)
 
 def list_callback(option, opt, value, parser):
-  setattr(parser.values, option.dest, value.split(','))
+    vals = []
+    for val in value.split(','):
+        vals.append(int(val))
+    setattr(parser.values, option.dest, vals)
 
 MATCHSTRS = {
     'in_port' : ('in_port', toInt),
