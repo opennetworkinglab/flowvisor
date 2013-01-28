@@ -323,8 +323,9 @@ def toStr(val):
     return str(val)
 
 def toList(val):
-    return val.split(',')
- 
+    l = []
+    for v in val.split(',')
+        l.append(int(v))
 
 MATCHSTRS = {
     'in_port' : ('in_port', toInt),
