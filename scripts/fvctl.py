@@ -272,6 +272,7 @@ def makeMatch(matchStr):
     print matchStr
     pat = re.compile(r'''((?:[^,"']|"[^"]*"|'[^']*')+)''')
     matchItems = pat.split(matchStr)
+    print matchItems
     match = {}
     for item in matchItems:
         it = item.split('=')
