@@ -266,7 +266,7 @@ def do_addFlowSpace(opts, args):
     req['slice-action'] = acts
     ret = connect(opts, "add-flowspace", passwd, data=args)  
     if ret:
-        print "Flowspace entries have been removed."
+        print "Flowspace entries has been created."
 
 def makeMatch(matchStr):
     pat = re.compile(r'''((?:[^,"']|"[^"]*"|'[^']*')+)''')
@@ -274,6 +274,7 @@ def makeMatch(matchStr):
     match = {}
     for item in matchItems:
         it = item.split('=')
+        print it
         if len(it) != 2:
             print "Match items must be of the form <key>=<val>"
         try:
