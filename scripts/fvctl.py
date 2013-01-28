@@ -280,11 +280,8 @@ def makeMatch(matchStr):
         if len(it) != 2:
             print "Match items must be of the form <key>=<val>"
         try:
-            mstr = MATCHSTRS[it[0].lower()]
-            if mstr == 'queues':
-                match[mstr] = it[1].split(',')
-            else:
-                match[mstr] = it[1]
+            (mstr, func) = MATCHSTRS[it[0].lower()]
+             match[mstr] = func(it[1])
         except KeyError, e:
             print "Unknown match item %s" % it[0]
             sys.exit()
@@ -323,26 +320,35 @@ def parseResponse(data):
     return j['result']
 
 MATCHSTRS = {
-    'in_port' : 'in_port',
-    'input_port' : 'in_port',
-    'dl_dst' : 'dl_dst',
-    'eth_dst' : 'dl_dst',
-    'dl_src' : 'dl_src',
-    'eth_src' : 'dl_src',
-    'dl_type' : 'dl_type',
-    'eth_type' : 'dl_type',
-    'dl_vlan' : 'dl_vlan',
-    'dl_vlan_pcp' : 'dl_vlan_pcp',
-    'nw_dst' : 'nw_dst',
-    'nw_src' : 'nw_src',
-    'nw_proto' : 'nw_proto',
-    'nw_tos' : 'nw_tos',
-    'tp_src' : 'tp_src',
-    'tp_dst' : 'tp_dst',
-    'queues' : 'queues',
-    'force_queue' : 'force-queue'
+    'in_port' : ('in_port', toInt),
+    'input_port' : ('in_port', toInt),
+    'dl_dst' : ('dl_dst', toStr),
+    'eth_dst' : ('dl_dst', toStr),
+    'dl_src' : ('dl_src', toStr),
+    'eth_src' : ('dl_src',toStr),
+    'dl_type' : ('dl_type',toStr),
+    'eth_type' : ('dl_type',toStr),
+    'dl_vlan' : ('dl_vlan', toStr),
+    'dl_vlan_pcp' : ('dl_vlan_pcp',toStr),
+    'nw_dst' : ('nw_dst',toStr),
+    'nw_src' : ('nw_src',toStr),
+    'nw_proto' : ('nw_proto',toInt),
+    'nw_tos' : ('nw_tos',toInt),
+    'tp_src' : ('tp_src',toInt),
+    'tp_dst' : ('tp_dst', toInt),
+    'queues' : ('queues',toList),
+    'force_queue' : ('force-queue',toInt)
 }
-      
+
+def toInt(val):
+    return int(val)
+
+def toStr(val):
+    str(val)
+
+def toList(val):
+    return val.split(',')
+   
     
 
 
