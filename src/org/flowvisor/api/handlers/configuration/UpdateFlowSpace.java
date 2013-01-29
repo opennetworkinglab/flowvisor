@@ -113,7 +113,7 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 					HandlerUtils.<Map<String, Object>>fetchField(MATCH, fe, false, null));
 			if (match != null) {
 				match.setQueues(update.getQueueId());
-				match.setForcedQueue(match.getForcedQueue());
+				match.setForcedQueue(update.getForcedQueue());
 				update.setRuleMatch(match);
 			
 			}
