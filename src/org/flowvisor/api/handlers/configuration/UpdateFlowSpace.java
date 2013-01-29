@@ -116,7 +116,7 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 			
 			
 			List<Map<String,Object>> sacts = 
-					HandlerUtils.<List<Map<String, Object>>>fetchField(SLICEACTIONS, fe, true, null);
+					HandlerUtils.<List<Map<String, Object>>>fetchField(SLICEACTIONS, fe, false, null);
 			if (sacts != null) {
 				update.setActionsList(parseSliceActions(sacts));
 				logMsg += " actions=" + sacts;
