@@ -85,7 +85,6 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		Integer priority = null;
 		FlowEntry update = null;
 		LinkedList<FlowEntry> list = new LinkedList<FlowEntry>();
-		String logMsg = APIUserCred.getUserName() + " updated";
 		for (Map<String,Object> fe : params) {
 			name = HandlerUtils.<String>fetchField(FSNAME, fe, false, null);
 			if (name == null)
@@ -97,13 +96,13 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 			if (dpidStr != null) {
 				dpid = FlowSpaceUtil.parseDPID(dpidStr);
 				update.setDpid(dpid);
-				logMsg += " dpid="+dpidStr;
+			
 			}
 			
 			priority = HandlerUtils.<Number>fetchField(FlowSpace.PRIO, fe, false, null).intValue();
 			if (priority != null) {
 				update.setPriority(priority);
-				logMsg += " priority="+priority;
+			
 			}
 			
 			/*
@@ -116,7 +115,7 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 				match.setQueues(update.getQueueId());
 				match.setForcedQueue(match.getForcedQueue());
 				update.setRuleMatch(match);
-				logMsg += " match=" + match;
+			
 			}
 			
 			
@@ -124,7 +123,7 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 					HandlerUtils.<List<Map<String, Object>>>fetchField(SLICEACTIONS, fe, false, null);
 			if (sacts != null) {
 				update.setActionsList(parseSliceActions(sacts));
-				logMsg += " actions=" + sacts;
+			
 			}
 			
 			List<Integer> l = new LinkedList<Integer>();
@@ -133,7 +132,7 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 				for (Number n : origL)
 					l.add(n.intValue());
 				update.setQueueId(l);
-				logMsg += " queues=" + l;
+			
 			}
 			
 			
@@ -141,13 +140,13 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 			Number fqueue = HandlerUtils.<Number>fetchField(FQUEUE, fe, false, null);
 			if (fqueue != null) {
 				update.setForcedQueue(fqueue.longValue());
-				logMsg += " forced-queue=" + fqueue;
+			
 			}
 			
 			list.add(update);
 			//updateFlowEntry(flowSpace, update);
 			
-			FVLog.log(LogLevel.DEBUG, null, logMsg);
+			
 		}
 		return list;
 		
