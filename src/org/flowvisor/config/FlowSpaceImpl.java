@@ -441,19 +441,15 @@ public class FlowSpaceImpl implements FlowSpace {
 			
 			queues = conn.prepareStatement(SQUEUES);
 			queues.setInt(1, ruleid);
-			FVLog.log(LogLevel.DEBUG, null, "Inserting queue " + fe.getQueueId());
 			for (Integer queue_id : fe.getQueueId()) {
-				FVLog.log(LogLevel.DEBUG, null, "Inserting queue id before " + queue_id);
 				queues.setInt(2, queue_id);
-				FVLog.log(LogLevel.DEBUG, null, "Inserting queue id " + queue_id);
 				queues.executeUpdate();
 			}
-			FVLog.log(LogLevel.DEBUG, null, "DONE INSERTING!");
 			fe.setId(ruleid);
 			return ruleid;
 		} catch (SQLException e) {
 			FVLog.log(LogLevel.DEBUG, null, e.getMessage());
-			e.printStackTrace();
+			
 			throw new ConfigError("Unable to set the flowmap in db");
 		} finally {
 			close(set);

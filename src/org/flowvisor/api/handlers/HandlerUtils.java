@@ -147,7 +147,6 @@ public class HandlerUtils {
 										new LinkedList<Number>()))
 			list.add(n.intValue());
 		match.setQueues(list);
-		System.out.println("queues " + match.getQueues());
 		map.remove(FVMatch.STR_QUEUE);
 		
 		Number fqueue = HandlerUtils.<Number>fetchField(FVMatch.STR_FORCE, map, false, null);
