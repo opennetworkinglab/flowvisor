@@ -444,7 +444,6 @@ public class FlowSpaceImpl implements FlowSpace {
 			FVLog.log(LogLevel.DEBUG, null, "Inserting queue " + fe.getQueueId());
 			for (Integer queue_id : fe.getQueueId()) {
 				FVLog.log(LogLevel.DEBUG, null, "Inserting queue id before " + queue_id);
-				System.err.println("wtfwtf");
 				queues.setInt(2, queue_id);
 				FVLog.log(LogLevel.DEBUG, null, "Inserting queue id " + queue_id);
 				queues.executeUpdate();

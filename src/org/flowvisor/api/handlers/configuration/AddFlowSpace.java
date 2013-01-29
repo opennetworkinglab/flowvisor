@@ -41,12 +41,11 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		try {
 			final FlowMap flowSpace = FVConfig.getFlowSpaceFlowMap();
 			final List<FlowEntry> list = processFlows(params, flowSpace);
+			addFlowEntries(list, flowSpace);
 			FutureTask<Object> future = new FutureTask<Object>(
 	                new Callable<Object>() {
 	                    public Object call() {
 							
-	                    	
-	                    	addFlowEntries(list, flowSpace);
 							FVLog.log(LogLevel.INFO, null,
 									"Signalling FlowSpace Update to all event handlers");
 							FlowSpaceImpl.getProxy().notifyChange(flowSpace);
