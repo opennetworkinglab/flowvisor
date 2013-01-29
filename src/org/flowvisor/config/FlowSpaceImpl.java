@@ -67,7 +67,7 @@ public class FlowSpaceImpl implements FlowSpace {
 	private static String GQUEUES = "SELECT " + QUEUE + " FROM FSRQueue AS FQ, FlowSpaceRule AS FSR where " +
 			"FSR.id = FQ.fsr_id AND FSR.id = ?";
 	
-	private static String SQUEUES = "INSERT INTO FSRQueue(fsr_id, " + QUEUE + ") VALUES(?,?)";
+	private static String SQUEUES = "INSERT INTO FSRQueue(fsr_id," + QUEUE + ") VALUES(?,?)";
 	
 	
 	private static String SFLOWMAP = "INSERT INTO FlowSpaceRule(" + DPID + "," + PRIO + "," +  
