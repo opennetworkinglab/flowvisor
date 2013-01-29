@@ -49,7 +49,7 @@ public class FederatedFlowMap implements FlowMap, Cloneable {
 
 	@Override
 	public void addRule(FlowEntry rule) {
-		namedFlowEntries.put(rule.getName(), rule);
+		namedFlowEntries.put(rule.getName(), rule.clone());
 		fsrs.addRule(rule);
 	}
 
