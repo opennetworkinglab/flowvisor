@@ -331,7 +331,7 @@ def do_updateFlowSpace(opts, args):
 
 def do_getVersion(opts, args):
     passwd = getPassword(opts)
-    ret = connect(opts, "get-version", passwd)
+    ret = connect(opts, "list-version", passwd)
     print "FlowVisor version : %s" % ret['flowvisor-version']
     print "FlowVisor DB version : %s" % ret['db-version']
 
