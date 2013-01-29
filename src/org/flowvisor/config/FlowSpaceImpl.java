@@ -775,6 +775,7 @@ public class FlowSpaceImpl implements FlowSpace {
  				while (queueSet.next()) {
  						queueList.add(queueSet.getInt(QUEUE));
  				}
+ 				FVLog.log(LogLevel.DEBUG, null, "Got queues " + queueList);
  				fs.put(QUEUE, queueList.clone());
  				queueList.clear();
  				list.add(fs.clone());
