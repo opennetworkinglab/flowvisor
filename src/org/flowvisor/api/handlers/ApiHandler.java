@@ -26,6 +26,8 @@ public interface ApiHandler<T> {
 	final static String TOPOCTRL = "enable-topo-ctrl";
 	final static String FMLIMIT = "limit";
 	final static String FSCACHE = "flow-stats-cache";
+	final static String FQUEUE = "force-enqueue";
+	final static String QUEUE = "queues";
 	
 	
 	final static String CURRRATE = "current-rate";

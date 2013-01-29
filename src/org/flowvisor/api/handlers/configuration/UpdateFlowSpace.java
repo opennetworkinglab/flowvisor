@@ -123,7 +123,7 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 			}
 			
 			List<Integer> l = new LinkedList<Integer>();
-			List<Number> origL = HandlerUtils.<List<Number>>fetchField(FVMatch.STR_QUEUE, fe, false, null);
+			List<Number> origL = HandlerUtils.<List<Number>>fetchField(QUEUE, fe, false, null);
 			if (origL != null) {
 				for (Number n : origL)
 					l.add(n.intValue());
@@ -133,10 +133,10 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 			
 			
 			
-			Number fqueue = HandlerUtils.<Number>fetchField(FVMatch.STR_FORCE, fe, false, null);
+			Number fqueue = HandlerUtils.<Number>fetchField(FQUEUE, fe, false, null);
 			if (fqueue != null) {
 				update.setForcedQueue(fqueue.longValue());
-				logMsg += " forced_queue=" + fqueue;
+				logMsg += " forced-queue=" + fqueue;
 			}
 			
 			list.add(update);

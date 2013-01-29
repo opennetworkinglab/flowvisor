@@ -92,12 +92,12 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 					HandlerUtils.<List<Map<String, Object>>>fetchField(SLICEACTIONS, fe, true, null));
 			
 			List<Integer> l = new LinkedList<Integer>();
-			for (Number n : HandlerUtils.<List<Number>>fetchField(FVMatch.STR_QUEUE, fe, false, 
+			for (Number n : HandlerUtils.<List<Number>>fetchField(QUEUE, fe, false, 
 											new LinkedList<Number>()))
 				l.add(n.intValue());
 			
 			
-			Number fqueue = HandlerUtils.<Number>fetchField(FVMatch.STR_FORCE, fe, false, -1);
+			Number fqueue = HandlerUtils.<Number>fetchField(FQUEUE, fe, false, -1);
 			
 			
 			fentry = new FlowEntry(name, dpid, match, 0, priority, 
