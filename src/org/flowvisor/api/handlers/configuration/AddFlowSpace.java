@@ -83,6 +83,7 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		List<FlowEntry> list = new LinkedList<FlowEntry>();
 		for (Map<String,Object> fe : params) {
 			name = HandlerUtils.<String>fetchField(FSNAME, fe, false, UUID.randomUUID().toString());
+			FVLog.log(LogLevel.DEBUG, null, "Creating fs with name " + name);
 			dpid = FlowSpaceUtil
 					.parseDPID(HandlerUtils.<String>fetchField(FlowSpace.DPID, fe, true, "any"));
 			priority = HandlerUtils.<Number>fetchField(FlowSpace.PRIO, fe, true, FlowEntry.DefaultPriority).intValue();
