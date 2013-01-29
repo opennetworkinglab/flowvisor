@@ -36,9 +36,10 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 					FlowSpaceImpl.getProxy().toJson(map, null);
 				else
 					FlowSpaceImpl.getProxy().toJson(map, sliceName);
-				rewriteFields(map);
+				
 			} else
 				FlowSpaceImpl.getProxy().toJson(map, user);
+			rewriteFields(map);
 			resp = new JSONRPC2Response(map.get(FlowSpace.FS), 0);
 		}  catch (ClassCastException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
