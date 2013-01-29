@@ -30,7 +30,7 @@ public class FlowSpaceImpl implements FlowSpace {
 
 	private ConfDBSettings settings = null;
 	private static FlowSpaceImpl instance =  null;
-	private FlowMap cachedFlowMap = null;
+	//private FlowMap cachedFlowMap = null;
 	
 	
 	//Callbacks
@@ -109,8 +109,8 @@ public class FlowSpaceImpl implements FlowSpace {
 	 */
 	@Override
 	public FlowMap getFlowMap() throws ConfigError {
-		if (cachedFlowMap != null)
-			return cachedFlowMap;
+		/*if (cachedFlowMap != null)
+			return cachedFlowMap;*/
 		Connection conn = null;
 		PreparedStatement ps = null;
 		PreparedStatement actions = null;
@@ -184,7 +184,7 @@ public class FlowSpaceImpl implements FlowSpace {
 			}
 			if (map == null)
 				map = new FederatedFlowMap();
-			cachedFlowMap = map;
+			//cachedFlowMap = map;
 			return map;
 		} catch (SQLException e) {
 			throw new ConfigError("Unable to retrieve flowmap from db : " + e.getMessage());
