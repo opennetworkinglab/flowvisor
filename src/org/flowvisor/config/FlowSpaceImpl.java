@@ -454,6 +454,8 @@ public class FlowSpaceImpl implements FlowSpace {
 			FVLog.log(LogLevel.DEBUG, null, e.getMessage());
 			e.printStackTrace();
 			throw new ConfigError("Unable to set the flowmap in db");
+		} catch (Exception e) {
+			e.printStackTrace();
 		} finally {
 			close(set);
 			close(ps);
