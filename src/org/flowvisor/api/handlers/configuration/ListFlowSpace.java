@@ -60,6 +60,7 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 	}
 
 	/*
+	 * THIS REALLY BLOWS!!!
 	 * TODO: rework JSON output to be identical in config file and over rpc.
 	 */
 	@SuppressWarnings("unchecked")
