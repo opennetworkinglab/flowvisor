@@ -422,7 +422,7 @@ CMDS = {
     'update-admin-password' : (pa_updateAdminPassword, do_updateAdminPassword),
     'list-flowspace' : (pa_listFlowSpace, do_listFlowSpace),
     'add-flowspace' : (pa_addFlowSpace, do_addFlowSpace),
-#    'update-flowspace' : (pa_updateFlowSpace, do_updateFlowSpace),
+    'update-flowspace' : (pa_updateFlowSpace, do_updateFlowSpace),
     'remove-flowspace' : (pa_removeFlowSpace, do_removeFlowSpace)
 #    'list-version' : (pa_none, do_listVersion),
 #    'save-config' : (pa_none, do_saveConfig),
