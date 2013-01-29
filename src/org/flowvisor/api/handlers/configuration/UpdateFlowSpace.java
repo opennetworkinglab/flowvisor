@@ -122,6 +122,23 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 				logMsg += " actions=" + sacts;
 			}
 			
+			List<Integer> l = new LinkedList<Integer>();
+			List<Number> origL = HandlerUtils.<List<Number>>fetchField(FVMatch.STR_QUEUE, fe, false, null);
+			if (origL != null) {
+				for (Number n : origL)
+					l.add(n.intValue());
+				update.setQueueId(l);
+				logMsg += " queues=" + l;
+			}
+			
+			
+			
+			Number fqueue = HandlerUtils.<Number>fetchField(FVMatch.STR_FORCE, fe, false, null);
+			if (fqueue != null) {
+				update.setForcedQueue(fqueue.longValue());
+				logMsg += " forced_queue=" + fqueue;
+			}
+			
 			list.add(update);
 			//updateFlowEntry(flowSpace, update);
 			

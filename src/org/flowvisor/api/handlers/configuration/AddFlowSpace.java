@@ -88,12 +88,22 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 			priority = HandlerUtils.<Number>fetchField(FlowSpace.PRIO, fe, true, FlowEntry.DefaultPriority).intValue();
 			FVMatch match = HandlerUtils.matchFromMap(
 					HandlerUtils.<Map<String, Object>>fetchField(MATCH, fe, true, null));
-			FVLog.log(LogLevel.DEBUG, null, "Creating fs with queues " + match.getQueues());
 			List<OFAction> sliceActions = parseSliceActions(
 					HandlerUtils.<List<Map<String, Object>>>fetchField(SLICEACTIONS, fe, true, null));
 			
+			List<Integer> l = new LinkedList<Integer>();
+			for (Number n : HandlerUtils.<List<Number>>fetchField(FVMatch.STR_QUEUE, fe, false, 
+											new LinkedList<Number>()))
+				l.add(n.intValue());
+			
+			
+			Number fqueue = HandlerUtils.<Number>fetchField(FVMatch.STR_FORCE, fe, false, -1);
+			
+			
 			fentry = new FlowEntry(name, dpid, match, 0, priority, 
 					(List<OFAction>) sliceActions);
+			fentry.setQueueId(l);
+			fentry.setForcedQueue(fqueue.longValue());
 			list.add(fentry);
 			
 		}
