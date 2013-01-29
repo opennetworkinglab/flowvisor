@@ -276,7 +276,64 @@ def do_addFlowSpace(opts, args):
     req['slice-action'] = acts
     ret = connect(opts, "add-flowspace", passwd, data=[req])  
     if ret:
-        print "Flowspace entries has been created."
+        print "Flowspace %s has been created." % args[0]
+
+def pa_updateFlowSpace(args, cmd):
+    usage = "%s [options] <flowspace-name>" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    parser.add_option("-d", "--dpid", default=None, dest="dpid", type="string",
+            help="Set the dpid for flowspace entry.")
+    parser.add_option("-p", "--priority", default=None, dest="prio", type="int",
+            help="Set the priority for flowspace entry.")
+    parser.add_option("-m", "--match", default=None, dest="match", type="string",
+            help="Set the match for flowspace entry.")
+    parser.add_option("-s", "--slice-action", default=None, dest="sact", type="string",
+            help="Set the slice(s) for flowspace entry.")
+    parser.add_option("-q", "--queues", default=None, dest="queues", type="string",
+            action="callback", callback=list_callback, 
+            help="Define list of queues permitted on this flowspace.")
+    parser.add_option("-f", "--forced-queue", default=None, dest="fqueue", type="int",
+            help="Force a queue id upon output action.")
+
+    return parser.parse_args(args)
+
+def do_updateFlowSpace(opts, args):
+    if len(args) != 1:
+        print "update-flowpace : Requires 1 argument; only %d given" % len(args)
+        print "update-flowspace: <flowspace-name>"
+        sys.exit()
+    passwd = getPassword(opts)
+    req = {'name' : args[0]}
+    if opts.match is not None:
+        match = makeMatch(opts.match)
+        if opts.queues is not None:
+            match['queues'] = opts.queues
+        if opts.fqueue is not None:
+            match['force_enqueue'] = opts.fqueue
+        req['match'] = match
+    elif opts.fqueue is not None or opts.queues is not None:
+        print "update-flowspace: -q or -f can only be specified if -m is."
+        sys.exit()
+    if opts.dpid is not None:
+        req['dpid'] = opts.dpid
+    if opts.prio is not None:
+        req['priority'] = opts.prio
+    if opts.sact is not None:       
+        actions = opts.sact.split(',')
+        acts = []
+        for action in actions:
+            parts = action.split('=')
+            act = { 'slice-name' : parts[0], "permission" : int(parts[1]) }
+            acts.append(act)
+        req['slice-action'] = acts
+    
+    ret = connect(opts, "update-flowspace", passwd, data=[req])  
+    if ret:
+        print "Flowspace %s has been updated." % args[0]
+
+
+
 
 def makeMatch(matchStr):
     matchItems = matchStr.split(',')

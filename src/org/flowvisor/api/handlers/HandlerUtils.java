@@ -217,7 +217,7 @@ public class HandlerUtils {
 				return classifier.getSlicerLimits();
 			}
 		}
-		throw new DPIDNotFound("No classifier found, therefore no limits accessible");
+		throw new DPIDNotFound("No switches connected, therefore no limits available");
 	}
 	
 	
