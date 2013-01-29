@@ -24,6 +24,7 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 
 	
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public JSONRPC2Response process(Map<String, Object> params) {
 		JSONRPC2Response resp = null;
@@ -39,7 +40,8 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 				
 			} else
 				FlowSpaceImpl.getProxy().toJson(map, user);
-			rewriteFields(map);
+			for (HashMap<String, Object> m : (LinkedList<HashMap<String, Object>>) map.get(FlowSpace.FS))
+				rewriteFields(m);
 			resp = new JSONRPC2Response(map.get(FlowSpace.FS), 0);
 		}  catch (ClassCastException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
