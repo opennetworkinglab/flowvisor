@@ -329,7 +329,7 @@ def do_updateFlowSpace(opts, args):
     if ret:
         print "Flowspace %s has been updated." % args[0]
 
-def do_getVersion(opts, args):
+def do_listVersion(opts, args):
     passwd = getPassword(opts)
     ret = connect(opts, "list-version", passwd)
     print "FlowVisor version : %s" % ret['flowvisor-version']
