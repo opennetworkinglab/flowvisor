@@ -223,7 +223,7 @@ def do_listFlowSpace(opts, args):
     print out
     for item in ret:
         if opts.pretty:
-            print json.dumps(item, sort_keys=True, indent=1)
+            print json.dumps(item, sort_keys=False, indent=1)
         else:
             print json.dumps(item)
 
@@ -324,7 +324,9 @@ def do_updateFlowSpace(opts, args):
             act = { 'slice-name' : parts[0], "permission" : int(parts[1]) }
             acts.append(act)
         req['slice-action'] = acts
-    
+    if len(req.keys()) <= 1:
+        print "update-flowspace : You may want to actually specify something to update."
+        sys.exit()
     ret = connect(opts, "update-flowspace", passwd, data=[req])  
     if ret:
         print "Flowspace %s has been updated." % args[0]
@@ -334,6 +336,23 @@ def do_listVersion(opts, args):
     ret = connect(opts, "list-version", passwd)
     print "FlowVisor version : %s" % ret['flowvisor-version']
     print "FlowVisor DB version : %s" % ret['db-version']
+
+def pa_saveConfig(args, cmd):
+    usage = "%s <config-file>" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    return parser.parse_args(args)
+
+def do_saveConfig(opts, args):
+    if len(args) != 1:
+        print "save-config : Need a config-file to save config to."
+        sys.exit()
+    passwd = getPassword(opts)
+    ret = connect(opts, "save-config", passwd)
+    output = open(args[0], 'w')
+    output.write(json.dumps(ret, indent=2)
+    output.close()
+    print "Config file written to %s." % args[0]
 
 
 def makeMatch(matchStr):
@@ -425,8 +444,8 @@ CMDS = {
     'add-flowspace' : (pa_addFlowSpace, do_addFlowSpace),
     'update-flowspace' : (pa_updateFlowSpace, do_updateFlowSpace),
     'remove-flowspace' : (pa_removeFlowSpace, do_removeFlowSpace),
-    'list-version' : (pa_none, do_listVersion)
-#    'save-config' : (pa_none, do_saveConfig),
+    'list-version' : (pa_none, do_listVersion),
+    'save-config' : (pa_saveConfig, do_saveConfig)
 #    'get-config' : (pa_getConfig, do_getConfig),
 #    'set-config' : (pa_setConfig, do_setConfig),
 #    'list-slice-info' : (pa_listSliceInfo, do_listSliceInfo),
