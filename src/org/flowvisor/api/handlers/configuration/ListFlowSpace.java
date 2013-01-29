@@ -82,10 +82,11 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 			}
 			neoact.clear();
 		}
-		ret.put(FlowSpace.ACTION, neoacts);
+		ret.put(SLICEACTIONS, neoacts);
 	    ret.put(FSNAME, map.remove(FSNAME));
 	    ret.put(FlowSpace.DPID, map.remove(FlowSpace.DPID));
 	    ret.put(FlowSpace.PRIO, map.remove(FlowSpace.PRIO));
+	    ret.put("id", map.remove("id"));
 	    ret.put(MATCH, map);
 	    return ret;
 	}
