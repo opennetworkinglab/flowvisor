@@ -262,11 +262,11 @@ def do_addFlowSpace(opts, args):
         sys.exit()
     passwd = getPassword(opts)
     match = makeMatch(args[3])
-    if opts.queues is not None:
-        match['queues'] = opts.queues
-    if opts.fqueue is not None:
-        match['force_enqueue'] = opts.fqueue
     req = { "name" : args[0], "dpid" : args[1], "priority" : int(args[2]), "match" : match }
+    if opts.queues is not None:
+        req['queues'] = opts.queues
+    if opts.fqueue is not None:
+        req['force-enqueue'] = opts.fqueue
     actions = args[4].split(',')
     acts = []
     for action in actions:
@@ -280,7 +280,7 @@ def do_addFlowSpace(opts, args):
 
 def pa_updateFlowSpace(args, cmd):
     usage = "%s [options] <flowspace-name>" % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
+    parser = OptionParser(usa:qge=usage)
     addCommonOpts(parser)
     parser.add_option("-d", "--dpid", default=None, dest="dpid", type="string",
             help="Set the dpid for flowspace entry.")
@@ -307,14 +307,11 @@ def do_updateFlowSpace(opts, args):
     req = {'name' : args[0]}
     if opts.match is not None:
         match = makeMatch(opts.match)
-        if opts.queues is not None:
-            match['queues'] = opts.queues
-        if opts.fqueue is not None:
-            match['force_enqueue'] = opts.fqueue
         req['match'] = match
-    elif opts.fqueue is not None or opts.queues is not None:
-        print "update-flowspace: -q or -f can only be specified if -m is."
-        sys.exit()
+    if opts.queues is not None:
+        req['queues'] = opts.queues
+    if opts.fqueue is not None:
+        req['force_enqueue'] = opts.fqueue
     if opts.dpid is not None:
         req['dpid'] = opts.dpid
     if opts.prio is not None:
