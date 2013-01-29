@@ -1,7 +1,9 @@
 package org.flowvisor.api.handlers.configuration;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.flowvisor.api.APIUserCred;
 import org.flowvisor.api.handlers.ApiHandler;
@@ -11,6 +13,7 @@ import org.flowvisor.config.FVConfig;
 import org.flowvisor.config.FlowSpace;
 import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.exceptions.MissingRequiredField;
+import org.flowvisor.openflow.protocol.FVMatch;
 
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
@@ -33,6 +36,7 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 					FlowSpaceImpl.getProxy().toJson(map, null);
 				else
 					FlowSpaceImpl.getProxy().toJson(map, sliceName);
+				rewriteFields(map);
 			} else
 				FlowSpaceImpl.getProxy().toJson(map, user);
 			resp = new JSONRPC2Response(map.get(FlowSpace.FS), 0);
@@ -47,6 +51,29 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 					cmdName() + ": Unable to get flowspace : " + e.getMessage()), 0);
 		}  
 		return resp;
+		
+	}
+
+	/*
+	 * TODO: rework JSON output to be identical in config file and over rpc.
+	 */
+	@SuppressWarnings("unchecked")
+	private void rewriteFields(HashMap<String, Object> map) {
+		Object list = map.remove("queue_id");
+		map.put(FVMatch.STR_QUEUE, list);
+		LinkedList<HashMap<String, Integer>> actions = 
+				(LinkedList<HashMap<String, Integer>>) map.remove(FlowSpace.ACTION);
+		LinkedList<HashMap<String, Object>> neoacts = new LinkedList<HashMap<String,Object>>();
+		HashMap<String, Object> neoact = new HashMap<String, Object>();
+		for (HashMap<String, Integer> m : actions) {
+			for (Entry<String, Integer> entry : m.entrySet()) {
+				neoact.put(SLICENAME, entry.getKey());
+				neoact.put(PERM, entry.getValue());
+				neoacts.add((HashMap<String, Object>) neoact.clone());
+				break;
+			}
+			neoact.clear();
+		}
 		
 	}
 
