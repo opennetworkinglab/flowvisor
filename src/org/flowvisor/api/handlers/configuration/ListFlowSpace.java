@@ -69,6 +69,7 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 		HashMap<String, Object> ret = new HashMap<String, Object>();
 		Object list = map.remove("queue_id");
 		map.put(FVMatch.STR_QUEUE, list);
+		map.put(FVMatch.STR_FORCE, map.remove(FlowSpace.FORCED_QUEUE));
 		LinkedList<HashMap<String, Integer>> actions = 
 				(LinkedList<HashMap<String, Integer>>) map.remove(FlowSpace.ACTION);
 		LinkedList<HashMap<String, Object>> neoacts = new LinkedList<HashMap<String,Object>>();
