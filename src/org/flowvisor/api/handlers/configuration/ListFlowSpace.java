@@ -28,6 +28,7 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 	@Override
 	public JSONRPC2Response process(Map<String, Object> params) {
 		JSONRPC2Response resp = null;
+		LinkedList<Map<String, Object>> list = new LinkedList<Map<String,Object>>();
 		try {
 			String sliceName = HandlerUtils.<String>fetchField(SLICENAME, params, false, null);
 			String user = APIUserCred.getUserName();
@@ -41,8 +42,8 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 			} else
 				FlowSpaceImpl.getProxy().toJson(map, user);
 			for (HashMap<String, Object> m : (LinkedList<HashMap<String, Object>>) map.get(FlowSpace.FS))
-				rewriteFields(m);
-			resp = new JSONRPC2Response(map.get(FlowSpace.FS), 0);
+				list.add(rewriteFields(m));
+			resp = new JSONRPC2Response(list, 0);
 		}  catch (ClassCastException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					cmdName() + ": " + e.getMessage()), 0);
@@ -64,7 +65,8 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 	 * TODO: rework JSON output to be identical in config file and over rpc.
 	 */
 	@SuppressWarnings("unchecked")
-	private void rewriteFields(HashMap<String, Object> map) {
+	private HashMap<String, Object> rewriteFields(HashMap<String, Object> map) {
+		HashMap<String, Object> ret = new HashMap<String, Object>();
 		Object list = map.remove("queue_id");
 		map.put(FVMatch.STR_QUEUE, list);
 		LinkedList<HashMap<String, Integer>> actions = 
@@ -80,7 +82,12 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 			}
 			neoact.clear();
 		}
-		map.put(FlowSpace.ACTION, neoacts);
+		ret.put(FlowSpace.ACTION, neoacts);
+	    ret.put(FSNAME, map.remove(FSNAME));
+	    ret.put(FlowSpace.DPID, map.remove(FlowSpace.DPID));
+	    ret.put(FlowSpace.PRIO, map.remove(FlowSpace.PRIO));
+	    ret.put(MATCH, map);
+	    return ret;
 	}
 
 	@Override
