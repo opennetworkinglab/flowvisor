@@ -106,10 +106,15 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 				logMsg += " priority="+priority;
 			}
 			
-			
+			/*
+			 * TODO: Once XMLRPC API goes away.
+			 * this will be more pretty.
+			 */
 			FVMatch match = HandlerUtils.matchFromMap(
 					HandlerUtils.<Map<String, Object>>fetchField(MATCH, fe, false, null));
 			if (match != null) {
+				match.setQueues(update.getQueueId());
+				match.setForcedQueue(match.getForcedQueue());
 				update.setRuleMatch(match);
 				logMsg += " match=" + match;
 			}

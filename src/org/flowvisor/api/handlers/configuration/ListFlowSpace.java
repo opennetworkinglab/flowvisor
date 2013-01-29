@@ -13,7 +13,6 @@ import org.flowvisor.config.FVConfig;
 import org.flowvisor.config.FlowSpace;
 import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.exceptions.MissingRequiredField;
-import org.flowvisor.openflow.protocol.FVMatch;
 
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
