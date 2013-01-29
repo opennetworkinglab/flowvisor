@@ -559,8 +559,8 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 	 */
 	@Override
 	public FlowEntry clone() {
-		FlowEntry ret = new FlowEntry(this.dpid, this.ruleMatch.clone(),
-				this.priority, actionsList); // fixme
+		FlowEntry ret = new FlowEntry(this.name, this.dpid, this.ruleMatch.clone(),
+				this.getId(), this.priority, actionsList); // fixme
 		ret.setId(this.id);
 		ret.setActionsList(new LinkedList<OFAction>(actionsList));
 		/*FVLog.log(LogLevel.DEBUG, null, "cloning " + this.queue_ids + " match has " + this.ruleMatch.getQueues());
