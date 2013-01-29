@@ -443,6 +443,7 @@ public class FlowSpaceImpl implements FlowSpace {
 			queues.setInt(1, ruleid);
 			for (Integer queue_id : fe.getQueueId()) {
 				queues.setInt(2, queue_id);
+				FVLog.log(LogLevel.DEBUG, null, "Inserting queue id " + queue_id);
 				queues.executeUpdate();
 			}
 			fe.setId(ruleid);
