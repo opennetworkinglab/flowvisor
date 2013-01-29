@@ -280,7 +280,7 @@ def do_addFlowSpace(opts, args):
 
 def pa_updateFlowSpace(args, cmd):
     usage = "%s [options] <flowspace-name>" % USAGE.format(cmd)
-    parser = OptionParser(usa:qge=usage)
+    parser = OptionParser(usage=usage)
     addCommonOpts(parser)
     parser.add_option("-d", "--dpid", default=None, dest="dpid", type="string",
             help="Set the dpid for flowspace entry.")
