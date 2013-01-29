@@ -311,7 +311,7 @@ def do_updateFlowSpace(opts, args):
     if opts.queues is not None:
         req['queues'] = opts.queues
     if opts.fqueue is not None:
-        req['force_enqueue'] = opts.fqueue
+        req['force-enqueue'] = opts.fqueue
     if opts.dpid is not None:
         req['dpid'] = opts.dpid
     if opts.prio is not None:
