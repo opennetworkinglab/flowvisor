@@ -75,7 +75,7 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 			}
 			neoact.clear();
 		}
-		
+		map.put(FlowSpace.ACTION, neoacts);
 	}
 
 	@Override
