@@ -452,14 +452,17 @@ public class FlowSpaceImpl implements FlowSpace {
 			return ruleid;
 		} catch (SQLException e) {
 			FVLog.log(LogLevel.DEBUG, null, e.getMessage());
+			e.printStackTrace();
 			throw new ConfigError("Unable to set the flowmap in db");
 		} finally {
 			close(set);
 			close(ps);
 			close(slice);
 			close(queues);
-			close(conn);	
+			close(conn);
+			FVLog.log(LogLevel.DEBUG, null, "DONEDONE!");
 		}	
+		
 	}
 	
 	
