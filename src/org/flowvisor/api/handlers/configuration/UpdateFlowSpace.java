@@ -59,6 +59,7 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		} catch (ClassCastException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					cmdName() + ": " + e.getMessage()), 0);
+			e.printStackTrace();
 		} catch (MissingRequiredField e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					cmdName() + ": " + e.getMessage()), 0);
