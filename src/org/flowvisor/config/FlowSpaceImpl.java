@@ -447,6 +447,7 @@ public class FlowSpaceImpl implements FlowSpace {
 				FVLog.log(LogLevel.DEBUG, null, "Inserting queue id " + queue_id);
 				queues.executeUpdate();
 			}
+			FVLog.log(LogLevel.DEBUG, null, "DONE INSERTING!");
 			fe.setId(ruleid);
 			return ruleid;
 		} catch (SQLException e) {
