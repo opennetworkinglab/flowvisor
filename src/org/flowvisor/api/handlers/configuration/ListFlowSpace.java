@@ -50,7 +50,9 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 		} catch (ConfigError e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
 					cmdName() + ": Unable to get flowspace : " + e.getMessage()), 0);
-		}  
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+		}
 		return resp;
 		
 	}
