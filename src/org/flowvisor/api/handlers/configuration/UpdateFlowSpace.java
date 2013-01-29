@@ -100,7 +100,7 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 				logMsg += " dpid="+dpidStr;
 			}
 			
-			priority = HandlerUtils.<Integer>fetchField(FlowSpace.PRIO, fe, false, null);
+			priority = HandlerUtils.<Number>fetchField(FlowSpace.PRIO, fe, false, null).intValue();
 			if (priority != null) {
 				update.setPriority(priority);
 				logMsg += " priority="+priority;
