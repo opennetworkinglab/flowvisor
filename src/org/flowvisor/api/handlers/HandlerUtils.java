@@ -142,8 +142,11 @@ public class HandlerUtils {
 			map.remove(FVMatch.STR_TP_DST);
 		}
 		
-		match.setQueues(HandlerUtils.<List<Integer>>fetchField(FVMatch.STR_QUEUE, map, false, 
-				new LinkedList<Integer>()));
+		List<Integer> list = new LinkedList<Integer>();
+		for (Number n : HandlerUtils.<List<Number>>fetchField(FVMatch.STR_QUEUE, map, false, 
+										new LinkedList<Number>()))
+			list.add(n.intValue());
+		match.setQueues(list);
 		System.out.println("queues " + match.getQueues());
 		map.remove(FVMatch.STR_QUEUE);
 		
