@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 
-import org.flowvisor.api.APIUserCred;
 import org.flowvisor.api.handlers.ApiHandler;
 import org.flowvisor.api.handlers.HandlerUtils;
 import org.flowvisor.config.ConfigError;

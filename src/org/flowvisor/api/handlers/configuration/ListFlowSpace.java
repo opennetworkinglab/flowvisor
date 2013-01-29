@@ -62,6 +62,8 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 	/*
 	 * THIS REALLY BLOWS!!!
 	 * TODO: rework JSON output to be identical in config file and over rpc.
+	 * 
+	 * Ideally, make the objects that are serialized here, serialize themseleves.
 	 */
 	@SuppressWarnings("unchecked")
 	private HashMap<String, Object> rewriteFields(HashMap<String, Object> map) {

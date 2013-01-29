@@ -329,7 +329,11 @@ def do_updateFlowSpace(opts, args):
     if ret:
         print "Flowspace %s has been updated." % args[0]
 
-
+def do_getVersion(opts, args):
+    passwd = getPassword(opts)
+    ret = connect(opts, "get-version", passwd)
+    print "FlowVisor version : %s" % ret['flowvisor-version']
+    print "FlowVisor DB version : %s" % ret['db-version']
 
 
 def makeMatch(matchStr):
@@ -420,8 +424,8 @@ CMDS = {
     'list-flowspace' : (pa_listFlowSpace, do_listFlowSpace),
     'add-flowspace' : (pa_addFlowSpace, do_addFlowSpace),
     'update-flowspace' : (pa_updateFlowSpace, do_updateFlowSpace),
-    'remove-flowspace' : (pa_removeFlowSpace, do_removeFlowSpace)
-#    'list-version' : (pa_none, do_listVersion),
+    'remove-flowspace' : (pa_removeFlowSpace, do_removeFlowSpace),
+    'list-version' : (pa_none, do_listVersion)
 #    'save-config' : (pa_none, do_saveConfig),
 #    'get-config' : (pa_getConfig, do_getConfig),
 #    'set-config' : (pa_setConfig, do_setConfig),
