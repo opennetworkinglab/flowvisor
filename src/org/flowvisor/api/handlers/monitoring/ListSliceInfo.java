@@ -43,6 +43,7 @@ public class ListSliceInfo implements ApiHandler<Map<String, Object>> {
 				retvals.put(CURRFMUSE, sl.getSliceFMLimit(sliceName));
 			} catch (DPIDNotFound e) {
 				FVLog.log(LogLevel.WARN, null, "No switches connected; no runtime stats available");
+				retvals.put(MSG, "No switches connected; no runtime stats available");
 			}
 			
 			resp = new JSONRPC2Response(retvals, 0);

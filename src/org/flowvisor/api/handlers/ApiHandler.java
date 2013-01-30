@@ -29,7 +29,7 @@ public interface ApiHandler<T> {
 	final static String FQUEUE = "force-enqueue";
 	final static String QUEUE = "queues";
 	
-	
+	final static String MSG = "msg";
 	final static String CURRRATE = "current-rate";
 	final static String CURRFMUSE = "current-flowmod-usage";
 	final static String NUMPORTS = "num-ports";

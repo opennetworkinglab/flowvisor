@@ -445,6 +445,8 @@ def do_listSliceInfo(opts, args):
     passwd = getPassword(opts)
     req = { "slice-name" : args[0]}
     ret = connect(opts, "list-slice-info", passwd, data=req)
+    if 'msg' in ret:
+        print "Note: %s" % ret['msg']
     print json.dumps(ret, sort_keys=True, indent = 2)
 
 
