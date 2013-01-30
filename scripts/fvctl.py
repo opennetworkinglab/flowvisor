@@ -372,8 +372,10 @@ def do_getConfig(opts, args):
     if opts.dpid is not None:
         req['dpid'] = opts.dpid
     ret = connect(opts, "get-config", passwd, data=req)
-    print "Flow tracking is %s" % ("enabled" if ret['track-flows'] else "disabled")
-
+    print "Flow tracking is %s." % ("enabled" if ret['track-flows'] else "disabled")
+    print "Statistics Description modification is %s." % ("enabled" if ret['stats-desc'] else "disabled")
+    print "Topology controller is %s." % ("enabled" if ret['enable-topo-ctrl'] else "disabled")
+    print "Flow statistics cache is set to %d." % ret['flow-stats-cache']
 
 def makeMatch(matchStr):
     matchItems = matchStr.split(',')
