@@ -372,7 +372,7 @@ def do_getConfig(opts, args):
     if opts.dpid is not None:
         req['dpid'] = opts.dpid
     ret = connect(opts, "get-config", passwd, data=req)
-    print "Flow tracking is %s" % ("enabled" if ret['flow-tracking'] else "disabled")
+    print "Flow tracking is %s" % "enabled" if ret['flow-tracking'] else "disabled"
 
 
 def makeMatch(matchStr):
