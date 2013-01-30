@@ -372,7 +372,7 @@ def do_getConfig(opts, args):
     if opts.dpid is not None:
         req['dpid'] = opts.dpid
     ret = connect(opts, "get-config", passwd, data=req)
-    print req
+    print ret
 
 
 def makeMatch(matchStr):
