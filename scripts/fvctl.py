@@ -349,8 +349,9 @@ def do_saveConfig(opts, args):
         sys.exit()
     passwd = getPassword(opts)
     ret = connect(opts, "save-config", passwd)
+    out = json.dumps(ret,  sort_keys=True, indent=2)    
     output = open(args[0], 'w')
-    output.write(json.dumps(ret,  sort_keys=True, indent=2))
+    output.write(out)
     output.close()
     print "Config file written to %s." % args[0]
 
