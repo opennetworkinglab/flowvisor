@@ -440,7 +440,7 @@ def pa_listSliceInfo(args, cmd):
 
 def do_listSliceInfo(opts, args):
     if len(args) != 1:
-        print "list-slice-info : Please specify the the slice name"
+        print "list-slice-info : Please specify the slice name"
         sys.exit()
     passwd = getPassword(opts)
     req = { "slice-name" : args[0]}
@@ -459,6 +459,23 @@ def do_listDatapaths(opts, args):
     print "Connected switches: "
     for (i, sw) in enmerate(ret):
         print "  %d : %s" % (i,sw)
+
+def pa_listDatapathInfo(args, cmd):
+    usage = "%s <dpid>" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    return parser.parse_args(args)
+
+def do_listDatapathInfo(opts, args):
+    if len(args) != 1:
+        print "list-datapath-info : Please specify the dpid."
+        sys.exit()
+    passwd = getPassword(opts)
+    req = { "dpid" : args[0]}
+    ret = connect(opts, "list-datapath-info", passwd, data=req)
+    print json.dumps(ret, sort_keys=True, indent = 2)
+
+
 
 
 def makeMatch(matchStr):
@@ -555,8 +572,8 @@ CMDS = {
     'get-config' : (pa_getConfig, do_getConfig),
     'set-config' : (pa_setConfig, do_setConfig),
     'list-slice-info' : (pa_listSliceInfo, do_listSliceInfo),
-    'list-datapaths' : (pa_none, do_listDatapaths)
-#    'list-datapath-info' : (pa_listDatapathInfo, do_listDatapathInfo),
+    'list-datapaths' : (pa_none, do_listDatapaths),
+    'list-datapath-info' : (pa_listDatapathInfo, do_listDatapathInfo)
 #    'list-datapath-stats' : (pa_listDatapathStats, do_listDatapathStats),
 #    'list-fv-health' : (pa_none, do_listFVHealth),
 #    'list-links' : (pa_none, do_listLinks),
