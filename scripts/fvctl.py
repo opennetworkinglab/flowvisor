@@ -432,6 +432,22 @@ def do_setConfig(opts, args):
         print "Configuration has been updated"
 
 
+def pa_listSliceInfo(args, cmd):
+    usage = "%s <slicename>" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    return parser.parse_args(args)
+
+def do_listSliceInfo(opts, args):
+    if len(args) != 1:
+        print "list-slice-info : Please specify the the slice name"
+        sys.exit()
+    passwd = getPassword(opts)
+    req = { "slice-name" : args[0]}
+    ret = connect(opts, "list-slice-info", passwd, data=req)
+    print json.dumps(ret, sort_keys=True, indent = 2)
+
+
 
 def makeMatch(matchStr):
     matchItems = matchStr.split(',')
