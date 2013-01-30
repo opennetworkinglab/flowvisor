@@ -9,9 +9,11 @@ import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
 import org.flowvisor.config.FlowSpace;
 import org.flowvisor.config.FlowvisorImpl;
+import org.flowvisor.config.SliceImpl;
 import org.flowvisor.config.SwitchImpl;
 import org.flowvisor.exceptions.MissingRequiredField;
 import org.flowvisor.exceptions.PermissionDeniedException;
+import org.flowvisor.flows.FlowEntry;
 import org.flowvisor.flows.FlowSpaceUtil;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
@@ -77,7 +79,10 @@ public class SetConfig implements ApiHandler<Map<String, Object>> {
     	Long dpid = FlowSpaceUtil.parseDPID(
     			HandlerUtils.<String>fetchField(FlowSpace.DPID, fmlimit, true, null));
     	Number limit = HandlerUtils.<Number>fetchField(FMLIMIT, fmlimit, true, null);
-    	SwitchImpl.getProxy().setMaxFlowMods(sliceName, dpid, limit.intValue());
+    	if (dpid == FlowEntry.ALL_DPIDS) 
+    		SliceImpl.getProxy().setMaxFlowMods(sliceName, limit.intValue());
+    	else
+    		SwitchImpl.getProxy().setMaxFlowMods(sliceName, dpid, limit.intValue());
 	}
 
 
