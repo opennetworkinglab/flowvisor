@@ -455,7 +455,7 @@ def do_listDatapaths(opts, args):
     ret = connect(opts, "list-datapaths", passwd)
     if len(ret) <= 0:
        print "No switches connected"
-        sys.exit()
+       sys.exit()
     print "Connected switches: "
     for (i, sw) in enmerate(ret):
         print "  %d : %s" % (i,sw)
