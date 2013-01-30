@@ -475,6 +475,36 @@ def do_listDatapathInfo(opts, args):
     ret = connect(opts, "list-datapath-info", passwd, data=req)
     print json.dumps(ret, sort_keys=True, indent = 2)
 
+def pa_listDatapathStats(args, cmd):
+    usage = "%s <dpid>" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    return parser.parse_args(args)
+
+def do_listDatapathStats(opts, args):
+    if len(args) != 1:
+        print "list-datapath-stats : Please specify the dpid."
+        sys.exit()
+    passwd = getPassword(opts)
+    req = { "dpid" : args[0]}
+    ret = connect(opts, "list-datapath-stats", passwd, data=req)
+    print json.dumps(ret, sort_keys=True, indent = 2)
+
+def pa_listSliceStats(args, cmd):
+    usage = "%s <slicename>" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    return parser.parse_args(args)
+
+def do_listSliceStats(opts, args):
+    if len(args) != 1:
+        print "list-slice-stats : Please specify the slice name"
+        sys.exit()
+    passwd = getPassword(opts)
+    req = { "slice-name" : args[0]}
+    ret = connect(opts, "list-slice-stats", passwd, data=req)
+    print json.dumps(ret, sort_keys=True, indent = 2)
+
 
 
 
@@ -573,12 +603,12 @@ CMDS = {
     'set-config' : (pa_setConfig, do_setConfig),
     'list-slice-info' : (pa_listSliceInfo, do_listSliceInfo),
     'list-datapaths' : (pa_none, do_listDatapaths),
-    'list-datapath-info' : (pa_listDatapathInfo, do_listDatapathInfo)
-#    'list-datapath-stats' : (pa_listDatapathStats, do_listDatapathStats),
+    'list-datapath-info' : (pa_listDatapathInfo, do_listDatapathInfo),
+    'list-datapath-stats' : (pa_listDatapathStats, do_listDatapathStats),
 #    'list-fv-health' : (pa_none, do_listFVHealth),
 #    'list-links' : (pa_none, do_listLinks),
 #    'list-slice-health' : (pa_listSliceHealth, do_listSliceHealth),
-#    'list-slice-stats' : (pa_listSliceStats, do_listSliceStats)
+    'list-slice-stats' : (pa_listSliceStats, do_listSliceStats)
 }
 
 ERRORS = {
