@@ -223,7 +223,7 @@ def do_listFlowSpace(opts, args):
     print out
     for item in ret:
         if opts.pretty:
-            print json.dumps(item, sort_keys=False, indent=1)
+            print json.dumps(item, sort_keys=True, indent=1)
         else:
             print json.dumps(item)
 
@@ -350,7 +350,7 @@ def do_saveConfig(opts, args):
     passwd = getPassword(opts)
     ret = connect(opts, "save-config", passwd)
     output = open(args[0], 'w')
-    output.write(json.dumps(ret, indent=2))
+    output.write(json.dumps(ret,  sort_keys=True, indent=2))
     output.close()
     print "Config file written to %s." % args[0]
 
