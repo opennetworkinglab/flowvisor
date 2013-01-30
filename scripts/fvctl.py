@@ -450,6 +450,15 @@ def do_listSliceInfo(opts, args):
         del ret['msg']
     print json.dumps(ret, sort_keys=True, indent = 2)
 
+def do_listDatapaths(opts, args):
+    passwd = getPassword(opts)
+    ret = connect(opts, "list-datapaths", passwd)
+    if len(ret) <= 0:
+       print "No switches connected"
+        sys.exit()
+    print "Connected switches: "
+    for (i, sw) in enmerate(ret):
+        print "  %d : %s" % (i,sw)
 
 
 def makeMatch(matchStr):
