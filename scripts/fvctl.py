@@ -541,8 +541,8 @@ CMDS = {
     'list-version' : (pa_none, do_listVersion),
     'save-config' : (pa_saveConfig, do_saveConfig),
     'get-config' : (pa_getConfig, do_getConfig),
-    'set-config' : (pa_setConfig, do_setConfig)
-#    'list-slice-info' : (pa_listSliceInfo, do_listSliceInfo),
+    'set-config' : (pa_setConfig, do_setConfig),
+    'list-slice-info' : (pa_listSliceInfo, do_listSliceInfo)
 #    'list-datapaths' : (pa_none, do_listDatapaths),
 #    'list-datapath-info' : (pa_listDatapathInfo, do_listDatapathInfo),
 #    'list-datapath-stats' : (pa_listDatapathStats, do_listDatapathStats),
