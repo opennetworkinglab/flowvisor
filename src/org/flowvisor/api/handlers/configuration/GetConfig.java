@@ -73,11 +73,12 @@ public class GetConfig implements ApiHandler<Map<String, Object>> {
 			subconfs.put(FMLIMIT, SliceImpl.getProxy().getMaxFlowMods(sliceName));
 			list.add((HashMap<String, Object>)subconfs.clone());
 			for (String dpid : HandlerUtils.getAllDevices()) {
+				subconfs.clear();
 				subconfs.put(SLICENAME, sliceName);
 				subconfs.put(FlowSpace.DPID, dpid);
 				subconfs.put(FMLIMIT, SwitchImpl.getProxy().getMaxFlowMods(sliceName, 
 						FlowSpaceUtil.parseDPID(dpid)));
-				list.add(subconfs);
+				list.add((HashMap<String, Object>)subconfs.clone());
 			}
 		} else if (dpidStr != null && sliceName == null) {
 			long dpid = FlowSpaceUtil.parseDPID(dpidStr);
