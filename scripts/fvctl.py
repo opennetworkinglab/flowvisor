@@ -354,6 +354,26 @@ def do_saveConfig(opts, args):
     output.close()
     print "Config file written to %s." % args[0]
 
+def pa_getConfig(args, cmd):
+    usage = "%s [options]" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    parser.add_option("-s", "--slice-name", default=None, dest="slice", type="string",
+            help="Fetch config for this slice.")
+    parser.add_option("-d", "--dpid", default=None, dest="dpid", type="string",
+            help="Fetch config for this dpid.")
+    return parser.parse_args(args)
+
+def do_getConfig(opts, args):
+    passwd = getPassword(opts)
+    req = {}
+    if opts.slice is not None:
+        req['slice-name'] = opts.slice
+    if opts.dpid is not None:
+        req['dpid'] = opts.dpid
+    ret = connect(opts, "get-config", passwd, data=req)
+    print req
+
 
 def makeMatch(matchStr):
     matchItems = matchStr.split(',')
@@ -445,8 +465,8 @@ CMDS = {
     'update-flowspace' : (pa_updateFlowSpace, do_updateFlowSpace),
     'remove-flowspace' : (pa_removeFlowSpace, do_removeFlowSpace),
     'list-version' : (pa_none, do_listVersion),
-    'save-config' : (pa_saveConfig, do_saveConfig)
-#    'get-config' : (pa_getConfig, do_getConfig),
+    'save-config' : (pa_saveConfig, do_saveConfig),
+    'get-config' : (pa_getConfig, do_getConfig)
 #    'set-config' : (pa_setConfig, do_setConfig),
 #    'list-slice-info' : (pa_listSliceInfo, do_listSliceInfo),
 #    'list-datapaths' : (pa_none, do_listDatapaths),
