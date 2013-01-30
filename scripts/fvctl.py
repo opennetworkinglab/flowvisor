@@ -374,6 +374,65 @@ def do_getConfig(opts, args):
     ret = connect(opts, "get-config", passwd, data=req)
     print json.dumps(ret, sort_keys=True, indent = 2)
 
+def pa_setConfig(args, cmd):
+    usage = "%s [options]" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    parser.add_option("-f", "--flood-perm", default=None, dest="perm", type="string",
+            help="Set the floodperm", metavar="SLICE[,DPID]")
+    parser.add_option("-l", "--flowmod-limit", default=None, dest="limit", type="string",
+            help="Set the flowmod limit.", metavar="SLICE,DPID,LIMIT")
+    parser.add_option("--enable-tracking", default=None, dest="track", action="store_true"
+            help="Enable flow tracking.")
+    parser.add_option("--disable-tracking", default=None, dest="track", action="store_false"
+            help="Disable flow tracking.")
+    parser.add_option("--enable-stats-desc", default=None, dest="stats", action="store_true"
+            help="Enable stats description hijacking.")
+    parser.add_option("--disable-stats-desc", default=None, dest="stats", action="store_false"
+            help="Disable stats description hijacking.")
+    parser.add_option("--enable-topo-ctrl", default=None, dest="topo", action="store_true"
+            help="Enable topology controller.")
+    parser.add_option("--disable-topo-ctrl", default=None, dest="topo", action="store_false"
+            help="Disable topology controller.")
+    parser.add_option("-c" "--flow-stats-cache", default=None, dest="cache", type="int"
+            help="Set the aging timer for the flow stats cache.")
+    
+    return parser.parse_args(args)
+
+def do_setConfig(opts, args):
+    passwd = getPassword(opts)
+    req = {}
+    if opts.perm is not None:
+        parts = opts.perm.split(',')
+        if len(parts) > 2 or len(parts) < 1:
+            print "Setting the flood permission requires only the slice and optionally the dpid, see help."
+            sys.exit()
+        elif len(parts) == 1:
+            req['flood-perm'] = { 'slice-name' : parts[0] }
+        else: 
+            req['flood-perm'] = { 'slice-name' : parts[0], 'dpid' : parts[1] }
+
+    if opts.limit is not None:
+        parts = opts.limit.split(',')
+        if len(parts) != 3:
+            print "Need to specify SLICE, DPID, and LIMIT for flowmod limit, see help"
+            sys.exit()
+        req['flowmod-limit'] = { 'slice-name' : args[0], 'dpid' : args[1], 'limit' : args[2] }
+
+    if opts.track is not None:
+        req['track-flows'] = opts.track
+    if opts.stats is not None:
+        req['stats-desc'] = opts.stats
+    if opts.topo is not None:
+        req['enable-topo-ctrl'] = opts.topo
+    if opts.cache is not None:
+        req['flow-stats-cache'] = opts.cache
+    ret = connect(opts, "set-config", passwd, data=req)
+    if ret:
+        print "Configuration has been updated"
+
+
+
 def makeMatch(matchStr):
     matchItems = matchStr.split(',')
     match = {}
@@ -465,8 +524,8 @@ CMDS = {
     'remove-flowspace' : (pa_removeFlowSpace, do_removeFlowSpace),
     'list-version' : (pa_none, do_listVersion),
     'save-config' : (pa_saveConfig, do_saveConfig),
-    'get-config' : (pa_getConfig, do_getConfig)
-#    'set-config' : (pa_setConfig, do_setConfig),
+    'get-config' : (pa_getConfig, do_getConfig),
+    'set-config' : (pa_setConfig, do_setConfig)
 #    'list-slice-info' : (pa_listSliceInfo, do_listSliceInfo),
 #    'list-datapaths' : (pa_none, do_listDatapaths),
 #    'list-datapath-info' : (pa_listDatapathInfo, do_listDatapathInfo),
