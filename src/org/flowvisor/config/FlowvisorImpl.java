@@ -42,7 +42,7 @@ public class FlowvisorImpl implements Flowvisor {
  	private static String GLOGGING = "SELECT " + LOGGING + " FROM FlowVisor WHERE id = ?";
  	private static String GLOGFACILITY = "SELECT " + LOGFACILITY + " FROM FlowVisor WHERE id = ?";
  	private static String GTOPO = "SELECT " + TOPO + " FROM Flowvisor WHERE id = ?";
- 	private static String GFSTIME = "SELECT " + FSCACHE + "FROM Flowvisor WHERE id = ?";
+ 	private static String GFSTIME = "SELECT " + FSCACHE + " FROM Flowvisor WHERE id = ?";
  	
  	
  	private static String STRACKID = "UPDATE Flowvisor SET " + TRACK + " = ? WHERE id = ?";
