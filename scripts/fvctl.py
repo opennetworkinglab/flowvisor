@@ -417,7 +417,7 @@ def do_setConfig(opts, args):
         if len(parts) != 3:
             print "Need to specify SLICE, DPID, and LIMIT for flowmod limit, see help"
             sys.exit()
-        req['flowmod-limit'] = { 'slice-name' : args[0], 'dpid' : args[1], 'limit' : args[2] }
+        req['flowmod-limit'] = { 'slice-name' : parts[0], 'dpid' : parts[1], 'limit' : parts[2] }
 
     if opts.track is not None:
         req['track-flows'] = opts.track
