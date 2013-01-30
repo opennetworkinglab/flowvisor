@@ -394,7 +394,7 @@ def pa_setConfig(args, cmd):
             help="Enable topology controller.")
     parser.add_option("--disable-topo-ctrl", default=None, dest="topo", action="store_false",
             help="Disable topology controller.")
-    parser.add_option("-c" "--flow-stats-cache", default=None, dest="cache", type="int",
+    parser.add_option("-c", "--flow-stats-cache", default=None, dest="cache", type="int",
             help="Set the aging timer for the flow stats cache.")
     
     return parser.parse_args(args)
