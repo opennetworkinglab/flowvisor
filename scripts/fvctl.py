@@ -382,19 +382,19 @@ def pa_setConfig(args, cmd):
             help="Set the floodperm", metavar="SLICE[,DPID]")
     parser.add_option("-l", "--flowmod-limit", default=None, dest="limit", type="string",
             help="Set the flowmod limit.", metavar="SLICE,DPID,LIMIT")
-    parser.add_option("--enable-tracking", default=None, dest="track", action="store_true"
+    parser.add_option("--enable-tracking", default=None, dest="track", action="store_true",
             help="Enable flow tracking.")
-    parser.add_option("--disable-tracking", default=None, dest="track", action="store_false"
+    parser.add_option("--disable-tracking", default=None, dest="track", action="store_false",
             help="Disable flow tracking.")
-    parser.add_option("--enable-stats-desc", default=None, dest="stats", action="store_true"
+    parser.add_option("--enable-stats-desc", default=None, dest="stats", action="store_true",
             help="Enable stats description hijacking.")
-    parser.add_option("--disable-stats-desc", default=None, dest="stats", action="store_false"
+    parser.add_option("--disable-stats-desc", default=None, dest="stats", action="store_false",
             help="Disable stats description hijacking.")
-    parser.add_option("--enable-topo-ctrl", default=None, dest="topo", action="store_true"
+    parser.add_option("--enable-topo-ctrl", default=None, dest="topo", action="store_true",
             help="Enable topology controller.")
-    parser.add_option("--disable-topo-ctrl", default=None, dest="topo", action="store_false"
+    parser.add_option("--disable-topo-ctrl", default=None, dest="topo", action="store_false",
             help="Disable topology controller.")
-    parser.add_option("-c" "--flow-stats-cache", default=None, dest="cache", type="int"
+    parser.add_option("-c" "--flow-stats-cache", default=None, dest="cache", type="int",
             help="Set the aging timer for the flow stats cache.")
     
     return parser.parse_args(args)
