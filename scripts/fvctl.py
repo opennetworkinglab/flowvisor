@@ -505,7 +505,7 @@ def do_listSliceStats(opts, args):
     ret = connect(opts, "list-slice-stats", passwd, data=req)
     print json.dumps(ret, sort_keys=True, indent = 2)
 
-def listFVHealth(opts, args):
+def do_listFVHealth(opts, args):
     passwd = getPassword(opts)
     ret = connect(opts, "list-fv-health", passwd)
     print json.dumps(ret, sort_keys=True, indent = 2) 
