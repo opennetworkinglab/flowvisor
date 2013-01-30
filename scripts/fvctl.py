@@ -505,7 +505,10 @@ def do_listSliceStats(opts, args):
     ret = connect(opts, "list-slice-stats", passwd, data=req)
     print json.dumps(ret, sort_keys=True, indent = 2)
 
-
+def listFVHealth(opts, args):
+    passwd = getPassword(opts)
+    ret = connect(opts, "list-fv-health", passwd)
+    print json.dumps(ret, sort_keys=True, indent = 2) 
 
 
 def makeMatch(matchStr):
@@ -605,7 +608,7 @@ CMDS = {
     'list-datapaths' : (pa_none, do_listDatapaths),
     'list-datapath-info' : (pa_listDatapathInfo, do_listDatapathInfo),
     'list-datapath-stats' : (pa_listDatapathStats, do_listDatapathStats),
-#    'list-fv-health' : (pa_none, do_listFVHealth),
+    'list-fv-health' : (pa_none, do_listFVHealth),
 #    'list-links' : (pa_none, do_listLinks),
 #    'list-slice-health' : (pa_listSliceHealth, do_listSliceHealth),
     'list-slice-stats' : (pa_listSliceStats, do_listSliceStats)

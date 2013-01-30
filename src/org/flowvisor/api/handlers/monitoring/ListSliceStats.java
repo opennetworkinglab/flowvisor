@@ -39,7 +39,7 @@ public class ListSliceStats implements ApiHandler<Map<String, Object>> {
 					cmdName() + ": " + e.getMessage()), 0);
 		} catch (ConfigError e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
-					cmdName() + ": failed to insert flowspace entry" + e.getMessage()), 0);
+					cmdName() + ": failed to fetch slice stats" + e.getMessage()), 0);
 		} 
 		return resp;
 		
