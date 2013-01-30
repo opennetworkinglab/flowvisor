@@ -510,6 +510,26 @@ def do_listFVHealth(opts, args):
     ret = connect(opts, "list-fv-health", passwd)
     print json.dumps(ret, sort_keys=True, indent = 2) 
 
+def pa_listSliceHealth(args, cmd):
+    usage = "%s <slicename>" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    addCommonOpts(parser)
+    return parser.parse_args(args)
+
+def do_listSliceHealth(opts, args):
+    if len(args) != 1:
+        print "list-slice-health : Please specify the slice name"
+        sys.exit()
+    passwd = getPassword(opts)
+    req = { "slice-name" : args[0]}
+    ret = connect(opts, "list-slice-health", passwd, data=req)
+    print json.dumps(ret, sort_keys=True, indent = 2)
+
+def do_listLinks(opts, args):
+    passwd = getPassword(opts)
+    ret = connect(opts, "list-links", passwd)
+    print json.dumps(ret, sort_keys=True, indent = 2)
+
 
 def makeMatch(matchStr):
     matchItems = matchStr.split(',')
@@ -609,8 +629,8 @@ CMDS = {
     'list-datapath-info' : (pa_listDatapathInfo, do_listDatapathInfo),
     'list-datapath-stats' : (pa_listDatapathStats, do_listDatapathStats),
     'list-fv-health' : (pa_none, do_listFVHealth),
-#    'list-links' : (pa_none, do_listLinks),
-#    'list-slice-health' : (pa_listSliceHealth, do_listSliceHealth),
+    'list-links' : (pa_none, do_listLinks),
+    'list-slice-health' : (pa_listSliceHealth, do_listSliceHealth),
     'list-slice-stats' : (pa_listSliceStats, do_listSliceStats)
 }
 
