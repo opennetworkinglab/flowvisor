@@ -67,6 +67,28 @@ public class GetConfig implements ApiHandler<Map<String, Object>> {
 			subconfs.put(FMLIMIT, SwitchImpl.getProxy().getMaxFlowMods(sliceName, 
 					FlowSpaceUtil.parseDPID(dpidStr)));
 			list.add(subconfs);
+		} else if (sliceName != null && dpidStr == null) {
+			subconfs.put(SLICENAME, sliceName);
+			subconfs.put(FlowSpace.DPID, "all");
+			subconfs.put(FMLIMIT, SliceImpl.getProxy().getMaxFlowMods(sliceName));
+			list.add((HashMap<String, Object>)subconfs.clone());
+			for (String dpid : HandlerUtils.getAllDevices()) {
+				subconfs.put(SLICENAME, sliceName);
+				subconfs.put(FlowSpace.DPID, dpid);
+				subconfs.put(FMLIMIT, SwitchImpl.getProxy().getMaxFlowMods(sliceName, 
+						FlowSpaceUtil.parseDPID(dpid)));
+				list.add(subconfs);
+			}
+		} else if (dpidStr != null && sliceName == null) {
+			long dpid = FlowSpaceUtil.parseDPID(dpidStr);
+			List<String> slices = SliceImpl.getProxy().getAllSliceNames();
+			for (String slice : slices) {
+				subconfs.clear();
+				subconfs.put(SLICENAME, slice);
+				subconfs.put(FlowSpace.DPID, dpidStr);
+				subconfs.put(FMLIMIT, SwitchImpl.getProxy().getMaxFlowMods(slice,dpid));
+				list.add((HashMap<String, Object>)subconfs.clone());
+			}
 		} else {
 			List<String> slices = SliceImpl.getProxy().getAllSliceNames();
 			for (String slice : slices) {
