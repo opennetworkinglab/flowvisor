@@ -68,9 +68,13 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 	@SuppressWarnings("unchecked")
 	private HashMap<String, Object> rewriteFields(HashMap<String, Object> map) {
 		HashMap<String, Object> ret = new HashMap<String, Object>();
+		ret.put(FSNAME, map.remove(FSNAME));
 		Object list = map.remove(FlowSpace.QUEUE);
 		ret.put(QUEUE, list);
 		ret.put(FQUEUE, map.remove(FlowSpace.FORCED_QUEUE));
+	    ret.put(FlowSpace.DPID, map.remove(FlowSpace.DPID));
+	    ret.put(FlowSpace.PRIO, map.remove(FlowSpace.PRIO));
+	    ret.put("id", map.remove("id"));
 		LinkedList<HashMap<String, Integer>> actions = 
 				(LinkedList<HashMap<String, Integer>>) map.remove(FlowSpace.ACTION);
 		LinkedList<HashMap<String, Object>> neoacts = new LinkedList<HashMap<String,Object>>();
@@ -85,10 +89,7 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 			neoact.clear();
 		}
 		ret.put(SLICEACTIONS, neoacts);
-	    ret.put(FSNAME, map.remove(FSNAME));
-	    ret.put(FlowSpace.DPID, map.remove(FlowSpace.DPID));
-	    ret.put(FlowSpace.PRIO, map.remove(FlowSpace.PRIO));
-	    ret.put("id", map.remove("id"));
+	    
 	 
 	    ret.put(MATCH, map);
 	    return ret;
