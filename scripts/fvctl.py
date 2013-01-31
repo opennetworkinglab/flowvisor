@@ -774,7 +774,7 @@ def parse_global_args(arglist):
     parser = OptionParser(add_help_option=False, usage=usage)
     addCommonOpts(parser)
     (opts, pargs) = parser.parse_args(args)
-    return (opts, arglist, parser))
+    return (opts, arglist, parser)
 
 
 if __name__ == '__main__':
