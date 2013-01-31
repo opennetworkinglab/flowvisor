@@ -779,10 +779,10 @@ def parse_global_args(arglist):
 
 if __name__ == '__main__':
   try:
-    (iopts, rargs) = parse_global_args(sys.argv[1:])
+    (gopts, rargs) = parse_global_args(sys.argv[1:])
     (parse_args, do_func) = CMDS[rargs[0]]
     (opts, args) = parse_args(rargs[1:], rargs[0])
-    do_func(opts, args)
+    do_func(gopts, opts, args)
   except KeyError, e:
     print "'%s' is not a valid command" % (rargs[0])
   except IndexError, e:
