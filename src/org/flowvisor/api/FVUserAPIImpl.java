@@ -56,7 +56,7 @@ import org.openflow.util.U16;
  * @author capveg
  *
  */
-public class FVUserAPIImpl extends BasicJSONRPCService implements FVUserAPI {
+public class FVUserAPIImpl /*extends BasicJSONRPCService*/ implements FVUserAPI {
 	
 
 	/**

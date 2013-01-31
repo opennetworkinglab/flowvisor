@@ -16,7 +16,6 @@ import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,10 +37,7 @@ import org.flowvisor.config.FVConfig;
 import org.flowvisor.exceptions.MalformedFlowChange;
 import org.flowvisor.exceptions.MapUnparsable;
 import org.flowvisor.flows.FlowDBEntry;
-import org.flowvisor.flows.FlowEntry;
-import org.flowvisor.flows.FlowSpaceUtil;
-import org.flowvisor.flows.SliceAction;
-import org.openflow.protocol.action.OFAction;
+
 
 
 
@@ -168,7 +164,7 @@ public class FVCtl {
 		client.setConfig(config);
 	}
 
-	@SuppressWarnings("unchecked")
+	/*@SuppressWarnings("unchecked")
 	public void runJetty(String user, String passwd, String methodName, Object[] args){
 		try {
 			this.installDumbTrust();
@@ -254,7 +250,7 @@ public class FVCtl {
 		}
 
 		return args;
-	}
+	}*/
 
 	private TrustManager[] getTrustAllManager(){
 		// Create a trust manager that does not validate certificate chains
@@ -869,7 +865,7 @@ public class FVCtl {
 		System.err.println(string);
 		if (printFull) {
 			System.err
-			.println("Usage: FVCtl [--debug=true] [--jetty=true] [--user=user] [--url=url] "
+			.println("Usage: FVCtl [--debug=true] [--user=user] [--url=url] "
 					+ "[--passwd-file=filename] command [args...] ");
 			for (int i = 0; i < FVCtl.cmdlist.length; i++) {
 				APICmd cmd = FVCtl.cmdlist[i];
@@ -926,9 +922,9 @@ public class FVCtl {
 					die(debug, "IO: ", e);
 				}
 			}
-			else if (params[0].equals("--jetty")){
+			/*else if (params[0].equals("--jetty")){
 				jetty = true;
-			}else
+			}*/else
 				usage("unknown parameter: " + params[0]);
 			cmdIndex++;
 		}
@@ -950,13 +946,13 @@ public class FVCtl {
 				passwd = FVConfig.readPasswd("Enter " + user + "'s passwd: ");
 			FVCtl client = new FVCtl(jetty ? JETTY_URL : URL);
 
-			if (jetty){
+			/*if (jetty){
 				client.runJetty(user, passwd, cmd.name, strippedArgs);
 			}
-			else{
+			else{*/
 				client.init(user, passwd);
 				cmd.invoke(client, strippedArgs);
-			}
+			//}
 		} catch (Exception e) {
 			die(debug, "error: ", e);
 		}

@@ -24,7 +24,6 @@ import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
 import org.flowvisor.log.FVLog;
-import org.flowvisor.log.JettyLog;
 import org.flowvisor.log.LogLevel;
 
 

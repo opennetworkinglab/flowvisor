@@ -801,6 +801,9 @@ public class SliceImpl implements Slice {
 			processAlter("ALTER TABLE Slice ADD COLUMN " + FMLIMIT + " INT NOT NULL DEFAULT -1");
 			version++;
 		}
+		if (version == 1) {
+			//create preservation tables here
+		}
 		
 		
 	}

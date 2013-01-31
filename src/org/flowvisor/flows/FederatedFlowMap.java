@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.SortedSet;
 
 import org.flowvisor.exceptions.FlowEntryNotFound;
-import org.flowvisor.log.FVLog;
-import org.flowvisor.log.LogLevel;
 import org.flowvisor.openflow.protocol.FVMatch;
 
 
