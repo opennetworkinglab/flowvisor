@@ -774,18 +774,19 @@ def parse_global_args(arglist):
     parser = OptionParser(add_help_option=False, usage=usage)
     addCommonOpts(parser)
     (opts, pargs) = parser.parse_args(args)
-    return (opts, arglist)
+    return (opts, arglist, parser))
 
 
 if __name__ == '__main__':
   try:
-    (gopts, rargs) = parse_global_args(sys.argv[1:])
+    (gopts, rargs, parser) = parse_global_args(sys.argv[1:])
     (parse_args, do_func) = CMDS[rargs[0]]
     (opts, args) = parse_args(rargs[1:], rargs[0])
     do_func(gopts, opts, args)
   except KeyError, e:
     print "'%s' is not a valid command" % (rargs[0])
   except IndexError, e:
-    print e
-    print "Damn"
+    print "Unknown command"
+    printHelp(None, None, None, parser):
+
 
