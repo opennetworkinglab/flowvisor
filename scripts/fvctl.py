@@ -787,6 +787,6 @@ if __name__ == '__main__':
     print "'%s' is not a valid command" % (rargs[0])
   except IndexError, e:
     print "Unknown command"
-    printHelp(None, None, None, parser):
+    printHelp(None, None, None, parser)
 
 
