@@ -48,7 +48,8 @@ def getError(code):
      
 
 def pa_none(args, cmd):
-    parser = OptionParser(usage=USAGE.format(cmd))
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=USAGE.format(cmd), description=ldesc)
     (options, args) = parser.parse_args(args)
     return (options, args)
 
@@ -60,10 +61,11 @@ def do_listSlices(gopts, opts, args):
         print '{0:3d} : {1:5}'.format(i+1, name)
 
 def pa_addSlice(args, cmd):
-    usage = ("%s <slicename> <controller-url> " 
+    usage = ("%s [options] <slicename> <controller-url> " 
                "<admin-email>") % USAGE.format(cmd) 
-    parser = OptionParser(usage=usage)
-    
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
+     
     parser.add_option("-d", "--drop-policy", dest="drop", default="exact",
             help="Drop rule type; default='exact'")
     parser.add_option("-l", "--recv-lldp", action="store_true", default=False, dest="lldp",
@@ -96,8 +98,9 @@ def do_addSlice(gopts, opts, args):
         print "Slice %s was successfully created" % args[0]
 
 def pa_updateSlice(args, cmd):
-    usage = "%s <slicename>" % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
+    usage = "%s [options] <slicename>" % USAGE.format(cmd)
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
     
     parser.add_option("-n", "--controller-hostname", dest="chost", default=None,
             help="Specify new controller hostname")
@@ -107,8 +110,10 @@ def pa_updateSlice(args, cmd):
             help="Specify new admin contact")
     parser.add_option("-d", "--drop-policy", dest="drop", default=None,
             help="Specify new drop policy")
-    parser.add_option("-l", "--recv-lldp", action="store_true", default=None, dest="lldp",
-            help="Specify whether slice should receive unknown LLDPs")
+    parser.add_option( "--enable-recv-lldp", action="store_true", default=None, dest="lldp",
+            help="Enable reception of unknown LLDPs for this slice")
+    parser.add_option( "--disable-recv-lldp", action="store_false", default=None, dest="lldp",
+            help="Disable reception of unknown LLDPs for this slice")
     parser.add_option("-f", "--flowmod-limit", type="int", default=None, dest="flow",
             help="Specify new value for slice tcam usage")
     parser.add_option("-r", "--rate-limit", type="int", default=None, dest="rate",
@@ -141,9 +146,10 @@ def do_updateSlice(gopts, opts,args):
         print "Slice %s has been successfully updated" % args[0]
 
 def pa_removeSlice(args, cmd):
-    usage = "%s <slicename>" % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
-    
+    usage = "%s [options] <slicename>" % USAGE.format(cmd)
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)   
+ 
     parser.add_option("-p", "--preserve-flowspace", action="store_true", default=None, dest="preserve", 
             help="Preserve flowspace; NOT YET IMPLEMENTED")
     return parser.parse_args(args)
@@ -162,8 +168,9 @@ def do_removeSlice(gopts, opts, args):
 
 
 def pa_updateSlicePassword(args, cmd):
-    usage = "%s <slicename>" % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
+    usage = "%s [options] <slicename>" % USAGE.format(cmd)
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
     
     parser.add_option("-p", "--password", default=None, dest="passwd", 
             help="New password for slice.")
@@ -185,8 +192,9 @@ def do_updateSlicePassword(gopts, opts, args):
 
 
 def pa_updateAdminPassword(args, cmd):
-    usage = "%s " % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
+    usage = "%s [options] " % USAGE.format(cmd)
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
     
     parser.add_option("-p", "--password", default=None, dest="passwd", 
             help="New password for admin.")
@@ -204,8 +212,9 @@ def do_updateAdminPassword(gopts, opts, args):
         print "Admin password has been updated."
 
 def pa_listFlowSpace(args, cmd):
-    usage = "%s " % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
+    usage = "%s [options] " % USAGE.format(cmd)
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
     
     parser.add_option("-s", "--slice-name", default=None, dest="slice", 
             help="Fetch flowspace for specified slice.")
@@ -231,7 +240,9 @@ def do_listFlowSpace(gopts, opts, args):
 
 def pa_removeFlowSpace(args, cmd):
     usage = "%s <flowspace-name> [<flowspace-name>...]" % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
+
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
     
     return parser.parse_args(args)
 
@@ -246,7 +257,9 @@ def do_removeFlowSpace(gopts, opts, args):
 
 def pa_addFlowSpace(args, cmd):
     usage = "%s [options] <flowspace-name> <dpid> <priority> <match> <slice-perm>" % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
+
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
     
     parser.add_option("-q", "--queues", default=None, dest="queues", type="string",
             action="callback", callback=list_callback, 
@@ -281,7 +294,9 @@ def do_addFlowSpace(gopts, opts, args):
 
 def pa_updateFlowSpace(args, cmd):
     usage = "%s [options] <flowspace-name>" % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
+
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
     
     parser.add_option("-d", "--dpid", default=None, dest="dpid", type="string",
             help="Set the dpid for flowspace entry.")
@@ -340,8 +355,10 @@ def do_listVersion(gopts, opts, args):
 
 def pa_saveConfig(args, cmd):
     usage = "%s <config-file>" % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
-    
+   
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
+ 
     return parser.parse_args(args)
 
 def do_saveConfig(gopts, opts, args):
@@ -357,7 +374,10 @@ def do_saveConfig(gopts, opts, args):
 
 def pa_getConfig(args, cmd):
     usage = "%s [options]" % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
+    
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
+
     parser.add_option("-s", "--slice-name", default=None, dest="slice", type="string",
             help="Fetch config for this slice.")
     parser.add_option("-d", "--dpid", default=None, dest="dpid", type="string",
@@ -376,7 +396,10 @@ def do_getConfig(gopts, opts, args):
 
 def pa_setConfig(args, cmd):
     usage = "%s [options]" % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
+    
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
+
     parser.add_option("-f", "--flood-perm", default=None, dest="perm", type="string",
             help="Set the floodperm", metavar="SLICE[,DPID]")
     parser.add_option("-l", "--flowmod-limit", default=None, dest="limit", type="string",
@@ -433,7 +456,8 @@ def do_setConfig(gopts, opts, args):
 
 def pa_listSliceInfo(args, cmd):
     usage = "%s <slicename>" % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
     
     return parser.parse_args(args)
 
@@ -461,8 +485,9 @@ def do_listDatapaths(gopts, opts, args):
 
 def pa_listDatapathInfo(args, cmd):
     usage = "%s <dpid>" % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
-    
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)   
+ 
     return parser.parse_args(args)
 
 def do_listDatapathInfo(gopts, opts, args):
@@ -476,7 +501,8 @@ def do_listDatapathInfo(gopts, opts, args):
 
 def pa_listDatapathStats(args, cmd):
     usage = "%s <dpid>" % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
     
     return parser.parse_args(args)
 
@@ -493,6 +519,8 @@ def pa_listSliceStats(args, cmd):
     usage = "%s <slicename>" % USAGE.format(cmd)
     parser = OptionParser(usage=usage)
     
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
     return parser.parse_args(args)
 
 def do_listSliceStats(gopts, opts, args):
@@ -511,8 +539,8 @@ def do_listFVHealth(gopts, opts, args):
 
 def pa_listSliceHealth(args, cmd):
     usage = "%s <slicename>" % USAGE.format(cmd)
-    parser = OptionParser(usage=usage)
-    
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
     return parser.parse_args(args)
 
 def do_listSliceHealth(gopts, opts, args):
@@ -529,6 +557,21 @@ def do_listLinks(gopts, opts, args):
     ret = connect(gopts, "list-links", passwd)
     print json.dumps(ret, sort_keys=True, indent = 2)
 
+def pa_help(args, cmd):
+    usage = "%s <cmd>" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    return parser.parse_args(args)
+
+def do_help(gopts, opts, args):
+    if len(args) != 1:
+        raise IndexError
+    try:
+        (pa, func) = CMDS[args[0]]
+        pa(['--help'], args[0])
+    except KeyError, e:
+        print "Invalid command : %s is an unknown command." % args[0]
+        sys.exit()
+    
 
 def makeMatch(matchStr):
     matchItems = matchStr.split(',')
@@ -594,6 +637,7 @@ def printVersion(option, opt, value, parser):
 
 def printHelp(option, opt, value, parser):
     cmds = [x for x in CMDS.iterkeys()]
+    cmds.remove('help')
     cmds.sort()
     print(parser.format_help().strip())
     print "\n Available commands are: "
@@ -650,7 +694,8 @@ CMDS = {
     'list-fv-health' : (pa_none, do_listFVHealth),
     'list-links' : (pa_none, do_listLinks),
     'list-slice-health' : (pa_listSliceHealth, do_listSliceHealth),
-    'list-slice-stats' : (pa_listSliceStats, do_listSliceStats)
+    'list-slice-stats' : (pa_listSliceStats, do_listSliceStats),
+    'help' : (pa_help, do_help)
 }
 
 ERRORS = {
@@ -667,102 +712,116 @@ URL = "https://%s:%s"
 
 
 DESCS = {
-    'list-slices' : ("Displays the configured slices", """
-                    Displays currently configured slices.
-                    """),
-    'add-slice' :   ("Creates a new slice", """
-                    Creates a new slice.
-                    """),
-    'update-slice' :("Changes slice parameters", """
-                    Allows a slice or admin user to change the parameters of a slice.
-                    """),
-    'remove-slice' :("Deletes a slice", """
-                    Deletes a slices and (optionally) removes all the associated flowspace.
-                    """),
-    'update-slice-password' : ("Updates slice password", """
-                    Update the slice password.
-                    """),
-    'update-admin-password' : ("Update admin password", """
-                    Update the admin password.
-                    """),
-    'list-flowspace' : ("Displays the flowspace","""
-                    Lists the flow-based slice policy rules, ie. the flowspace.
-                    """),
-    'add-flowspace' : ("Creates a flowspace rule", """
-                    Creates a new rule in the flowspace.
-                    """),
-    'update-flowspace' : ("Changes flowspace rule parameters","""
-                    Updates a parameter of a flowspace rule wuth a given name.
-                    """),
-    'remove-flowspace' : ("Remove a flowspace rule", """
-                    Removes the specified flowspace rule, given the name of the 
-                    flowspace entry.
-                    """),
-    'list-version' : ("Displays FlowVisor version","""
-                    Fetches the FlowVisor's version and it's database version.
-                    """),
-    'save-config' : ("Saves Flowvisor's configuration","""
-                    Saves the running configuration for the FlowVisor.
-                    """),
-    'get-config' : ("Displays the general purpose FlowVisor config params","""
-                    Displays the general purpose FlowVisor configuration parameters. These include:
-                        - flow tracking (also known as flow db) 
-                        - the topology controller 
-                        - statistics description modification. 
-                        - flow table statistics FlowVisor cache. 
-                        - flood permissions:
-                            * if the dpid DPID is specified, then it displays the flood permission 
-                                for this DPID.
-                            * Otherwise, it displays the the slice with overall flood permission.
-                   """),
-    'set-config' : ("Sets general purpose FlowVisor config parameters","""
-                    Sets general purpose FlowVisor configuration parameters. Paramters include:
-                        - (en/dis)abling flow tracking (also known as flow db)
-                        - (en/dis)abling the topology controller
-                        - (en/dis)abling the statistics description modification.
-                        - Setting the flow table statistics FlowVisor cache. 
-                        - setting flood permissions
-                            * if both dpid DPID and slice SLICE are given then flood permissions are 
-                                given to that SLICE for this DPID
-                            * if only slice SLICE, then SLICE has flood permissions for all connected 
-                                devices.
-                        - setting the flow mod limit for slice SLICE and dpid DPID (could be 'any') to 
-                            the limit LIMIT. 
-                   """),
-    'list-slice-info' : ("Displays slice information","""
-                    Displays slice information about the configured slices at the FlowVisor,
-                    including the current message rate and the number of currently installed
-                    flowmods.
-                   """),
-    'list-datapaths' : ("Displays the devices","""
-                    Displays the devices, ie. switches, currently connected to FlowVisor by DPID.
-                    """),
-    'list-datapath-info' : ("Displays information for a connected device", """
-                    Displays information about a connected device, including ports and 
-                    connection information and the current number of flowmods installed
-                    by each slice.
-                    """),
-    'list-datapath-stats' : ("Display statistics for a connected device","""
-                    Displays statistics about a connected device, these include sent and 
-                    received messages sorted by OpenFlow message type.
-                    """),
-    'list-links' : ("Display overall topology", """
-                    Displays the overall (ie. unsliced) network topology provided that 
-                    the topology controller is running.
-                   """),
-    'list-slice-stats' : ("Displays statistics about a slice","""
-                    Displays statistics about a slice, these include send and received
-                    messages sorted by OpenFlow message type.
-                   """),
-    'list-fv-health' : ("Reports overall FlowVisor health" ,"""
-                    Reports on some health parameters of FlowVisor, such as message 
-                    processing delay and active database sessions.
-                    """),
-    'list-slice-health' : ("Reports overall slice health","""
-                    Reports the overall slice health by returning whether the slice is
-                    connected to a controller or who is connected to it, or the number 
-                    flowspace entries it is made up of.
-                    """)
+    'list-slices' : ("Displays the configured slices",
+                    "Displays currently configured slices."
+                    ),
+    'add-slice' :   ("Creates a new slice", 
+                    ("Creates a new slice. The slicename can contain any character except"
+                    " except the newline. The controller url is of the form tcp:hostname:port, "
+                    "so for example tcp:example.com:12345 is a valid controller url. The admin "
+                    "email is used for administrative purposes if there is a problem with the slice "
+                    "The remaining parameters are optional. The drop policy, defines what kind of rule "
+                    "should be pushed to the switch if there is no response from the controller "
+                    "(this includes if there is no controller connected). Currently two modes are supported, "
+                    " 'exact' and 'rule', 'exact' matches the packet exactly and 'rule' matches the rule that "
+                    "the packet triggered. Flowmod limit limits the number of flowmods this slice can emit. "
+                    "The rate limits the number of OpenFlow messages that can be sent to the switches from this "
+                    "slice. You may also set the slice to receive unknown LLDP messgaes. "
+                    "Finally, the password is the slice password." 
+                     )
+                    ),
+    'update-slice' :("Changes slice parameters", 
+                    ("Allows a slice or admin user to change the parameters of a slice. "
+                    "Currently all the parameters of a slice are changeable, except the slicename"
+                    )
+                    ),
+    'remove-slice' :("Deletes a slice", 
+                    ("Deletes a slices and (optionally) removes all the associated flowspace. If the "
+                    "preserve flowspace flag is given FlowVisor will save the flowspace for this slice name. "
+                    "Subsequently, if a slice with this slice name reappears then it this flowspace will be reattached. "
+                    )),
+    'update-slice-password' : ("Updates slice password", 
+                    ("Updates the slice password for the specified slice."
+                    )),
+    'update-admin-password' : ("Update admin password", 
+                    ("Update the admin password.")
+                    ),
+    'list-flowspace' : ("Displays the flowspace",
+                    ("Lists the flow-based slice policy rules, ie. the flowspace. Optionally, "
+                    "list the flowspace only for the slice given as an option."
+                    )),
+    'add-flowspace' : ("Creates a flowspace rule",
+                    ("Creates a new rule in the flowspace with the given name. Queues can be assigned to the slice by "
+                    "passing a comma seperated list of queue ids, for example '-q 1,2,3'. If a forced "
+                    "queue is defined, then any flowmod matching this rule will see its OUTPUT actions "
+                    "replaced with the queue id given in the forced queue option. Note: The forced queue "
+                    "should be defined in the queue option and all these queue ids should be defined with "
+                    "the appropriate port on the switch."
+                    "See the fvctl man page for information "
+                    "on the format of <dpid>, <match>, and <slice-perm>." 
+                    )),
+    'update-flowspace' : ("Changes flowspace rule parameters",
+                    ("Updates a parameter of a flowspace rule with a given name. The parameters follow "
+                    "the same format as in add-flowspace."
+                    )),
+    'remove-flowspace' : ("Remove a flowspace rule", 
+                    ("Removes the specified flowspace rule, given the name or a list of names of "
+                    "flowspace entries."
+                    )),
+    'list-version' : ("Displays FlowVisor version",
+                    ("Fetches the FlowVisor's version and it's database version."
+                    )),
+    'save-config' : ("Saves Flowvisor's configuration",
+                    ("Saves the running configuration for the FlowVisor."
+                    )),
+    'get-config' : ("Displays the general purpose FlowVisor config params",
+                   ("Displays the general purpose FlowVisor configuration parameters. These parameter "
+                    "include flow tracking (also known as flow db), the topology controller, statistics "
+                    "description modification status. The FlowVisor flow statistics cache timeout value, when "
+                    "this timeout expires FlowVisor will refresh the stats. Flood permissions for a dpid are given "
+                    "if the dpid is given, otherwise it returns the slice which has global flood permissions."
+                   )),
+    'set-config' : ("Sets general purpose FlowVisor config parameters",
+                   ("Sets general purpose FlowVisor configuration parameters. The parameters are the same as "
+                    "in get-config. For flood permissions, if both the dpid and the slice are given, then "
+                    "that slice is given permission for that dpid. Otherwise, the given slice is set as the slice "
+                    "global flood permissions. For flowmod limits, the limit is set per slice per dpid. The dpid in "
+                    "case could be 'any'."
+                   )),
+    'list-slice-info' : ("Displays slice information",
+                    ("Displays slice information about the configured slices at the FlowVisor, "
+                    "including the current message rate and the number of currently installed "
+                    "flowmods."
+                    )),
+    'list-datapaths' : ("Displays the devices",
+                    ("Displays the devices, ie. switches, currently connected to FlowVisor by DPID."
+                    )),
+    'list-datapath-info' : ("Displays information for a connected device", 
+                    ("Displays information about a connected device, including ports and "
+                    "connection information and the current number of flowmods installed "
+                    "by each slice."
+                    )),
+    'list-datapath-stats' : ("Display statistics for a connected device",
+                    ("Displays statistics about a connected device, these include sent and "
+                    "received messages sorted by OpenFlow message type."
+                    )),
+    'list-links' : ("Display overall topology", 
+                    ("Displays the overall (ie. unsliced) network topology provided that "
+                    "the topology controller is running."
+                   )),
+    'list-slice-stats' : ("Displays statistics about a slice",
+                    ("Displays statistics about a slice, these include send and receive "
+                    "messages sorted by OpenFlow message type."
+                   )),
+    'list-fv-health' : ("Reports overall FlowVisor health" ,
+                    ("Reports on some health parameters of FlowVisor, such as message "
+                    "processing delay and active database sessions."
+                    )),
+    'list-slice-health' : ("Reports overall slice health",
+                    ("Reports the overall slice health by returning whether the slice is "
+                    "connected to a controller or who is connected to it, or the number "
+                    "flowspace entries it is made up of. "
+                    ))
 }
 
 def parse_global_args(arglist):
@@ -783,10 +842,8 @@ if __name__ == '__main__':
     (parse_args, do_func) = CMDS[rargs[0]]
     (opts, args) = parse_args(rargs[1:], rargs[0])
     do_func(gopts, opts, args)
-  except KeyError, e:
-    print "'%s' is not a valid command" % (rargs[0])
-  except IndexError, e:
-    print "Unknown command"
+  except Exception, e:
+    print "%s is an unknown command" % rargs[0]
     printHelp(None, None, None, parser)
 
 
