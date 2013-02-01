@@ -898,10 +898,10 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			FVLog.log(LogLevel.WARN, this, "Disabling dpid limits because I can't load it from the db.");
 		}
 		if (limit == -1) {
-			slicerLimits.setRateLimiter(FlowSpaceUtil.dpidToString(this.getDPID()) + sliceName, 
+			slicerLimits.setRateLimiter(/*FlowSpaceUtil.dpidToString(this.getDPID()) + */sliceName, 
 					new TokenBucket());
 		} else {
-			slicerLimits.setRateLimiter(FlowSpaceUtil.dpidToString(this.getDPID()) + sliceName, 
+			slicerLimits.setRateLimiter(/*FlowSpaceUtil.dpidToString(this.getDPID()) + */sliceName, 
 					new TokenBucket(200, new FixedIntervalRefillStrategy(limit, 1, TimeUnit.SECONDS)));
 		}
 	}
