@@ -98,7 +98,7 @@ public class SwitchImpl implements Switch {
 			if (set.next())
 				return set.getString(FLOOD);
 			else 
-				return null;
+				return "";
 		} catch (SQLException e) {
 			FVLog.log(LogLevel.WARN, null, e.getMessage());
 		} finally {
