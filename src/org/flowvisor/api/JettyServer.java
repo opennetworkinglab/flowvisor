@@ -12,8 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.security.Constraint;
 import org.eclipse.jetty.security.ConstraintMapping;
 import org.eclipse.jetty.security.ConstraintSecurityHandler;
-import org.eclipse.jetty.security.HashLoginService;
 import org.eclipse.jetty.security.LoginService;
+import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Request;
@@ -24,8 +24,8 @@ import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
 import org.flowvisor.log.FVLog;
-import org.flowvisor.log.JettyLog;
 import org.flowvisor.log.LogLevel;
+
 
 public class JettyServer implements Runnable{
 
@@ -34,7 +34,7 @@ public class JettyServer implements Runnable{
 	public static String REALM_NAME = "JETTYREALM";
 	private Server jettyServer;
 
-	protected BasicJSONRPCService service = new FVUserAPIJSONImpl();
+	protected JSONRPCService service = new JSONRPCService();
 
 	public JettyServer(int port){
 		init(port);
@@ -42,7 +42,7 @@ public class JettyServer implements Runnable{
 
 	private void init(int port){
 
-		System.setProperty("org.eclipse.jetty.util.log.class", JettyLog.class.getCanonicalName());
+		//System.setProperty("org.eclipse.jetty.util.log.class", JettyLog.class.getCanonicalName());
 
 		FVLog.log(LogLevel.INFO, null,
 				"initializing FlowVisor UserAPI JSONRPC SSL WebServer on port "
@@ -107,11 +107,12 @@ public class JettyServer implements Runnable{
 	public class AuthenticationHandler extends AbstractHandler{
 
 		@Override
-		public final void handle(String target,Request baseRequest,HttpServletRequest request,HttpServletResponse response)
+		public final void handle(String target,Request baseRequest,
+				HttpServletRequest request,HttpServletResponse response)
 		throws IOException, ServletException
 		{
 			if(baseRequest.getAuthentication().equals(Authentication.UNAUTHENTICATED)){
-				response.sendError(Response.SC_UNAUTHORIZED, "");
+				response.sendError(Response.SC_UNAUTHORIZED, "Permission denied.");
 				baseRequest.setHandled(true);
 				return;
 			}
@@ -120,7 +121,7 @@ public class JettyServer implements Runnable{
 			baseRequest.setHandled(true);
 		}
 	}
-
+	
 	private ConstraintSecurityHandler createAuthenticationHandler(Server server){
 		ConstraintSecurityHandler security = new ConstraintSecurityHandler();
 		security.setRealmName(REALM_NAME);
@@ -140,9 +141,10 @@ public class JettyServer implements Runnable{
 		knownRoles.add("user");
 		knownRoles.add("admin");
 		security.setConstraintMappings(new ConstraintMapping[] {mapping}, knownRoles);
-		security.setAuthenticator(new FlowVisorAuthenticator());
-
-		LoginService loginService = new HashLoginService(REALM_NAME);
+		security.setAuthenticator(new BasicAuthenticator());
+		
+		
+		LoginService loginService = new FlowVisorLoginService();
 		server.addBean(loginService);
 		security.setLoginService(loginService);
 		security.setStrict(false);

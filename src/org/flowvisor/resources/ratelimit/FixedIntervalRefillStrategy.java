@@ -2,8 +2,6 @@ package org.flowvisor.resources.ratelimit;
 
 import java.util.concurrent.TimeUnit;
 
-import org.flowvisor.log.FVLog;
-import org.flowvisor.log.LogLevel;
 
 public class FixedIntervalRefillStrategy implements RefillStrategy {
 

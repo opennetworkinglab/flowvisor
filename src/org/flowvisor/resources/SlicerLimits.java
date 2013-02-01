@@ -35,12 +35,12 @@ public class SlicerLimits {
 		return curr;
 	}
 	
-	public TokenBucket getRateLimiter(String dpidSlicer) {
-		return rateLimits.get(dpidSlicer);
+	public TokenBucket getRateLimiter(String slice) {
+		return rateLimits.get(slice);
 	}
 	
-	public void setRateLimiter(String dpidSlicer, TokenBucket bucket) {
-		rateLimits.put(dpidSlicer, bucket);
+	public void setRateLimiter(String slice, TokenBucket bucket) {
+		rateLimits.put(slice, bucket);
 	}
 
 	

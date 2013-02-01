@@ -61,7 +61,7 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
     		boolean found = false;
     		for (FlowEntry fe : matches) {
     		
-    			if (fe.getRuleMatch().getQueues().contains(reply.queueId)) {
+    			if (fe.getQueueId().contains(reply.queueId)) {
     				for (OFAction act : fe.getActionsList()) {
     					assert(act instanceof SliceAction);
     					SliceAction sa = (SliceAction) act;

@@ -78,6 +78,7 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 	final int maxReconnectSeconds = 15;
 	int port; // the tcp port of our controller
 	boolean isConnected;
+	int connectCount = 0;
 	FVMessageAsyncStream msgStream;
 	short missSendLength;
 	boolean allowAllPorts;
@@ -382,6 +383,8 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 		return new StringBuilder("slicer_").append(this.sliceName).append("_")
 				.append(fvClassifier.getSwitchName()).toString();
 	}
+	
+
 
 	/*
 	 * (non-Javadoc)
@@ -401,6 +404,10 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 	@Override
 	public void tearDown() {
 		closeDown(true);
+	}
+	
+	public int getConnectCount() {
+		return connectCount;
 	}
 
 	public void closeDown(boolean unregisterClassifier) {
@@ -534,6 +541,7 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 			}
 			FVLog.log(LogLevel.DEBUG, this, "connected");
 			this.isConnected = true;
+			this.connectCount++;
 			HashMap<String, Object> info = this.getStatusInfo();
 			TopologyController tc = TopologyController.getRunningInstance();
 			if (tc != null)

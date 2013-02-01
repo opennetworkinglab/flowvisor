@@ -11,7 +11,7 @@ public interface FVAppConfig {
  * It is used so that we don't have to create multiple proxies 
  * for each datatype.
  * 
- * well it's not exactly empty but whatever, the below method doesn't count.
+ * well it's not exactly empty but whatever, the below methods don't count.
  */
 	public void setSettings(ConfDBSettings settings);
 	public void close(Object o);

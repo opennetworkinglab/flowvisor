@@ -834,14 +834,18 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		fmlimits.put((String) in.get(Slice.SLICE), (Integer) in.get("LIMIT")); 
 	}
 	
+	/*
+	 * Uncomment below, if we want one ratelimiter 
+	 * per slicer-classifier pair
+	 */
 	@Override
 	public void setRateLimit(HashMap<String, Object> in) {
 		Integer rateLimit = (Integer) in.get("RATELIMIT");
 		if (rateLimit == -1) {
-			slicerLimits.setRateLimiter(FlowSpaceUtil.dpidToString(this.getDPID()) + in.get(Slice.SLICE), 
+			slicerLimits.setRateLimiter(/*FlowSpaceUtil.dpidToString(this.getDPID()) + */(String)in.get(Slice.SLICE), 
 					new TokenBucket());
 		} else {
-			slicerLimits.setRateLimiter(FlowSpaceUtil.dpidToString(this.getDPID()) + in.get(Slice.SLICE), 
+			slicerLimits.setRateLimiter(/*FlowSpaceUtil.dpidToString(this.getDPID()) + */(String)in.get(Slice.SLICE), 
 					new TokenBucket(200, new FixedIntervalRefillStrategy(rateLimit, 1, TimeUnit.SECONDS)));
 		}
 		
@@ -894,10 +898,10 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			FVLog.log(LogLevel.WARN, this, "Disabling dpid limits because I can't load it from the db.");
 		}
 		if (limit == -1) {
-			slicerLimits.setRateLimiter(FlowSpaceUtil.dpidToString(this.getDPID()) + sliceName, 
+			slicerLimits.setRateLimiter(/*FlowSpaceUtil.dpidToString(this.getDPID()) + */sliceName, 
 					new TokenBucket());
 		} else {
-			slicerLimits.setRateLimiter(FlowSpaceUtil.dpidToString(this.getDPID()) + sliceName, 
+			slicerLimits.setRateLimiter(/*FlowSpaceUtil.dpidToString(this.getDPID()) + */sliceName, 
 					new TokenBucket(200, new FixedIntervalRefillStrategy(limit, 1, TimeUnit.SECONDS)));
 		}
 	}
@@ -922,7 +926,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	}
 	
 	public boolean isRateLimited(String sliceName) {
-		return slicerLimits.getRateLimiter(FlowSpaceUtil.dpidToString(this.getDPID()) + sliceName).consume();
+		return slicerLimits.getRateLimiter(/*FlowSpaceUtil.dpidToString(this.getDPID()) + */sliceName).consume();
 	}
 	
 	private synchronized ArrayList<FVFlowStatisticsReply> getFlowStats(String sliceName) {

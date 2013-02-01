@@ -19,8 +19,11 @@ public class FVMatch extends OFMatch {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private static final String STR_QUEUE = "queues";
-	private static final String STR_FORCE = "force_enqueue";
+	/*
+	 * TODO: Move this to the flowentry, once XMLRPC API goes away.
+	 */
+	public static final String STR_QUEUE = "queues";
+	public static final String STR_FORCE = "force_enqueue";
 	
 	private List<Integer> queues = new LinkedList<Integer>();
 	private long force_queue = -1;
@@ -142,6 +145,10 @@ public class FVMatch extends OFMatch {
             str += "," + STR_TP_DST + "=" + this.transportDestination;
         if ((wildcards & OFPFW_TP_SRC) == 0)
             str += "," + STR_TP_SRC + "=" + this.transportSource;
+        
+        /*
+         * TODO: queue related stuff should go once XMLRPC API goes away.
+         */
         if (this.queues != null && this.queues.size() > 0)
         	str += "," + STR_QUEUE + " = " + this.queues;
         if (this.force_queue != -1) {
@@ -288,7 +295,7 @@ public class FVMatch extends OFMatch {
         }
     }
     
-	private static List<Integer> queueList(String qstr) throws IllegalArgumentException {
+	public static List<Integer> queueList(String qstr) throws IllegalArgumentException {
 		List<Integer> qlist = new LinkedList<Integer>();
 		String[] tmp = qstr.split(":");
 		for (int i = 0 ; i < tmp.length ; i++) {
@@ -327,7 +334,7 @@ public class FVMatch extends OFMatch {
      *            one of STR_NW_DST or STR_NW_SRC
      * @throws IllegalArgumentException
      */
-    private void setFromCIDR(String cidr, String which)
+    public void setFromCIDR(String cidr, String which)
             throws IllegalArgumentException {
         String values[] = cidr.split("/");
         String[] ip_str = values[0].split("\\.");

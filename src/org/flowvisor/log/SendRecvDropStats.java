@@ -38,6 +38,14 @@ public class SendRecvDropStats {
 		ret.append(this.stats.get(FVStatsType.DROP).toString());
 		return ret.toString();
 	}
+	
+	public HashMap<String, Object> toMap() {
+		HashMap<String, Object> ret = new HashMap<String, Object>();
+		ret.put("tx", this.stats.get(FVStatsType.SEND).toMap());
+		ret.put("rx", this.stats.get(FVStatsType.RECV).toMap());
+		ret.put("drop", this.stats.get(FVStatsType.DROP).toMap());
+		return ret;
+	}
 
 	public void increment(FVStatsType stat, FVSendMsg from, OFMessage ofm) {
 		this.stats.get(stat).increment(from, ofm);

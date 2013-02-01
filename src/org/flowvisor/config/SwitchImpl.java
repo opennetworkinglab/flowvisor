@@ -47,7 +47,7 @@ public class SwitchImpl implements Switch {
 			FlowSpace.INPORT + "," + FlowSpace.VLAN + "," + FlowSpace.VPCP + "," + FlowSpace.DLSRC + "," + FlowSpace.DLDST + "," + FlowSpace.DLTYPE + "," +
 			FlowSpace.NWSRC + "," + FlowSpace.NWDST + "," + FlowSpace.NWPROTO + "," + FlowSpace.NWTOS + "," + FlowSpace.TPSRC + "," + FlowSpace.TPDST + ","
 			+ FlowSpace.WILDCARDS+ ") " + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-	private static String SCOOKIE = "INSERT INTO COOKIE(contorller_cookie, fv_cookie) VALUES(?,?)";
+	private static String SCOOKIE = "INSERT INTO COOKIE(controller_cookie, fv_cookie) VALUES(?,?)";
 	
 	private static String CREATESWITCH = "INSERT INTO " + TSWITCH + "(" + DPID + "," + MFRDESC + "," + FLOOD + ","
 			+ HWDESC + "," + SWDESC + "," + SERIAL + "," + DPDESC + "," + CAPA + ") VALUES(?,?,?,?,?,?,?,?)"; 
@@ -98,7 +98,7 @@ public class SwitchImpl implements Switch {
 			if (set.next())
 				return set.getString(FLOOD);
 			else 
-				throw new ConfigError("Flood permission for dpid " + dpid + " not found");
+				return "";
 		} catch (SQLException e) {
 			FVLog.log(LogLevel.WARN, null, e.getMessage());
 		} finally {
@@ -120,11 +120,13 @@ public class SwitchImpl implements Switch {
 			ps = conn.prepareStatement(SFLOODSQL);
 			ps.setString(1, flood_perm);
 			ps.setLong(2, dpid);
-			if (ps.executeUpdate() == 0)
-				throw new ConfigError("Unable to set flood permission for dpid " + dpid);
+			if (ps.executeUpdate() == 0) {
+				createSwitch(dpid);
+				ps.executeUpdate();
+			}
 			notify(dpid, FFLOOD, flood_perm);
 		} catch (SQLException e) {
-			FVLog.log(LogLevel.WARN, null, e.getMessage());
+			throw new ConfigError("Unable to set flood permission for dpid " + dpid);
 		} finally {
 			close(set);
 			close(ps);
@@ -601,6 +603,34 @@ public class SwitchImpl implements Switch {
 		
 	}
 	
+	private int createSwitch(long dpid) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(CREATESWITCH, Statement.RETURN_GENERATED_KEYS);
+			ps.setLong(1, dpid);
+			ps.setString(2, "");
+			ps.setString(3, "");
+			ps.setString(4, "");
+			ps.setString(5, "");
+			ps.setString(6, "");
+			ps.setString(7, "");
+			ps.setInt(8, -1);
+			ps.executeUpdate();
+			set = ps.getGeneratedKeys();
+			set.next();
+			return set.getInt(1);
+		} catch (SQLException e) {
+			throw new ConfigError("Switch element creation failed : " + e.getMessage());
+		} finally {
+			close(set);
+			close(ps);
+			close(conn);
+		}
+	}
+	
 	
 	private void reset() {
 		Connection conn = null;
@@ -660,7 +690,7 @@ public class SwitchImpl implements Switch {
 			ps = conn.prepareStatement(alter);
 			ps.execute();
 		} catch (SQLException e) {
-			throw new RuntimeException("Table alteration failed. Quitting. " + e.getMessage());
+			System.err.println("WARN: " + e.getMessage());
 		} finally {
 			close(ps);
 			close(conn);

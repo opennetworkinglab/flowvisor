@@ -26,7 +26,6 @@ import org.flowvisor.events.FVTimerEvent;
 import org.flowvisor.exceptions.UnhandledEvent;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
-import org.json.JSONParam;
 
 /**
  * A simple OpenFlow controller that runs inside the flowvisor to discover and
@@ -248,9 +247,8 @@ public class TopologyController extends OFSwitchAcceptor {
 	}
 
 	public void topoConnectionJustConnected(String dpidHex){
-		JSONParam param = new JSONParam(dpidHex);
-		ArrayList<JSONParam> params = new ArrayList<JSONParam>();
-		params.add(param);
+		ArrayList<Object> params = new ArrayList<Object>();
+		params.add(dpidHex);
 		for(TopologyCallback callback : eventCallbacks.get(TopologyCallback.EventType.DEVICE_CONNECTED)){
 			callback.setParams(params);
 			callback.run();
