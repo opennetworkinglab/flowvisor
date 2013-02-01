@@ -926,7 +926,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	}
 	
 	public boolean isRateLimited(String sliceName) {
-		return slicerLimits.getRateLimiter(FlowSpaceUtil.dpidToString(this.getDPID()) + sliceName).consume();
+		return slicerLimits.getRateLimiter(/*FlowSpaceUtil.dpidToString(this.getDPID()) + */sliceName).consume();
 	}
 	
 	private synchronized ArrayList<FVFlowStatisticsReply> getFlowStats(String sliceName) {
