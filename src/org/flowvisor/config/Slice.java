@@ -22,7 +22,7 @@ public interface Slice extends FVAppConfig {
 	public static String FMTYPE = "flowmap_type";
 	public static String FLOWVISORID = "flowvisor_id";
 	public static String FMLIMIT = "max_flow_rules";
-	public static String ADMINDOWN = "admin_down";
+	public static String ADMINDOWN = "admin_status";
 	
 	// Table name
 	public static String TSLICE = "Slice";

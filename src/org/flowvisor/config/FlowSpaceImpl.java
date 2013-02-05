@@ -51,7 +51,7 @@ public class FlowSpaceImpl implements FlowSpace {
 	// STATEMENTS
 	private static String GFLOWMAP = "SELECT FSR.*,S." + Slice.FMTYPE + 
 			" FROM FlowSpaceRule AS FSR, Slice AS S, JFSRSlice AS J WHERE FSR.id" +
-			"=J.flowspacerule_id AND J.slice_id=S.id AND S." + Slice.ADMINDOWN + "=false";
+			"=J.flowspacerule_id AND J.slice_id=S.id AND S." + Slice.ADMINDOWN + "=true";
 	
 	private static String GSLICEFLOWMAP = "SELECT FSR.*,S." + Slice.FMTYPE + 
 			" FROM FlowSpaceRule AS FSR, Slice AS S, JFSRSlice AS J WHERE FSR.id" +
