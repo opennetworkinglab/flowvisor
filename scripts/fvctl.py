@@ -58,7 +58,7 @@ def do_listSlices(gopts, opts, args):
     data = connect(gopts, "list-slices", passwd)
     print 'Configured slices:'
     for (i, name) in enumerate(data):
-        print '{0:3d} : {1:5}'.format(i+1, name)
+        print '{0:3d} : {1:5} -- {2,8}'.format(i+1, name['slice-name'], name['admin-status'])
 
 def pa_addSlice(args, cmd):
     usage = ("%s [options] <slicename> <controller-url> " 
