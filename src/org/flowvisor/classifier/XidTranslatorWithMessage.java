@@ -23,6 +23,8 @@ public class XidTranslatorWithMessage extends XidTranslator {
 	
 	public XidPairWithMessage untranslate(int xid) {
 		XidPair xidPair = super.untranslate(xid);
+		if (xidPair == null)
+			return null;
 		return new XidPairWithMessage(xidPair, msgMap.get(xid));
 	}
 }
