@@ -822,7 +822,7 @@ public class SliceImpl implements Slice {
 			if (row.get(ADMINDOWN) != null)
 				setAdminStatus((String) row.get(SLICE), (Boolean) row.get(ADMINDOWN));
 			else 
-				setAdminStatus((String) row.get(SLICE), false);
+				setAdminStatus((String) row.get(SLICE), true);
 			} catch (SQLException e) {
 				e.printStackTrace();
 		} finally {
