@@ -711,9 +711,9 @@ public class FlowSpaceImpl implements FlowSpace {
   				ps.setString(1, sliceName);
   			} else {
   				if (show)
-  					ps = conn.prepareStatement(GFLOWMAP);
-  				else
   					ps = conn.prepareStatement(GALLFLOWMAP);
+  				else
+  					ps = conn.prepareStatement(GFLOWMAP);
   			}
   			set = ps.executeQuery();
  			//writer.name(FS);
