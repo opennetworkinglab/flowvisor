@@ -96,7 +96,7 @@ def do_addSlice(gopts, opts, args):
     req['recv-lldp'] = opts.lldp
     req['flowmod-limit'] = opts.flow
     req['rate-limit'] = opts.rate
-    req['admin-status' = not opts.admin
+    req['admin-status'] = not opts.admin
     ret = connect(gopts, "add-slice", passwd, data=req)
     if ret:
         print "Slice %s was successfully created" % args[0]
