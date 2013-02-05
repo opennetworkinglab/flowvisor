@@ -711,6 +711,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			cookieTranslator.untranslateAndRemove(reply.getTransCookie());
 			cookies.remove(reply.getCookie());
 			delete.setLengthU(FVFlowMod.MINIMUM_LENGTH);
+			for (OFAction act : delete.getActions()) 
+				delete.setLengthU(delete.getLengthU() + act.getLengthU());
 			sendMsg(delete, this);
 		}
 		if (cookies.size() > 0) {
