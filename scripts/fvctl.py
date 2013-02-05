@@ -845,6 +845,7 @@ if __name__ == '__main__':
     (opts, args) = parse_args(rargs[1:], rargs[0])
     do_func(gopts, opts, args)
   except Exception, e:
+    print e
     print "%s is an unknown command" % rargs[0]
     printHelp(None, None, None, parser)
 
