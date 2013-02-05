@@ -21,6 +21,7 @@ import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.ssl.SslSelectChannelConnector;
+import org.eclipse.jetty.util.log.Logger;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
 import org.flowvisor.log.FVLog;
@@ -43,7 +44,7 @@ public class JettyServer implements Runnable{
 	private void init(int port){
 
 		//System.setProperty("org.eclipse.jetty.util.log.class", JettyLog.class.getCanonicalName());
-		org.eclipse.jetty.util.log.Log.setLog(null);
+		org.eclipse.jetty.util.log.Log.setLog(new JettyLogger());
 		
 		FVLog.log(LogLevel.INFO, null,
 				"initializing FlowVisor UserAPI JSONRPC SSL WebServer on port "
@@ -170,6 +171,82 @@ public class JettyServer implements Runnable{
 
 		Thread jettyThread = new Thread(new JettyServer(port));
 		jettyThread.start();
+	}
+	
+	public class JettyLogger implements Logger {
+
+		@Override
+		public void debug(String arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void debug(String arg0, Throwable arg1) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void debug(String arg0, Object arg1, Object arg2) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public Logger getLogger(String arg0) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public String getName() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		@Override
+		public void info(String arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void info(String arg0, Object arg1, Object arg2) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public boolean isDebugEnabled() {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public void setDebugEnabled(boolean arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void warn(String arg0) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void warn(String arg0, Throwable arg1) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void warn(String arg0, Object arg1, Object arg2) {
+			// TODO Auto-generated method stub
+			
+		}
+		
 	}
 
 }
