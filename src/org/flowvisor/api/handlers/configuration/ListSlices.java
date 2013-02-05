@@ -33,7 +33,7 @@ public class ListSlices implements ApiHandler<Object> {
 				list.add((HashMap<String, Object>) slicers.clone());
 				slicers.clear();
 			}
-			resp = new JSONRPC2Response(slices, 0);
+			resp = new JSONRPC2Response(list, 0);
 		} catch (ConfigError e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INTERNAL_ERROR.getCode(), 
 					cmdName() + ": Unable to fetch slice list : " + e.getMessage()), 0);
