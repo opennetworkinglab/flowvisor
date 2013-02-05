@@ -151,7 +151,7 @@ def do_updateSlice(gopts, opts,args):
         req['flowmod-limit'] = opts.flow
     if opts.rate is not None:
         req['rate-limit'] = opts.rate
-    if opts.admin is not None:
+    if opts.status is not None:
         req['admin-status'] = opts.status
     ret = connect(gopts, "update-slice", passwd, data=req)
     if ret:
