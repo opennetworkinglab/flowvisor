@@ -29,8 +29,11 @@ public class ListSlices implements ApiHandler<Object> {
 			for (String slice : slices) {
 				FVSlicer slicer = HandlerUtils.getSlicerByName(slice);
 				slicers.put(SLICENAME, slice);
-				slicers.put(ADMINSTATUS, slicer != null);
-				list.add((HashMap<String, Object>) slicers.clone());
+				if (slicer != null)
+					slicers.put(ADMINSTATUS, slicer.isUp());
+				else
+					slicers.put(ADMINSTATUS, false);
+				list.add((HashMap<String, Object>)slicers.clone() );
 				slicers.clear();
 			}
 			resp = new JSONRPC2Response(list, 0);
