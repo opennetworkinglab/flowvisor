@@ -239,9 +239,9 @@ def do_listFlowSpace(gopts, opts, args):
     out = "Configured Flow entries:"
     if opts.slice is not None:
         req['slice-name'] = opts.slice
+        out = "Configured Flow entries for slice %s:" % opts.slice
     if opts.show is not None:
         req['show-disabled'] = True
-    out = "Configured Flow entries for slice %s:" % opts.slice
     ret = connect(gopts, "list-flowspace", passwd, data=req)
     print out
     if len(ret) == 0:
