@@ -978,7 +978,10 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	}
 	
 	private synchronized ArrayList<FVFlowStatisticsReply> getFlowStats(String sliceName) {
-		return new ArrayList<FVFlowStatisticsReply>(flowStats.get(sliceName));
+		ArrayList<FVFlowStatisticsReply> stats = new ArrayList<FVFlowStatisticsReply>();
+		if (flowStats.get(sliceName) != null)
+			stats.addAll(flowStats.get(sliceName));
+		return stats;
 	}
 	
 	public void sendAggStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original) {
