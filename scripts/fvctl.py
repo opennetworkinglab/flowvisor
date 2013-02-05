@@ -238,6 +238,7 @@ def do_listFlowSpace(gopts, opts, args):
     for item in ret:
         if opts.pretty:
             print json.dumps(item, sort_keys=True, indent=1)
+            print "\n\n"
         else:
             print json.dumps(item)
 
