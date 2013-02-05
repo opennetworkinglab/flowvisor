@@ -115,9 +115,9 @@ def pa_updateSlice(args, cmd):
     parser.add_option("-d", "--drop-policy", dest="drop", default=None,
             help="Specify new drop policy")
      
-    parser.add_option( "--enable-slice", action="store_true", default=None, dest="admin",
+    parser.add_option( "--enable-slice", action="store_true", default=None, dest="status",
             help="Enables the slice.")
-    parser.add_option( "--disable-slice", action="store_false", default=None, dest="admin",
+    parser.add_option( "--disable-slice", action="store_false", default=None, dest="status",
             help="Disables the slice.")
     
     parser.add_option( "--enable-recv-lldp", action="store_true", default=None, dest="lldp",
@@ -152,7 +152,7 @@ def do_updateSlice(gopts, opts,args):
     if opts.rate is not None:
         req['rate-limit'] = opts.rate
     if opts.admin is not None:
-        req['admin-status'] = opts.admin
+        req['admin-status'] = opts.status
     ret = connect(gopts, "update-slice", passwd, data=req)
     if ret:
         print "Slice %s has been successfully updated" % args[0]
