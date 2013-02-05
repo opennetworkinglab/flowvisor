@@ -117,7 +117,7 @@ def pa_updateSlice(args, cmd):
      
     parser.add_option( "--enable-slice", action="store_true", default=None, dest="admin",
             help="Enables the slice.")
-    parser.add_option( "--disable-recv-lldp", action="store_false", default=None, dest="admin",
+    parser.add_option( "--disable-slice", action="store_false", default=None, dest="admin",
             help="Disables the slice.")
     
     parser.add_option( "--enable-recv-lldp", action="store_true", default=None, dest="lldp",
