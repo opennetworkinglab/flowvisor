@@ -53,7 +53,7 @@ public class SliceImpl implements Slice {
 	
 	private static String SADMINSTATUS = "UPDATE SLICE SET " + ADMINDOWN + " = ?" +
 			" WHERE " + SLICE + " = ?";
-	private static String SLICEDOWN = "SELECT FROM Slice WHERE " + SLICE + " = ?";
+	private static String SLICEDOWN = "SELECT " + ADMINDOWN +" FROM Slice WHERE " + SLICE + " = ?";
 	
 	
 	private static String SCRYPT = "UPDATE Slice SET " + CRYPT + " = ?, " + SALT +
