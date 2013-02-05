@@ -36,6 +36,7 @@ CREATE TABLE Slice (
   drop_policy VARCHAR(10) DEFAULT 'exact' ,
   lldp_spam BOOLEAN  DEFAULT true,
   max_flow_rules INT NOT NULL DEFAULT -1,
+  admin_status BOOLEAN DEFAULT TRUE,
   PRIMARY KEY (id));
 
 CREATE INDEX flowvisor_index ON Slice (flowvisor_id ASC);

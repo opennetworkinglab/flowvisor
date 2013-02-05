@@ -50,10 +50,15 @@ public class SliceImpl implements Slice {
 			" passwd_salt, controller_hostname, controller_port, contact_email, drop_policy, lldp_spam, max_flow_rules) " +
 			"VALUES(?,?,?,?,?,?,?,?,?,?,?,?)";
 	private static String DELETESLICE = "DELETE FROM Slice WHERE " + SLICE + " = ?";
+	
+	private static String SADMINSTATUS = "UPDATE SLICE SET " + ADMINDOWN + " = ?" +
+			" WHERE " + SLICE + " = ?";
+	private static String SLICEDOWN = "SELECT " + ADMINDOWN +" FROM Slice WHERE " + SLICE + " = ?";
+	
+	
 	private static String SCRYPT = "UPDATE Slice SET " + CRYPT + " = ?, " + SALT +
 			" = ? WHERE " + SLICE + " = ?";
 	
-	private static String SAVEDFLOWSPACE = "SELECT * FROM PreservedFlowSpaceRules WHERE slicename=?";
 	
 	private static String FLOWVISOR = "SELECT id from " + Flowvisor.FLOWVISOR + " WHERE " + Flowvisor.CONFIG + " = ?"; 
 	
@@ -641,6 +646,48 @@ public class SliceImpl implements Slice {
 	}
 	
 	@Override
+	public void setAdminStatus(String sliceName, boolean status) {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(SADMINSTATUS);
+			ps.setBoolean(1, status);
+			ps.setString(2, sliceName);
+			ps.executeUpdate();
+		} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+		} finally {
+			close(set);
+			close(ps);
+			close(conn);
+		}
+	}
+	 
+	@Override
+	public boolean isSliceUp(String sliceName) {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(SLICEDOWN);
+			ps.setString(1, sliceName);
+			set = ps.executeQuery();
+			if (set.next()) 
+				return set.getBoolean(ADMINDOWN);
+		} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+		} finally {
+			close(set);
+			close(ps);
+			close(conn);
+		}
+		return false;
+	}
+	
+	@Override
 	public void close(Connection conn) {
 		settings.returnConnection(conn);
 		try {
@@ -709,6 +756,7 @@ public class SliceImpl implements Slice {
 				slice.put(DROP, set.getString(DROP));
 				slice.put(LLDP, set.getBoolean(LLDP));
 				slice.put(FMLIMIT, set.getInt(FMLIMIT));
+				slice.put(ADMINDOWN, set.getBoolean(ADMINDOWN));
 				
 				list.add(slice.clone());
 				slice.clear();
@@ -766,9 +814,15 @@ public class SliceImpl implements Slice {
 			if (row.get(FMLIMIT) != null)
 				ps.setInt(12, ((Double) row.get(FMLIMIT)).intValue());
 			else
-				ps.setInt(12, -1); 
-			if (ps.executeUpdate() == 0)
+				ps.setInt(12, -1);
+			if (ps.executeUpdate() == 0) {
 				FVLog.log(LogLevel.WARN, null, "Insertion failed... siliently.");
+				return;
+			}
+			if (row.get(ADMINDOWN) != null)
+				setAdminStatus((String) row.get(SLICE), (Boolean) row.get(ADMINDOWN));
+			else 
+				setAdminStatus((String) row.get(SLICE), true);
 			} catch (SQLException e) {
 				e.printStackTrace();
 		} finally {
@@ -802,11 +856,14 @@ public class SliceImpl implements Slice {
 			version++;
 		}
 		if (version == 1) {
-			//create preservation tables here
+			processAlter("ALTER TABLE Slice ADD COLUMN " + ADMINDOWN + " BOOLEAN NOT NULL DEFAULT FALSE");
+			version++;
 		}
 		
 		
 	}
+
+	
 	
 
 }

@@ -51,6 +51,10 @@ public class FlowSpaceImpl implements FlowSpace {
 	// STATEMENTS
 	private static String GFLOWMAP = "SELECT FSR.*,S." + Slice.FMTYPE + 
 			" FROM FlowSpaceRule AS FSR, Slice AS S, JFSRSlice AS J WHERE FSR.id" +
+			"=J.flowspacerule_id AND J.slice_id=S.id AND S." + Slice.ADMINDOWN + "=true";
+	
+	private static String GALLFLOWMAP = "SELECT FSR.*,S." + Slice.FMTYPE + 
+			" FROM FlowSpaceRule AS FSR, Slice AS S, JFSRSlice AS J WHERE FSR.id" +
 			"=J.flowspacerule_id AND J.slice_id=S.id";
 	
 	private static String GSLICEFLOWMAP = "SELECT FSR.*,S." + Slice.FMTYPE + 
@@ -75,11 +79,7 @@ public class FlowSpaceImpl implements FlowSpace {
 			NWSRC + "," + NWDST + "," + NWPROTO + "," + NWTOS + "," + TPSRC + "," + TPDST + "," +
 			FORCED_QUEUE + "," + WILDCARDS+ "," + NAME +") " + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	
-	private static String SAVESLICEFLOWMAP = "INSERT INTO PreservedFlowSpaceRules(" + DPID + "," + PRIO + "," +  
-			INPORT + "," + VLAN + "," + VPCP + "," + DLSRC + "," + DLDST + "," + DLTYPE + "," +
-			NWSRC + "," + NWDST + "," + NWPROTO + "," + NWTOS + "," + TPSRC + "," + TPDST + "," +
-			FORCED_QUEUE + "," + WILDCARDS+ "," + Slice.SLICE+"," + ACTION +") " + 
-			" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
 	
 	private static String SACTIONS = "INSERT INTO jFSRSlice(flowspacerule_id, slice_id," + ACTION + ")" +
 			" VALUES(?,?,?)";
@@ -671,7 +671,7 @@ public class FlowSpaceImpl implements FlowSpace {
   	@Override
  	public HashMap<String, Object> toJson(HashMap<String, Object> output) {
   		try {
-			return toJson(output, null);
+			return toJson(output, null, true);
 		} catch (ConfigError e) {
 			FVLog.log(LogLevel.WARN, null, "Failed to convert config to JSON: "
 							+ e.getMessage());
@@ -688,7 +688,8 @@ public class FlowSpaceImpl implements FlowSpace {
 	
 	
 	@Override
-	public HashMap<String, Object> toJson(HashMap<String, Object> map, String sliceName)
+	public HashMap<String, Object> toJson(HashMap<String, Object> map, 
+						String sliceName, Boolean show)
 			throws ConfigError {
   		Connection conn = null;
   		PreparedStatement ps = null;
@@ -708,8 +709,12 @@ public class FlowSpaceImpl implements FlowSpace {
   			if (sliceName != null) {
   				ps = conn.prepareStatement(GSLICEFLOWMAP);
   				ps.setString(1, sliceName);
-  			} else
-  				ps = conn.prepareStatement(GFLOWMAP);
+  			} else {
+  				if (show)
+  					ps = conn.prepareStatement(GALLFLOWMAP);
+  				else
+  					ps = conn.prepareStatement(GFLOWMAP);
+  			}
   			set = ps.executeQuery();
  			//writer.name(FS);
  			//writer.beginArray();

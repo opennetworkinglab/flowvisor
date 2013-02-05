@@ -14,6 +14,7 @@ public interface ApiHandler<T> {
 	final static String ADMIN = "admin-contact";
 	final static String MAX = "flowmod-limit";
 	final static String RATE = "rate-limit";
+	final static String ADMINSTATUS = "admin-status";
 	final static String PRESERVE = "preserve-flowspace";
 	final static String PASS = "password";
 	final static String FSNAME = "name";
@@ -28,6 +29,7 @@ public interface ApiHandler<T> {
 	final static String FSCACHE = "flow-stats-cache";
 	final static String FQUEUE = "force-enqueue";
 	final static String QUEUE = "queues";
+	final static String SHOW = "show-disabled";
 	
 	final static String MSG = "msg";
 	final static String CURRRATE = "current-rate";
