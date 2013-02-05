@@ -769,7 +769,10 @@ DESCS = {
                     ),
     'list-flowspace' : ("Displays the flowspace",
                     ("Lists the flow-based slice policy rules, ie. the flowspace. Optionally, "
-                    "list the flowspace only for the slice given as an option."
+                    "list the flowspace only for the slice given as an option. If a slicename is given, "
+                    "all flowspace for this slice is shown regardless of its admin status. If no slicename "
+                    "is given, then only flowspace for enabled slices is shown, unless the show-disabled option "
+                    "is specified."
                     )),
     'add-flowspace' : ("Creates a flowspace rule",
                     ("Creates a new rule in the flowspace with the given name. Queues can be assigned to the slice by "
