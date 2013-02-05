@@ -42,18 +42,18 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 			final FlowMap flowSpace = FVConfig.getFlowSpaceFlowMap();
 			final List<FlowEntry> list = processFlows(params, flowSpace);
 			
-			/*FutureTask<Object> future = new FutureTask<Object>(
+			FutureTask<Object> future = new FutureTask<Object>(
 	                new Callable<Object>() {
-	                    public Object call() {*/
+	                    public Object call() {
 	                    	addFlowEntries(list, flowSpace);
 							FVLog.log(LogLevel.INFO, null,
 									"Signalling FlowSpace Update to all event handlers");
 							FlowSpaceImpl.getProxy().notifyChange(flowSpace);
-							/*return null;
+							return null;
 	                    }
 	                });
 	                    
-			FVConfigurationController.instance().execute(future);	*/
+			FVConfigurationController.instance().execute(future);	
 			resp = new JSONRPC2Response(true, 0);
 		} catch (ClassCastException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
