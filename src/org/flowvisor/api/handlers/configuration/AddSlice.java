@@ -56,7 +56,7 @@ public class AddSlice implements ApiHandler<Map<String, Object>> {
 			String password = HandlerUtils.<String>fetchField(PASS, params, true, null);
 			Number maxFM =  HandlerUtils.<Number>fetchField(MAX, params, false, -1);
 			Number rate = HandlerUtils.<Number>fetchField(RATE, params, false, -1);
-			Boolean status = HandlerUtils.<Boolean>fetchField(ADMINSTATUS, params, false, false);
+			Boolean status = HandlerUtils.<Boolean>fetchField(ADMINSTATUS, params, false, true);
 			validateSliceName(sliceName);
 			validateDropPolicy(dropPolicy);
 			SliceImpl.getProxy().createSlice(sliceName, list[1], ctrlPort, 
