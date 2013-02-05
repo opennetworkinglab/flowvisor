@@ -483,6 +483,7 @@ def do_listDatapaths(gopts, opts, args):
     if len(ret) <= 0:
        print "No switches connected"
        sys.exit()
+    ret.sort()
     print "Connected switches: "
     for (i, sw) in enumerate(ret):
         print "  %d : %s" % (i,sw)
