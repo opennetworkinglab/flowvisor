@@ -27,12 +27,8 @@ public class ListSlices implements ApiHandler<Object> {
 			HashMap<String, Object> slicers = new HashMap<String, Object>();
 			List<String> slices = SliceImpl.getProxy().getAllSliceNames();
 			for (String slice : slices) {
-				FVSlicer slicer = HandlerUtils.getSlicerByName(slice);
 				slicers.put(SLICENAME, slice);
-				if (slicer != null)
-					slicers.put(ADMINSTATUS, slicer.isUp());
-				else
-					slicers.put(ADMINSTATUS, false);
+				slicers.put(ADMINSTATUS, SliceImpl.getProxy().isSliceUp(slice));
 				list.add((HashMap<String, Object>)slicers.clone() );
 				slicers.clear();
 			}
