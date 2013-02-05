@@ -484,7 +484,7 @@ def do_listDatapaths(gopts, opts, args):
        print "No switches connected"
        sys.exit()
     print "Connected switches: "
-    for (i, sw) in enmerate(ret):
+    for (i, sw) in enumerate(ret):
         print "  %d : %s" % (i,sw)
 
 def pa_listDatapathInfo(args, cmd):
@@ -841,12 +841,13 @@ def parse_global_args(arglist):
 if __name__ == '__main__':
   try:
     (gopts, rargs, parser) = parse_global_args(sys.argv[1:])
+    if len(rargs) < 1:
+        raise IndexError
     (parse_args, do_func) = CMDS[rargs[0]]
     (opts, args) = parse_args(rargs[1:], rargs[0])
     do_func(gopts, opts, args)
-  except Exception, e:
-    print e
-    print "%s is an unknown command" % rargs[0]
+  except IndexError, e:
+    print "%s is an unknown command" % sys.argv[-1]
     printHelp(None, None, None, parser)
 
 
