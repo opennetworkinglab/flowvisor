@@ -110,6 +110,12 @@ def pa_updateSlice(args, cmd):
             help="Specify new admin contact")
     parser.add_option("-d", "--drop-policy", dest="drop", default=None,
             help="Specify new drop policy")
+     
+    parser.add_option( "--enable-slice", action="store_true", default=None, dest="admin",
+            help="Enables the slice.")
+    parser.add_option( "--disable-recv-lldp", action="store_false", default=None, dest="admin",
+            help="Disables the slice.")
+    
     parser.add_option( "--enable-recv-lldp", action="store_true", default=None, dest="lldp",
             help="Enable reception of unknown LLDPs for this slice")
     parser.add_option( "--disable-recv-lldp", action="store_false", default=None, dest="lldp",
@@ -141,17 +147,17 @@ def do_updateSlice(gopts, opts,args):
         req['flowmod-limit'] = opts.flow
     if opts.rate is not None:
         req['rate-limit'] = opts.rate
+    if (opts.admin is not None:
+        req['admin-status'] = opts.admin
     ret = connect(gopts, "update-slice", passwd, data=req)
     if ret:
         print "Slice %s has been successfully updated" % args[0]
 
 def pa_removeSlice(args, cmd):
-    usage = "%s [options] <slicename>" % USAGE.format(cmd)
+    usage = "%s <slicename>" % USAGE.format(cmd)
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)   
  
-    parser.add_option("-p", "--preserve-flowspace", action="store_true", default=None, dest="preserve", 
-            help="Preserve flowspace; NOT YET IMPLEMENTED")
     return parser.parse_args(args)
 
 def do_removeSlice(gopts, opts, args):
@@ -160,8 +166,6 @@ def do_removeSlice(gopts, opts, args):
         sys.exit()
     passwd = getPassword(gopts)
     req = { "slice-name" : args[0] } 
-    if opts.preserve is not None:
-        req['preserve-flowspace'] = True
     ret = connect(gopts, "remove-slice", passwd, data=req)
     if ret:
         print "Slice %s has been deleted" % args[0]
@@ -736,9 +740,7 @@ DESCS = {
                     )
                     ),
     'remove-slice' :("Deletes a slice", 
-                    ("Deletes a slices and (optionally) removes all the associated flowspace. If the "
-                    "preserve flowspace flag is given FlowVisor will save the flowspace for this slice name. "
-                    "Subsequently, if a slice with this slice name reappears then it this flowspace will be reattached. "
+                    ("Deletes a slices and removes all the associated flowspace. "
                     )),
     'update-slice-password' : ("Updates slice password", 
                     ("Updates the slice password for the specified slice."

@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 
@@ -50,6 +51,7 @@ import org.flowvisor.log.SendRecvDropStats;
 import org.flowvisor.log.SendRecvDropStats.FVStatsType;
 import org.flowvisor.message.Classifiable;
 import org.flowvisor.message.FVError;
+import org.flowvisor.message.FVFlowMod;
 import org.flowvisor.message.FVMessageFactory;
 import org.flowvisor.message.FVStatisticsReply;
 import org.flowvisor.message.FVStatisticsRequest;
@@ -123,6 +125,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	private boolean statsWindowOpen = true;
 	private HashMap<String, ArrayList<FVFlowStatisticsReply>> flowStats = 
 			new HashMap<String, ArrayList<FVFlowStatisticsReply>>();
+	private ConcurrentLinkedQueue<String> toDeleteSlices = new ConcurrentLinkedQueue<String>();
 
 	// OFPP_FLOOD
 
@@ -646,10 +649,12 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 				FVLog.log(LogLevel.INFO, this,
 						"making new connection to slice " + sliceName);
 				FVSlicer newSlicer = new FVSlicer(this.loop, this, sliceName);
-				slicerMap.put(sliceName, newSlicer); // create new slicer in
-				// this same EventLoop
-				newSlicer.init(); // and start it up
-			}
+				if (!newSlicer.isDown()) {
+					slicerMap.put(sliceName, newSlicer); // create new slicer in
+					// this same EventLoop
+					newSlicer.init(); // and start it up
+				}
+			} 
 		}
 
 		// foreach slice with previous access, make sure it still has access
@@ -666,11 +671,54 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		// delete anything we marked in prev pass
 		// should be able to do this in one loop, but can't
 		// seem to iterate over a Map's keys and del inline
-		for (String deleteSlice : deletelist)
+		boolean poll = false;
+		for (String deleteSlice : deletelist) {
 			slicerMap.remove(deleteSlice);
+			poll |= cleanUpFlowMods(deleteSlice);
+		}
+		/*
+		 * Poll the flowtable once rather than
+		 * hammering it for every deleted slice.
+		 */
+		if (poll)
+			pollFlowTableStats(null);
 	}
 	
 	
+	/*
+	 * Clean up a deleted or downed slice. Take flows from cache 
+	 * and build delete requests. If there are still flow mods in
+	 * the table, re-poll the flowtable and do this again. The idea
+	 * being that we do not want to poll the flowtable unnecessarily.
+	 */
+	private boolean cleanUpFlowMods(String deleteSlice) {
+		List<Long> cookies = this.cookieTranslator.getCookieList(deleteSlice);
+		ArrayList<FVFlowStatisticsReply> flows = getFlowStats(deleteSlice);
+		for (FVFlowStatisticsReply reply : flows) {
+			
+			FVFlowMod delete = new FVFlowMod();
+			delete.setActions(reply.getActions());
+			delete.setBufferId(0);
+			delete.setCommand(FVFlowMod.OFPFC_DELETE_STRICT);
+			delete.setCookie(reply.getCookie());
+			
+			delete.setHardTimeout(reply.getHardTimeout());
+			delete.setIdleTimeout(reply.getIdleTimeout());
+			delete.setMatch(reply.getMatch());
+			delete.setOutPort(OFPort.OFPP_NONE);
+			delete.setPriority(reply.getPriority());
+			
+			cookieTranslator.untranslateAndRemove(reply.getTransCookie());
+			cookies.remove(reply.getCookie());
+			delete.setLengthU(FVFlowMod.MINIMUM_LENGTH);
+			sendMsg(delete, this);
+		}
+		if (cookies.size() > 0) {
+			toDeleteSlices.add(deleteSlice);
+			return true;
+		}
+		return false;
+	}
 
 	public FlowMap getSwitchFlowMap() {
 		return switchFlowMap;
@@ -1042,6 +1090,10 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			stat.setCookie(pair.getCookie());
 			addToFlowStats(stat, pair.getSliceName());
 		}
+		for (String slice : toDeleteSlices) {
+			cleanUpFlowMods(slice);
+		}
+		toDeleteSlices.clear();
 		
 	}
 	
@@ -1054,7 +1106,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	}
 	
 	public boolean pollFlowTableStats(FVStatisticsRequest orig) {
-		if (!this.statsWindowOpen )
+		if (!this.statsWindowOpen && orig != null)
 			return this.statsWindowOpen;
 		this.statsWindowOpen = false;
 		FVStatisticsRequest request = new FVStatisticsRequest();
@@ -1070,7 +1122,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		stats.add(statsReq);
 		request.setStatistics(stats);
 		request.setLengthU(FVStatisticsRequest.MINIMUM_LENGTH + statsReq.computeLength());
-		request.setXid(orig.getXid());
+		request.setXid(orig == null ? -1 : orig.getXid());
 		this.sendMsg(request, this);
 		
 		FVStatsTimer statsTimer = new FVStatsTimer(this);

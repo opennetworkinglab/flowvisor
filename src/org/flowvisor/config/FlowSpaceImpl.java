@@ -51,7 +51,7 @@ public class FlowSpaceImpl implements FlowSpace {
 	// STATEMENTS
 	private static String GFLOWMAP = "SELECT FSR.*,S." + Slice.FMTYPE + 
 			" FROM FlowSpaceRule AS FSR, Slice AS S, JFSRSlice AS J WHERE FSR.id" +
-			"=J.flowspacerule_id AND J.slice_id=S.id";
+			"=J.flowspacerule_id AND J.slice_id=S.id AND S." + Slice.ADMINDOWN + "=false";
 	
 	private static String GSLICEFLOWMAP = "SELECT FSR.*,S." + Slice.FMTYPE + 
 			" FROM FlowSpaceRule AS FSR, Slice AS S, JFSRSlice AS J WHERE FSR.id" +
@@ -75,11 +75,7 @@ public class FlowSpaceImpl implements FlowSpace {
 			NWSRC + "," + NWDST + "," + NWPROTO + "," + NWTOS + "," + TPSRC + "," + TPDST + "," +
 			FORCED_QUEUE + "," + WILDCARDS+ "," + NAME +") " + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 	
-	private static String SAVESLICEFLOWMAP = "INSERT INTO PreservedFlowSpaceRules(" + DPID + "," + PRIO + "," +  
-			INPORT + "," + VLAN + "," + VPCP + "," + DLSRC + "," + DLDST + "," + DLTYPE + "," +
-			NWSRC + "," + NWDST + "," + NWPROTO + "," + NWTOS + "," + TPSRC + "," + TPDST + "," +
-			FORCED_QUEUE + "," + WILDCARDS+ "," + Slice.SLICE+"," + ACTION +") " + 
-			" VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+
 	
 	private static String SACTIONS = "INSERT INTO jFSRSlice(flowspacerule_id, slice_id," + ACTION + ")" +
 			" VALUES(?,?,?)";

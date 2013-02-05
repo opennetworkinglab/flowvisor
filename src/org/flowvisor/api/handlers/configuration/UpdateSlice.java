@@ -10,6 +10,7 @@ import org.flowvisor.api.handlers.HandlerUtils;
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
+import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.config.InvalidDropPolicy;
 import org.flowvisor.config.SliceImpl;
 import org.flowvisor.config.SwitchImpl;
@@ -17,6 +18,8 @@ import org.flowvisor.config.SwitchImpl;
 import org.flowvisor.exceptions.DuplicateControllerException;
 import org.flowvisor.exceptions.MissingRequiredField;
 import org.flowvisor.exceptions.PermissionDeniedException;
+import org.flowvisor.log.FVLog;
+import org.flowvisor.log.LogLevel;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
@@ -46,6 +49,7 @@ public class UpdateSlice implements ApiHandler<Map<String, Object>> {
 			String dropPolicy = HandlerUtils.<String>fetchField(DROP, params, false, null);
 			Boolean lldpOptIn = HandlerUtils.<Boolean>fetchField(LLDP, params, false, null);
 			Number rate = HandlerUtils.<Number>fetchField(RATE, params, false, null);
+			Boolean status = HandlerUtils.<Boolean>fetchField(ADMINSTATUS, params, false, null);
 			
 			validateSliceName(sliceName);
 			updateCtrl(sliceName, ctrlHost, ctrlPort);
@@ -54,6 +58,7 @@ public class UpdateSlice implements ApiHandler<Map<String, Object>> {
 			updateMaxFM(sliceName, maxFM);
 			updateLLDP(sliceName, lldpOptIn);
 			updateRate(sliceName, rate);
+			updateStatus(sliceName, status);
 			
 			resp = new JSONRPC2Response(true, 0);
 		} catch (ConfigError e) {
@@ -77,6 +82,17 @@ public class UpdateSlice implements ApiHandler<Map<String, Object>> {
 		} 
 		return resp;
 		
+	}
+
+	/*
+	 * TODO: put notifyChange in FutureTask
+	 */
+	private void updateStatus(String sliceName, Boolean status) {
+		if (status == null)
+			return;
+		SliceImpl.getProxy().setAdminStatus(sliceName, status);
+		FVLog.log(LogLevel.WARN, null, "Setting slice status to ", status ? "enabled" : "disabled");
+		FlowSpaceImpl.getProxy().notifyChange(FVConfig.getFlowSpaceFlowMap());
 	}
 
 

@@ -56,6 +56,7 @@ public class AddSlice implements ApiHandler<Map<String, Object>> {
 			String password = HandlerUtils.<String>fetchField(PASS, params, true, null);
 			Number maxFM =  HandlerUtils.<Number>fetchField(MAX, params, false, -1);
 			Number rate = HandlerUtils.<Number>fetchField(RATE, params, false, -1);
+			Boolean status = HandlerUtils.<Boolean>fetchField(ADMINSTATUS, params, false, false);
 			validateSliceName(sliceName);
 			validateDropPolicy(dropPolicy);
 			SliceImpl.getProxy().createSlice(sliceName, list[1], ctrlPort, 
@@ -63,6 +64,7 @@ public class AddSlice implements ApiHandler<Map<String, Object>> {
 					lldpOptIn, maxFM.intValue(), 1, FlowMap.type.FEDERATED.ordinal() );
 			for (FVClassifier classifier : HandlerUtils.getAllClassifiers())
 				SwitchImpl.getProxy().setRateLimit(sliceName, classifier.getDPID(), rate.intValue());
+			SliceImpl.getProxy().setAdminStatus(sliceName, status);
 			
 			resp = new JSONRPC2Response(true, 0);
 		} catch (ConfigError e) {
