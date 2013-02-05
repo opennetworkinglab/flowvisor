@@ -486,7 +486,7 @@ def do_listDatapaths(gopts, opts, args):
     ret.sort()
     print "Connected switches: "
     for (i, sw) in enumerate(ret):
-        print "  %d : %s" % (i,sw)
+        print "  %d : %s" % (i+1,sw)
 
 def pa_listDatapathInfo(args, cmd):
     usage = "%s <dpid>" % USAGE.format(cmd)
