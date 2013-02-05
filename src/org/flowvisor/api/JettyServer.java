@@ -44,7 +44,7 @@ public class JettyServer implements Runnable{
 	private void init(int port){
 
 		//System.setProperty("org.eclipse.jetty.util.log.class", JettyLog.class.getCanonicalName());
-		org.eclipse.jetty.util.log.Log.setLog(new JettyLogger());
+		//org.eclipse.jetty.util.log.Log.setLog(new JettyLogger());
 		
 		FVLog.log(LogLevel.INFO, null,
 				"initializing FlowVisor UserAPI JSONRPC SSL WebServer on port "
