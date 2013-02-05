@@ -228,6 +228,9 @@ def pa_listFlowSpace(args, cmd):
             help="Fetch flowspace for specified slice.")
     parser.add_option("-p", "--pretty-print", default=False, dest="pretty", action="store_true",
             help="Pretty print output")
+    parser.add_option("--show-disabled", default=None, dest="show", action="store_true",
+            help="Display flowspace for disabled slices")
+
     return parser.parse_args(args)
 
 def do_listFlowSpace(gopts, opts, args):
@@ -236,6 +239,8 @@ def do_listFlowSpace(gopts, opts, args):
     out = "Configured Flow entries:"
     if opts.slice is not None:
         req['slice-name'] = opts.slice
+    if opts.show is not None:
+        req['show-disabled'] = True
         out = "Configured Flow entries for slice %s:" % opts.slice
     ret = connect(gopts, "list-flowspace", passwd, data=req)
     print out

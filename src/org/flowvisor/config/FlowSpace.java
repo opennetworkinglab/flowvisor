@@ -98,7 +98,7 @@ public interface FlowSpace extends FVAppConfig {
 	public void notifyChange(FlowMap map);
 
 	
-	public HashMap<String, Object> toJson(HashMap<String, Object> map, String sliceName) throws ConfigError;
+	public HashMap<String, Object> toJson(HashMap<String, Object> map, String sliceName, Boolean show) throws ConfigError;
 
 
 	public void removeRuleByName(List<String> names) throws ConfigError;

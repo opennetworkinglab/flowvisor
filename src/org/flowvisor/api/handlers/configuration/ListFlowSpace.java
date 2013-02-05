@@ -30,16 +30,17 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 		LinkedList<Map<String, Object>> list = new LinkedList<Map<String,Object>>();
 		try {
 			String sliceName = HandlerUtils.<String>fetchField(SLICENAME, params, false, null);
+			Boolean show = HandlerUtils.<Boolean>fetchField(SHOW, params, false, false);
 			String user = APIUserCred.getUserName();
 			HashMap<String, Object> map = new HashMap<String, Object>();
 			if (FVConfig.isSupervisor(user)) {
 				if (sliceName == null) 
-					FlowSpaceImpl.getProxy().toJson(map, null);
+					FlowSpaceImpl.getProxy().toJson(map, null, show);
 				else
-					FlowSpaceImpl.getProxy().toJson(map, sliceName);
+					FlowSpaceImpl.getProxy().toJson(map, sliceName, true);
 				
 			} else
-				FlowSpaceImpl.getProxy().toJson(map, user);
+				FlowSpaceImpl.getProxy().toJson(map, user, true);
 			for (HashMap<String, Object> m : (LinkedList<HashMap<String, Object>>) map.get(FlowSpace.FS))
 				list.add(rewriteFields(m));
 			resp = new JSONRPC2Response(list, 0);
