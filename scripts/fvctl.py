@@ -730,7 +730,7 @@ DESCS = {
                     ),
     'add-slice' :   ("Creates a new slice", 
                     ("Creates a new slice. The slicename can contain any character except "
-                    "except the newline (Note: slicenames are case insensitive) . " 
+                    "except the newline (Note: slicenames are case insensitive). " 
                     "The controller url is of the form tcp:hostname:port, "
                     "so for example tcp:example.com:12345 is a valid controller url. The admin "
                     "email is used for administrative purposes if there is a problem with the slice "
