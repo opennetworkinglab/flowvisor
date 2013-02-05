@@ -587,6 +587,7 @@ def do_help(gopts, opts, args):
     
 
 def makeMatch(matchStr):
+    print matchStr
     if matchStr is 'any' or matchStr is 'all':
         return {}
     matchItems = matchStr.split(',')
