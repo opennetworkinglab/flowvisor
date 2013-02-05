@@ -587,7 +587,6 @@ def do_help(gopts, opts, args):
     
 
 def makeMatch(matchStr):
-    print matchStr
     if matchStr is 'any' or matchStr is 'all':
         return {}
     matchItems = matchStr.split(',')
@@ -596,6 +595,7 @@ def makeMatch(matchStr):
         it = item.split('=')
         if len(it) != 2:
             print "Match items must be of the form <key>=<val>"
+            sys.exit()
         try:
             (mstr, func) = MATCHSTRS[it[0].lower()]
             match[mstr] = func(it[1])
