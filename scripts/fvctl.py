@@ -235,6 +235,9 @@ def do_listFlowSpace(gopts, opts, args):
         out = "Configured Flow entries for slice %s:" % opts.slice
     ret = connect(gopts, "list-flowspace", passwd, data=req)
     print out
+    if len(ret) == 0:
+        print "  None"
+        sys.exit()
     for item in ret:
         if opts.pretty:
             print json.dumps(item, sort_keys=True, indent=1)
