@@ -85,8 +85,8 @@ public interface Slice extends FVAppConfig {
 	
 	public void deleteSlice(String SliceName, Boolean preserve) throws InvalidSliceName, ConfigError;
 	
-	public boolean isSliceDown(String sliceName);
 	public void setAdminStatus(String sliceName, boolean status);
+	boolean isSliceUp(String sliceName);
 		
 
 	

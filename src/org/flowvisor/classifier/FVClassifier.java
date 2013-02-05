@@ -649,7 +649,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 				FVLog.log(LogLevel.INFO, this,
 						"making new connection to slice " + sliceName);
 				FVSlicer newSlicer = new FVSlicer(this.loop, this, sliceName);
-				if (!newSlicer.isDown()) {
+				if (newSlicer.isUp()) {
 					slicerMap.put(sliceName, newSlicer); // create new slicer in
 					// this same EventLoop
 					newSlicer.init(); // and start it up

@@ -828,8 +828,8 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 		return ((currlimit < fmlimit) && (fvClassifier.permitFlowMod(sliceName)));
 	}
 
-	public boolean isDown() {
-		return SliceImpl.getProxy().isSliceDown(this.sliceName);
+	public boolean isUp() {
+		return SliceImpl.getProxy().isSliceUp(this.sliceName);
 	}
 
 
