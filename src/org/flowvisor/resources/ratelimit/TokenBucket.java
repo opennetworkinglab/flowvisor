@@ -13,7 +13,7 @@ public class TokenBucket {
 	public TokenBucket(long capacity, RefillStrategy refillStrategy) {
 		this.capacity = capacity;
 		this.strategy = refillStrategy;
-		this.size = 0;
+		this.size = capacity;
 	}
 	
 	public TokenBucket() {
