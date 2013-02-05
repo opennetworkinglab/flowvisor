@@ -477,7 +477,7 @@ def do_listSliceInfo(gopts, opts, args):
     if len(args) != 1:
         print "list-slice-info : Please specify the slice name"
         sys.exit()
-    passwd = getPassword(opts)
+    passwd = getPassword(gopts)
     req = { "slice-name" : args[0]}
     ret = connect(gopts, "list-slice-info", passwd, data=req)
     if 'msg' in ret:
