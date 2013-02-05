@@ -76,6 +76,9 @@ def pa_addSlice(args, cmd):
             help="Slice control path rate limit; default is none (-1)")
     parser.add_option("-p", "--password", dest="passwd", default=None, 
             help="Slice password")
+    parser.add_option( "--disabled", action="store_true", default=False, dest="admin",
+            help="Disable this slice initially; default=False")         
+
     (options, args) = parser.parse_args(args)
     return (options, args)
 
@@ -93,6 +96,7 @@ def do_addSlice(gopts, opts, args):
     req['recv-lldp'] = opts.lldp
     req['flowmod-limit'] = opts.flow
     req['rate-limit'] = opts.rate
+    req['admin-status' = not opts.admin
     ret = connect(gopts, "add-slice", passwd, data=req)
     if ret:
         print "Slice %s was successfully created" % args[0]
@@ -735,7 +739,8 @@ DESCS = {
                     " 'exact' and 'rule', 'exact' matches the packet exactly and 'rule' matches the rule that "
                     "the packet triggered. Flowmod limit limits the number of flowmods this slice can emit. "
                     "The rate limits the number of OpenFlow messages that can be sent to the switches from this "
-                    "slice. You may also set the slice to receive unknown LLDP messgaes. "
+                    "slice. You may also set the slice to receive unknown LLDP messages. Optionally, you may set "
+                    "this slice as disabled initially, this is then changed via an update-slice call "
                     "Finally, the password is the slice password." 
                      )
                     ),
