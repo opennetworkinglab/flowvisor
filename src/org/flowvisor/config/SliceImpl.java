@@ -676,7 +676,7 @@ public class SliceImpl implements Slice {
 			ps.setString(1, sliceName);
 			set = ps.executeQuery();
 			if (set.next()) 
-				return set.getBoolean(ADMINDOWN);
+				return !set.getBoolean(ADMINDOWN);
 		} catch (SQLException e) {
 			FVLog.log(LogLevel.WARN, null, e.getMessage());
 		} finally {

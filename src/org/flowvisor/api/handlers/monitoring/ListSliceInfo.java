@@ -35,6 +35,7 @@ public class ListSliceInfo implements ApiHandler<Map<String, Object>> {
 			retvals.put(ADMIN, SliceImpl.getProxy().getEmail(sliceName));
 			retvals.put(DROP, SliceImpl.getProxy().getdrop_policy(sliceName));
 			retvals.put(LLDP, SliceImpl.getProxy().getlldp_spam(sliceName));
+			retvals.put(ADMINSTATUS, SliceImpl.getProxy().isSliceDown(sliceName));
 			try {
 				SlicerLimits sl = HandlerUtils.getSliceLimits();
 				TokenBucket tb = sl.getRateLimiter(sliceName);
