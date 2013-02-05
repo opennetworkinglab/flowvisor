@@ -819,7 +819,10 @@ public class SliceImpl implements Slice {
 				FVLog.log(LogLevel.WARN, null, "Insertion failed... siliently.");
 				return;
 			}
-			setAdminStatus((String) row.get(SLICE), (Boolean) row.get(ADMINDOWN));
+			if (row.get(ADMINDOWN) != null)
+				setAdminStatus((String) row.get(SLICE), (Boolean) row.get(ADMINDOWN));
+			else 
+				setAdminStatus((String) row.get(SLICE), false);
 			} catch (SQLException e) {
 				e.printStackTrace();
 		} finally {
