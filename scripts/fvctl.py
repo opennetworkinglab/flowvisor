@@ -740,7 +740,7 @@ DESCS = {
                     "the packet triggered. Flowmod limit limits the number of flowmods this slice can emit. "
                     "The rate limits the number of OpenFlow messages that can be sent to the switches from this "
                     "slice. You may also set the slice to receive unknown LLDP messages. Optionally, you may set "
-                    "this slice as disabled initially, this is then changed via an update-slice call "
+                    "this slice as disabled initially, this is then changed via an update-slice call. "
                     "Finally, the password is the slice password." 
                      )
                     ),
