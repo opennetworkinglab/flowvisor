@@ -108,7 +108,7 @@ def pa_updateSlice(args, cmd):
     
     parser.add_option("-n", "--controller-hostname", dest="chost", default=None,
             help="Specify new controller hostname")
-    parser.add_option("-p", "--controller-port", dest="cport", default=None,
+    parser.add_option("-p", "--controller-port", dest="cport", default=None, type='int',
             help="Specify new controller port")
     parser.add_option("-a", "--admin-contact", dest="admin", default=None,
             help="Specify new admin contact")
