@@ -565,13 +565,12 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 						.getMessage(OFType.ERROR);
 				fvError.setErrorCode(OFHelloFailedCode.OFPHFC_INCOMPATIBLE);
 				fvError.setVersion(m.getVersion());
-				String errmsg = "we only support version "
+				/*String errmsg = "we only support version "
 						+ Integer.toHexString(OFMessage.OFP_VERSION)
 						+ " and you are not it";
 				fvError.setError(errmsg.getBytes());
-				fvError.setErrorIsAscii(true);
-				fvError.setLength((short) (FVError.MINIMUM_LENGTH + errmsg
-						.length()));
+				fvError.setErrorIsAscii(true);*/
+				fvError.setLength((short) FVError.MINIMUM_LENGTH);
 				FVLog.log(LogLevel.DEBUG, this, "THE TYPE " + fvError.getType());
 				this.sendMsg(fvError, this);
 				tearDown();
