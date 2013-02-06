@@ -572,6 +572,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 				fvError.setErrorIsAscii(true);
 				fvError.setLength((short) (FVError.MINIMUM_LENGTH + errmsg
 						.length()));
+				FVLog.log(LogLevel.DEBUG, this, "THE TYPE " + fvError.getType());
 				this.sendMsg(fvError, this);
 				tearDown();
 			}
