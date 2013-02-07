@@ -564,7 +564,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 				FVError fvError = (FVError) this.factory
 						.getMessage(OFType.ERROR);
 				fvError.setErrorCode(OFHelloFailedCode.OFPHFC_INCOMPATIBLE);
-				fvError.setVersion(m.getVersion());
+				fvError.setVersion(OFMessage.OFP_VERSION);
 				/*String errmsg = "we only support version "
 						+ Integer.toHexString(OFMessage.OFP_VERSION)
 						+ " and you are not it";
