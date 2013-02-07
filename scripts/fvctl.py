@@ -226,12 +226,20 @@ def pa_listFlowSpace(args, cmd):
     
     parser.add_option("-s", "--slice-name", default=None, dest="slice", 
             help="Fetch flowspace for specified slice.")
+    parser.add_option("-x", "--output-hex", default=False, action="store_true", dest="hex",
+            help="Displays relevant fields in hex")
     parser.add_option("-p", "--pretty-print", default=False, dest="pretty", action="store_true",
             help="Pretty print output")
     parser.add_option("--show-disabled", default=None, dest="show", action="store_true",
             help="Display flowspace for disabled slices")
 
     return parser.parse_args(args)
+
+def convert(match):
+    for (field, value) in match.iteritems():
+        if field in CONVFIELDS:
+            match[field] = hex(value)
+    return match
 
 def do_listFlowSpace(gopts, opts, args):
     passwd = getPassword(gopts)
@@ -243,6 +251,8 @@ def do_listFlowSpace(gopts, opts, args):
     if opts.show is not None:
         req['show-disabled'] = True
     ret = connect(gopts, "list-flowspace", passwd, data=req)
+    if opts.hex:
+        ret['match'] = convert(ret['match'])
     print out
     if len(ret) == 0:
         print "  None"
@@ -673,6 +683,8 @@ def printHelp(option, opt, value, parser):
 def print_help(option, opt, value, parser):
     print "%s %s %s %s" % (option, opt, value, parser)
 
+CONVFIELDS = [ 'dl_type', 'dl_vlan', 'dl_vpcp' ]
+
 MATCHSTRS = {
     'in_port' : ('in_port', toInt),
     'input_port' : ('in_port', toInt),
@@ -683,7 +695,8 @@ MATCHSTRS = {
     'dl_type' : ('dl_type',toStr),
     'eth_type' : ('dl_type',toStr),
     'dl_vlan' : ('dl_vlan', toStr),
-    'dl_vlan_pcp' : ('dl_vlan_pcp',toStr),
+    'dl_vpcp' : ('dl_vpcp', toStr),
+    'dl_vlan_pcp' : ('dl_vpcp',toStr),
     'nw_dst' : ('nw_dst',toStr),
     'nw_src' : ('nw_src',toStr),
     'nw_proto' : ('nw_proto',toInt),
