@@ -53,6 +53,7 @@ import org.flowvisor.message.Classifiable;
 import org.flowvisor.message.FVError;
 import org.flowvisor.message.FVFlowMod;
 import org.flowvisor.message.FVMessageFactory;
+import org.flowvisor.message.FVMessageUtil;
 import org.flowvisor.message.FVStatisticsReply;
 import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.message.SanityCheckable;
@@ -66,6 +67,8 @@ import org.flowvisor.resources.ratelimit.FixedIntervalRefillStrategy;
 import org.flowvisor.resources.ratelimit.TokenBucket;
 import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFEchoReply;
+import org.openflow.protocol.OFError.OFBadRequestCode;
+import org.openflow.protocol.OFError.OFErrorType;
 import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFFeaturesRequest;
 import org.openflow.protocol.OFFlowMod;
@@ -564,8 +567,9 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 						OFMessage.OFP_VERSION);
 				FVError fvError = (FVError) this.factory
 						.getMessage(OFType.ERROR);
+				fvError.setErrorType(OFErrorType.OFPET_HELLO_FAILED);
 				fvError.setErrorCode(OFHelloFailedCode.OFPHFC_INCOMPATIBLE);
-				fvError.setVersion(m.getVersion());
+				fvError.setVersion(OFMessage.OFP_VERSION);
 				String errmsg = "we only support version "
 						+ Integer.toHexString(OFMessage.OFP_VERSION)
 						+ " and you are not it";
