@@ -84,7 +84,7 @@ public class HandlerUtils {
 				match.setDataLayerVirtualLan(U16.t(Short
                     .valueOf(dl_vlan.replaceFirst("0x", ""), 16)));
 			else
-				match.setDataLayerType(U16.t(Short
+				match.setDataLayerVirtualLan(U16.t(Short
                         .valueOf(dl_vlan)));
 			wildcards &= ~FVMatch.OFPFW_DL_VLAN;
 			map.remove(FVMatch.STR_DL_VLAN);
@@ -96,7 +96,7 @@ public class HandlerUtils {
 				match.setDataLayerVirtualLanPriorityCodePoint(U8.t(Short
                     .valueOf(dl_vlan_pcp.replaceFirst("0x", ""), 16)));
 			else
-				match.setDataLayerType(U8.t(Short
+				match.setDataLayerVirtualLanPriorityCodePoint(U8.t(Short
                         .valueOf(dl_vlan_pcp)));
 			wildcards &= ~FVMatch.OFPFW_DL_VLAN_PCP; 
 			map.remove(FVMatch.STR_DL_VLAN_PCP);
