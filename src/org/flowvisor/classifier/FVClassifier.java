@@ -53,6 +53,7 @@ import org.flowvisor.message.Classifiable;
 import org.flowvisor.message.FVError;
 import org.flowvisor.message.FVFlowMod;
 import org.flowvisor.message.FVMessageFactory;
+import org.flowvisor.message.FVMessageUtil;
 import org.flowvisor.message.FVStatisticsReply;
 import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.message.SanityCheckable;
@@ -66,6 +67,8 @@ import org.flowvisor.resources.ratelimit.FixedIntervalRefillStrategy;
 import org.flowvisor.resources.ratelimit.TokenBucket;
 import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.OFEchoReply;
+import org.openflow.protocol.OFError.OFBadRequestCode;
+import org.openflow.protocol.OFError.OFErrorType;
 import org.openflow.protocol.OFFeaturesReply;
 import org.openflow.protocol.OFFeaturesRequest;
 import org.openflow.protocol.OFFlowMod;
@@ -466,7 +469,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 									"trying to ignore it");
 							continue;
 						}
-						FVLog.log(LogLevel.DEBUG, this, "read ", m);
+						//FVLog.log(LogLevel.DEBUG, this, "THE TYPE " + m.getType());
+						//FVLog.log(LogLevel.DEBUG, this, "read ", m);
 						if ((m instanceof SanityCheckable)
 								&& (!((SanityCheckable) m).isSane())) {
 							FVLog.log(LogLevel.WARN, this,
@@ -563,15 +567,16 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 						OFMessage.OFP_VERSION);
 				FVError fvError = (FVError) this.factory
 						.getMessage(OFType.ERROR);
+				fvError.setErrorType(OFErrorType.OFPET_HELLO_FAILED);
 				fvError.setErrorCode(OFHelloFailedCode.OFPHFC_INCOMPATIBLE);
-				fvError.setVersion(m.getVersion());
+				fvError.setVersion(OFMessage.OFP_VERSION);
 				String errmsg = "we only support version "
 						+ Integer.toHexString(OFMessage.OFP_VERSION)
 						+ " and you are not it";
 				fvError.setError(errmsg.getBytes());
 				fvError.setErrorIsAscii(true);
-				fvError.setLength((short) (FVError.MINIMUM_LENGTH + errmsg
-						.length()));
+				fvError.setLength((short) FVError.MINIMUM_LENGTH);
+				
 				this.sendMsg(fvError, this);
 				tearDown();
 			}
@@ -778,7 +783,6 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 				this.loop.queueEvent(new TearDownEvent(this, this));
 				this.stats.increment(FVStatsType.DROP, from, msg);
 			} catch (MalformedOFMessage e) {
-				e.printStackTrace();
 				FVLog.log(LogLevel.CRIT, this, "BUG: bad msg: ", e);
 				this.stats.increment(FVStatsType.DROP, from, msg);
 			} catch (IOException e) {

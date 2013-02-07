@@ -29,7 +29,7 @@ import org.flowvisor.log.LogLevel;
 
 public class JettyServer implements Runnable{
 
-	public static final int default_jetty_port = -1;
+	public static final int default_jetty_port = 8080;
 
 	public static String REALM_NAME = "JETTYREALM";
 	private Server jettyServer;
@@ -43,7 +43,8 @@ public class JettyServer implements Runnable{
 	private void init(int port){
 
 		//System.setProperty("org.eclipse.jetty.util.log.class", JettyLog.class.getCanonicalName());
-
+		//org.eclipse.jetty.util.log.Log.setLog(new JettyLogger());
+		
 		FVLog.log(LogLevel.INFO, null,
 				"initializing FlowVisor UserAPI JSONRPC SSL WebServer on port "
 						+ port);
@@ -170,5 +171,9 @@ public class JettyServer implements Runnable{
 		Thread jettyThread = new Thread(new JettyServer(port));
 		jettyThread.start();
 	}
+	
+	
+		
+	
 
 }

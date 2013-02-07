@@ -5,10 +5,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.flowvisor.api.handlers.ApiHandler;
-import org.flowvisor.api.handlers.HandlerUtils;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.SliceImpl;
-import org.flowvisor.slicer.FVSlicer;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
