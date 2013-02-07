@@ -1,0 +1,8 @@
+/var/log/flowvisor/flowvisor-stderr.log {
+   size 1M
+   copytruncate
+   rotate 10
+   compress
+   maxage 100
+   missingok
+}

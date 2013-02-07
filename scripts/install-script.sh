@@ -264,6 +264,10 @@ cd $owd
 $install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/envs $root/etc/flowvisor/envs.sh
 $install $verbose --owner=$fvuser --group=$fvgroup --mode=644 $scriptd/fvlog.config $root/etc/flowvisor/fvlog.config
 
+echo Installing Logrotate config
+cd $owd
+$install $verbose --mode=644 $scriptd/logrotate $root/etc/logrotate.d/flowvisor
+
 echo Installing documentation
 cd $owd
 $install $verbose --owner=$binuser --group=$bingroup --mode=644 $DOCS $root$prefix/share/doc/flowvisor
