@@ -466,7 +466,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 									"trying to ignore it");
 							continue;
 						}
-						FVLog.log(LogLevel.DEBUG, this, "read ", m);
+						//FVLog.log(LogLevel.DEBUG, this, "THE TYPE " + m.getType());
+						//FVLog.log(LogLevel.DEBUG, this, "read ", m);
 						if ((m instanceof SanityCheckable)
 								&& (!((SanityCheckable) m).isSane())) {
 							FVLog.log(LogLevel.WARN, this,
@@ -565,13 +566,13 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 						.getMessage(OFType.ERROR);
 				fvError.setErrorCode(OFHelloFailedCode.OFPHFC_INCOMPATIBLE);
 				fvError.setVersion(OFMessage.OFP_VERSION);
-				/*String errmsg = "we only support version "
+				String errmsg = "we only support version "
 						+ Integer.toHexString(OFMessage.OFP_VERSION)
 						+ " and you are not it";
 				fvError.setError(errmsg.getBytes());
-				fvError.setErrorIsAscii(true);*/
+				fvError.setErrorIsAscii(true);
 				fvError.setLength((short) FVError.MINIMUM_LENGTH);
-				FVLog.log(LogLevel.DEBUG, this, "THE TYPE " + fvError.getType());
+				
 				this.sendMsg(fvError, this);
 				tearDown();
 			}
