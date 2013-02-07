@@ -252,7 +252,8 @@ def do_listFlowSpace(gopts, opts, args):
         req['show-disabled'] = True
     ret = connect(gopts, "list-flowspace", passwd, data=req)
     if opts.hex:
-        ret['match'] = convert(ret['match'])
+        for fs in ret:
+            fs['match'] = convert(fs['match'])
     print out
     if len(ret) == 0:
         print "  None"
