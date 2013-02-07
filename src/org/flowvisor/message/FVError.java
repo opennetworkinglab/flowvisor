@@ -59,9 +59,10 @@ public class FVError extends org.openflow.protocol.OFError implements
 		String ret = super.toString() + ";c=" + this.getErrorCode() + ";t="
 				+ getErrorType();
 		
-		OFMessage offendingMsg = getOffendingMsg();
-		if (offendingMsg != null && !isErrorIsAscii())
-			ret += ";msg=" + getOffendingMsg().toString();
+		OFMessage offendingMsg = null;
+		if (!isErrorIsAscii() && (offendingMsg = getOffendingMsg()) != null)
+			ret += ";msg=" + offendingMsg.toString();
+		
 		if (error != null) {
 			if (errorIsAscii)
 				ret += ";err=" + new String(error);
