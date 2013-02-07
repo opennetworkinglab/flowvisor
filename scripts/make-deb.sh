@@ -37,7 +37,7 @@ Maintainer: Ali Al-Shabibi <alshabib@stanford.edu>
 Section: misc
 Priority: optional
 Description: The OpenFlow FlowVisor
-Depends: openjdk-6-jre
+Depends: openjdk-6-jre-headless, python, logrotate
 EOF
 
 cat > preinst << EOF
