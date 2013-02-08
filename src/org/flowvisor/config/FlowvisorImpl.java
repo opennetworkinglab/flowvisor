@@ -995,7 +995,6 @@ public class FlowvisorImpl implements Flowvisor {
 			}
 				
 		} catch (SQLException e) {
-			e.printStackTrace();
 			System.err.println("Embedded DB issue, exiting : " + e.getNextException().getMessage());
 			System.exit(1);
 		} finally {

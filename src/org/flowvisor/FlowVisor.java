@@ -226,7 +226,7 @@ public class FlowVisor {
 				
 				
 				fv.run(); 
-			} catch (NullPointerException e) {
+			}  catch (NullPointerException e) {
 				System.err.println(e.getMessage());
 				System.err.println("Errors occurred. Please make sure that the database exists and/or no other FlowVisor is running.");
 				System.exit(0);
