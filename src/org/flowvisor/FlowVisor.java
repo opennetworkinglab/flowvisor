@@ -326,7 +326,7 @@ public class FlowVisor {
 				.println("Ali Al-Shabibi: ali.al-shabibi@onlab.us");
 		System.err
 				.println("---------------------------------------------------------------");
-		System.err.println("err: " + string);
+		System.err.println("\n msg: " + string + "\n");
 		SimpleCLI.printHelp("FlowVisor [options] [config.json]",
 				FlowVisor.getOptions());
 		System.exit(-1);
