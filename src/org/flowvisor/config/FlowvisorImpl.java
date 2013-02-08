@@ -996,7 +996,7 @@ public class FlowvisorImpl implements Flowvisor {
 				
 		} catch (SQLException e) {
 			System.err.println("Error code " + e.getErrorCode() + " sql state " + e.getSQLState());
-			System.err.println("Updating database failed, exiting : " + e.getMessage());
+			System.err.println("Updating database failed, exiting : " + e.getNextException().getMessage());
 			System.exit(1);
 		} finally {
 			close(ps);
