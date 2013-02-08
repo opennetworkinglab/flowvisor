@@ -293,6 +293,11 @@ public class FlowVisor {
 			System.err.println("Writting jetty port to config: setting to "
 					+ jp);
 		}
+		
+		if(cmd.hasOption("h")){
+			usage("FlowVisor Help");
+			System.exit(0);
+		}
 
 	}
 
