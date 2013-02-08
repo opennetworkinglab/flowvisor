@@ -561,6 +561,43 @@ def do_listSliceStats(gopts, opts, args):
     ret = connect(gopts, "list-slice-stats", passwd, data=req)
     print json.dumps(ret, sort_keys=True, indent = 2)
 
+def pa_regEventCB(args, cmd):
+    usage = "%s <url> <methodname> <eventtype> <name>" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
+    return parser.parse_args(args)
+
+def do_regEventCB(gopts, opts, args):
+    if len(args) != 4:
+        print "register-event-callback : Must specify all the arguments"
+        sys.exit()
+    passwd = getPassword(gopts)
+    req = { 'url' : args[0], 'method' : args[1], 'event-type' : args[2], 'cookie' : args[3]}
+    ret = connect(gopts, "register-event-callback", passwd, data=req)
+    if ret:
+        print "Callback %s successfully added" % args[3]
+
+def pa_unregEventCB(args, cmd):
+    usage = "%s <methodname> <eventtype> <name>" % USAGE.format(cmd)
+    parser = OptionParser(usage=usage)
+    
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
+    return parser.parse_args(args)
+
+def do_unregEventCB(gopts, opts, args):
+    if len(args) != 3:
+        print "unregister-event-callback : Must specify all the arguments"
+        sys.exit()
+    passwd = getPassword(gopts)
+    req = { 'method' : args[1], 'event-type' : args[2], 'cookie' : args[3]}
+    ret = connect(gopts, "unregister-event-callback", passwd, data=req)
+    if ret:
+        print "Callback %s successfully removed" % args[3]
+
+
 def do_listFVHealth(gopts, opts, args):
     passwd = getPassword(gopts)
     ret = connect(gopts, "list-fv-health", passwd)
@@ -730,6 +767,8 @@ CMDS = {
     'list-links' : (pa_none, do_listLinks),
     'list-slice-health' : (pa_listSliceHealth, do_listSliceHealth),
     'list-slice-stats' : (pa_listSliceStats, do_listSliceStats),
+    'register-event-callback' : (pa_regEventCB, do_regEventCB),
+    'unregister-event-callback' : (pa_unregEventCB, do_unregEventCB),
     'help' : (pa_help, do_help)
 }
 
@@ -859,7 +898,15 @@ DESCS = {
                     ("Reports the overall slice health by returning whether the slice is "
                     "connected to a controller or who is connected to it, or the number "
                     "flowspace entries it is made up of. "
-                    ))
+                    )),
+    'register-event-callback' : ("Registers your server, for events from FlowVisor",
+                    ("Registers for events from FlowVisor. Possible events are: DEVICE_CONNECTED, "
+                    "SLICE_CONNECTED, and SLICE_DISCONNECTED. More may be added later."
+                    )),
+    'unregister-event-callback' : ("Unregisters your server from FlowVisor",
+                    ("Unregisters your server from FlowVisor thereby deactivating event "
+                    "callbacks for you."
+                    )) 
 }
 
 def parse_global_args(arglist):

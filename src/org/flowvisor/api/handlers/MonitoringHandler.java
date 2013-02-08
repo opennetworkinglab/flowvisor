@@ -10,6 +10,8 @@ import org.flowvisor.api.handlers.monitoring.ListLinks;
 import org.flowvisor.api.handlers.monitoring.ListSliceHealth;
 import org.flowvisor.api.handlers.monitoring.ListSliceInfo;
 import org.flowvisor.api.handlers.monitoring.ListSliceStats;
+import org.flowvisor.api.handlers.monitoring.RegisterEventCallback;
+import org.flowvisor.api.handlers.monitoring.UnRegisterEventCallback;
 
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
@@ -31,6 +33,8 @@ public class MonitoringHandler implements RequestHandler {
 		put("list-links", new ListLinks());
 		put("list-slice-health", new ListSliceHealth());
 		put("list-slice-stats", new ListSliceStats());
+		put("register-event-callback", new RegisterEventCallback());
+		put("unregister-event-callback", new UnRegisterEventCallback());
 	}};
 	
 	
