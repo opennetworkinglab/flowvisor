@@ -64,9 +64,9 @@ public class FlowVisor {
 			new Option("d", "debug", LogLevel.NOTE.toString(),
 					"Override default logging threshold in config"),
 			new Option("l", "logging", "Log to stderr instead of syslog"),
-			new Option("p", "port", 0, "Override port from config"),
+			new Option("p", "port", 0, "Override OpenFlow port from config"),
 			new Option("h", "help", "Print help"),
-			new Option("j", "jetty port",-1, "Override jetty port from config"),
+			new Option("j", "JSON web api port",8080, "Override JSON API port from config"),
 
 	});
 
