@@ -227,9 +227,8 @@ public class FlowVisor {
 				
 				fv.run(); 
 			}  catch (NullPointerException e) {
-				System.err.println(e.getMessage());
-				System.err.println("Errors occurred. Please make sure that the database exists and/or no other FlowVisor is running.");
-				System.exit(0);
+				System.err.println("Startup failed : " + e.getMessage());
+				System.exit(1);
 			} catch (Throwable e) {
 				e.printStackTrace();
 				FVLog.log(LogLevel.CRIT, null, "MAIN THREAD DIED!!!");
@@ -319,11 +318,11 @@ public class FlowVisor {
 	private static void usage(String string) {
 		System.err.println("FlowVisor version: " + FLOWVISOR_VERSION);
 		System.err
-				.println("Rob Sherwood: rsherwood@telekom.com/rob.sherwood@stanford.edu");
+				.println("Ali Al-Shabibi: ali.al-shabibi@onlab.us");
 		System.err
 				.println("---------------------------------------------------------------");
 		System.err.println("err: " + string);
-		SimpleCLI.printHelp("FlowVisor [options] config.xml",
+		SimpleCLI.printHelp("FlowVisor [options] [config.json]",
 				FlowVisor.getOptions());
 		System.exit(-1);
 	}

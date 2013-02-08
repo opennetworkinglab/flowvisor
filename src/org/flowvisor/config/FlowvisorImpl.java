@@ -998,7 +998,7 @@ public class FlowvisorImpl implements Flowvisor {
 			if (e.getNextException() != null)
 				System.err.println("Embedded DB issue, exiting : " + e.getNextException().getMessage());
 			else
-				System.err.println("Embedded DB missing; exiting: " + e.getMessage());
+				System.err.println("Embedded DB missing, exiting: " + e.getMessage());
 			System.exit(1);
 		} finally {
 			close(ps);
