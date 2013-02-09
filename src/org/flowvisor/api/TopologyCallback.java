@@ -55,6 +55,7 @@ public class TopologyCallback implements Runnable {
 	private EventType eventType = EventType.GENERAL;
 
 	private int jsonCallbackId = 0;
+	private String user;
 
 	/*private static final Gson gson =
 		new GsonBuilder().registerTypeAdapter(OFAction.class, new JSONSerializers.OFActionSerializer())
@@ -90,6 +91,12 @@ public class TopologyCallback implements Runnable {
 		this(url, methodName, "");
 		this.eventType = eventType;
 	}
+	
+	public TopologyCallback(String user, String url, String methodName, EventType eventType, String cookie){
+		this(url, methodName, cookie);
+		this.eventType = eventType;
+		this.user = user;
+	}
 
 	public void spawn() {
 		new Thread(this).start();
@@ -102,6 +109,15 @@ public class TopologyCallback implements Runnable {
 	public String getMethodName(){
 		return this.methodName;
 	}
+	
+	public String getCookie() {
+		return this.cookie;
+	}
+	
+	public String getUser() {
+		return this.user;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 *

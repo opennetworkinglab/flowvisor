@@ -31,6 +31,7 @@ public interface ApiHandler<T> {
 	final static String QUEUE = "queues";
 	final static String SHOW = "show-disabled";
 	
+	
 	final static String MSG = "msg";
 	final static String CURRRATE = "current-rate";
 	final static String CURRFMUSE = "current-flowmod-usage";
@@ -46,7 +47,10 @@ public interface ApiHandler<T> {
 	final static String CONNCOUNT = "connect-drop-count";
 	final static String FSENTRIES = "fs-entries";
 	final static String CONNDPIDS = "connected-dpids";
-	
+	final static String URL = "url";
+	final static String METHOD = "method";
+	final static String EVENT = "event-type";
+	final static String COOKIE = "cookie";
 
 	public JSONRPC2Response process(T params);
 	
