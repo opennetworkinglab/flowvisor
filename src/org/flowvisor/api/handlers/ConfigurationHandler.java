@@ -28,7 +28,7 @@ public class ConfigurationHandler implements RequestHandler {
 
 	@SuppressWarnings( { "serial", "rawtypes" } )
 	HashMap<String, ApiHandler> handlers = new HashMap<String, ApiHandler>() {{
-		put("list-slices", new ListSlices());
+		put("listSlices", new ListSlices());
 		put("add-slice", new AddSlice());
 		put("update-slice", new UpdateSlice());
 		put("remove-slice", new RemoveSlice());
