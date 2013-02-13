@@ -65,8 +65,12 @@ public class GetConfig implements ApiHandler<Map<String, Object>> {
     	HashMap<String, HashMap<String, Object>> list = new HashMap<String,HashMap<String,Object>>();
     	HashMap<String, Object> subconfs = new HashMap<String, Object>();
 		if (sliceName != null && dpidStr != null) {
-			subconfs.put(dpidStr, SwitchImpl.getProxy().getMaxFlowMods(sliceName, 
-					FlowSpaceUtil.parseDPID(dpidStr)));
+			long dpid = FlowSpaceUtil.parseDPID(dpidStr);
+			if (dpid == FVMatch.ANY_DPID) 
+				subconfs.put("any", SliceImpl.getProxy().getMaxFlowMods(sliceName));
+			else
+				subconfs.put(dpidStr, SwitchImpl.getProxy().getMaxFlowMods(sliceName, 
+					dpid));
 			list.put(sliceName,subconfs);
 		} else if (sliceName != null && dpidStr == null) {
 			subconfs.put("any", SliceImpl.getProxy().getMaxFlowMods(sliceName));
