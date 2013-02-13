@@ -66,38 +66,23 @@ public class HandlerUtils {
 			map.remove(FVMatch.STR_DL_SRC);
 		}
 		
-		String dl_type = HandlerUtils.<String>fetchField(FVMatch.STR_DL_TYPE, map, false, null);
+		Number dl_type = HandlerUtils.<Number>fetchField(FVMatch.STR_DL_TYPE, map, false, null);
 		if (dl_type != null) {
-			if (dl_type.startsWith("0x"))
-				match.setDataLayerType(U16.t(Short
-                    .valueOf(dl_type.replaceFirst("0x", ""), 16)));
-			else
-				match.setDataLayerType(U16.t(Short
-                        .valueOf(dl_type)));
+			match.setDataLayerType(U16.t(dl_type.intValue()));
 			wildcards &= ~FVMatch.OFPFW_DL_TYPE;
 			map.remove(FVMatch.STR_DL_TYPE);
 		}
 		
-		String dl_vlan = HandlerUtils.<String>fetchField(FVMatch.STR_DL_VLAN, map, false, null);
+		Number dl_vlan = HandlerUtils.<Number>fetchField(FVMatch.STR_DL_VLAN, map, false, null);
 		if (dl_vlan != null) {
-			if (dl_vlan.startsWith("0x"))
-				match.setDataLayerVirtualLan(U16.t(Short
-                    .valueOf(dl_vlan.replaceFirst("0x", ""), 16)));
-			else
-				match.setDataLayerVirtualLan(U16.t(Short
-                        .valueOf(dl_vlan)));
+			match.setDataLayerVirtualLan(U16.t(dl_vlan.intValue()));
 			wildcards &= ~FVMatch.OFPFW_DL_VLAN;
 			map.remove(FVMatch.STR_DL_VLAN);
 		}
 		
-		String dl_vlan_pcp = HandlerUtils.<String>fetchField(FVMatch.STR_DL_VLAN_PCP, map, false, null);
+		Number dl_vlan_pcp = HandlerUtils.<Number>fetchField(FVMatch.STR_DL_VLAN_PCP, map, false, null);
 		if (dl_vlan_pcp != null) {
-			if (dl_vlan.startsWith("0x"))
-				match.setDataLayerVirtualLanPriorityCodePoint(U8.t(Short
-                    .valueOf(dl_vlan_pcp.replaceFirst("0x", ""), 16)));
-			else
-				match.setDataLayerVirtualLanPriorityCodePoint(U8.t(Short
-                        .valueOf(dl_vlan_pcp)));
+			match.setDataLayerVirtualLanPriorityCodePoint(U8.t(dl_vlan_pcp.shortValue()));
 			wildcards &= ~FVMatch.OFPFW_DL_VLAN_PCP; 
 			map.remove(FVMatch.STR_DL_VLAN_PCP);
 		}
