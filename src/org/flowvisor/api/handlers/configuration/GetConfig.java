@@ -69,7 +69,7 @@ public class GetConfig implements ApiHandler<Map<String, Object>> {
 					FlowSpaceUtil.parseDPID(dpidStr)));
 			list.put(sliceName,subconfs);
 		} else if (sliceName != null && dpidStr == null) {
-			subconfs.put("all", SliceImpl.getProxy().getMaxFlowMods(sliceName));
+			subconfs.put("any", SliceImpl.getProxy().getMaxFlowMods(sliceName));
 			for (String dpid : HandlerUtils.getAllDevices()) 
 				subconfs.put(dpid, SwitchImpl.getProxy().getMaxFlowMods(sliceName, 
 						FlowSpaceUtil.parseDPID(dpid)));
@@ -86,8 +86,10 @@ public class GetConfig implements ApiHandler<Map<String, Object>> {
 			List<String> slices = SliceImpl.getProxy().getAllSliceNames();
 			for (String slice : slices) {
 				subconfs.clear();
-				subconfs.put("all", SliceImpl.getProxy().getMaxFlowMods(sliceName));
-				
+				subconfs.put("any", SliceImpl.getProxy().getMaxFlowMods(sliceName));
+				for (String dpid : HandlerUtils.getAllDevices()) 
+					subconfs.put(dpid, SwitchImpl.getProxy().getMaxFlowMods(sliceName, 
+						FlowSpaceUtil.parseDPID(dpid)));
 				list.put(slice,(HashMap<String, Object>)subconfs.clone());
 			}
 		}
