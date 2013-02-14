@@ -235,11 +235,12 @@ def pa_listFlowSpace(args, cmd):
 
     return parser.parse_args(args)
 
-def convert(match):
+def toHex(match):
     for (field, value) in match.iteritems():
         if field in CONVFIELDS:
             match[field] = hex(value)
     return match
+
 
 def do_listFlowSpace(gopts, opts, args):
     passwd = getPassword(gopts)
@@ -253,7 +254,7 @@ def do_listFlowSpace(gopts, opts, args):
     ret = connect(gopts, "list-flowspace", passwd, data=req)
     if opts.hex:
         for fs in ret:
-            fs['match'] = convert(fs['match'])
+            fs['match'] = toHex(fs['match'])
     print out
     if len(ret) == 0:
         print "  None"
@@ -623,6 +624,41 @@ def do_listLinks(gopts, opts, args):
     ret = connect(gopts, "list-links", passwd)
     print json.dumps(ret, sort_keys=True, indent = 2)
 
+def pa_listflowdb(args, cmd):
+    usage = "%s <dpid>" % USAGE.format(cmd)
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
+    return parser.parse_args(args)
+
+def do_listflowdb(gopts, opts, args):
+    if len(args) != 1:
+        print "list-datapath-flowdb : Please specify the dpid"
+        sys.exit()
+    passwd = getPassword(gopts)
+    req = { 'dpid' : args[0]}
+    ret = connect(gopts, "list-datapath-flowdb", passwd, data=req)
+    print "Flows seen at FlowVisor: "
+    for fbe in ret:
+        print fbe
+
+def pa_listrewritedb(args, cmd):
+    usage = "%s <slicename> <dpid>" % USAGE.format(cmd)
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage=usage, description=ldesc)
+    return parser.parse_args(args)
+
+def do_listflowdb(gopts, opts, args):
+    if len(args) != 2:
+        print "list-datapath-flowdb : Please specify the slicename and dpid"
+        sys.exit()
+    passwd = getPassword(gopts)
+    req = { 'dpid' : args[1], 'slice-name' : args[0]}
+    ret = connect(gopts, "list-datapath-flowrewritedb", passwd, data=req)
+    print "Rewrites applied by FlowVisor: "
+    for fbe in ret:
+        print fbe
+
+
 def pa_help(args, cmd):
     usage = "%s <cmd>" % USAGE.format(cmd)
     parser = OptionParser(usage=usage)
@@ -689,6 +725,10 @@ def parseResponse(data):
     return j['result']
 
 def toInt(val):
+    if val is None:
+        return
+    if val is not None and val.find('0x') != -1:
+        return int(val,16) 
     return int(val)
 
 def toStr(val):
@@ -726,21 +766,21 @@ CONVFIELDS = [ 'dl_type', 'dl_vlan', 'dl_vpcp' ]
 MATCHSTRS = {
     'in_port' : ('in_port', toInt),
     'input_port' : ('in_port', toInt),
-    'dl_dst' : ('dl_dst', toStr),
-    'eth_dst' : ('dl_dst', toStr),
-    'dl_src' : ('dl_src', toStr),
-    'eth_src' : ('dl_src',toStr),
-    'dl_type' : ('dl_type',toStr),
-    'eth_type' : ('dl_type',toStr),
-    'dl_vlan' : ('dl_vlan', toStr),
-    'dl_vpcp' : ('dl_vpcp', toStr),
+    'dl_dst' : ('dl_dst', toInt),
+    'eth_dst' : ('dl_dst', toInt),
+    'dl_src' : ('dl_src', toInt),
+    'eth_src' : ('dl_src',toInt),
+    'dl_type' : ('dl_type',toInt),
+    'eth_type' : ('dl_type',toInt),
+    'dl_vlan' : ('dl_vlan', toInt),
+    'dl_vpcp' : ('dl_vpcp', toInt),
     'dl_vlan_pcp' : ('dl_vpcp',toStr),
     'nw_dst' : ('nw_dst',toStr),
     'nw_src' : ('nw_src',toStr),
     'nw_proto' : ('nw_proto',toInt),
     'nw_tos' : ('nw_tos',toInt),
     'tp_src' : ('tp_src',toInt),
-    'tp_dst' : ('tp_dst', toInt),
+    'tp_dst' : ('tp_dst', toInt)
 }
 
 
@@ -769,6 +809,8 @@ CMDS = {
     'list-slice-stats' : (pa_listSliceStats, do_listSliceStats),
     'register-event-callback' : (pa_regEventCB, do_regEventCB),
     'unregister-event-callback' : (pa_unregEventCB, do_unregEventCB),
+    'list-datapath-flowdb' : (pa_listflowdb, do_listflowdb),
+    'list-datapath-flowrewritedb' : (pa_listrewritedb, do_listrewritedb),
     'help' : (pa_help, do_help)
 }
 
@@ -906,7 +948,16 @@ DESCS = {
     'unregister-event-callback' : ("Unregisters your server from FlowVisor",
                     ("Unregisters your server from FlowVisor thereby deactivating event "
                     "callbacks for you."
-                    )) 
+                    )),
+    'list-datapath-flowdb' : ("Displays the contents of the flow db if flow tracking is enabled",
+                        ("When flow tracking is enabled, FlowVisor tracks flows which are pushed "
+                        "to switches from slices. This command displays these flows."
+                        )),
+    'list-datapath-flowrewritedb' : ("Displays the rewrites (or expansions) FlowVisor has applied",
+                        ("When a controller pushes flows through FlowVisor, FlowVisor may rewrite or "
+                        "expand the flow. This command displays the expansion for a flow, if any. "
+                        "Note: Flow tracking must be enabled."
+                        ))
 }
 
 def parse_global_args(arglist):
