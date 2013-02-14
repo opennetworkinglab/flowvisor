@@ -2,6 +2,7 @@ package org.flowvisor.openflow.protocol;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -462,6 +463,61 @@ public class FVMatch extends OFMatch {
          
     	
     	return true;
+    }
+    
+    
+    public HashMap<String,Object> toMap() {
+    	
+        HashMap<String, Object> ret = new HashMap<String, Object>();
+
+        // l1
+        if ((wildcards & OFPFW_IN_PORT) == 0)
+            ret.put(STR_IN_PORT,U16.f(this.inputPort));
+
+        // l2
+        if ((wildcards & OFPFW_DL_DST) == 0)
+        	ret.put(STR_DL_DST, HexString.toHexString(this.dataLayerDestination));
+           
+        if ((wildcards & OFPFW_DL_SRC) == 0)
+        	ret.put(STR_DL_SRC, HexString.toHexString(this.dataLayerSource));
+           
+        if ((wildcards & OFPFW_DL_TYPE) == 0)
+        	ret.put(STR_DL_TYPE, U16.f(this.dataLayerType));
+        	
+   
+        if ((wildcards & OFPFW_DL_VLAN) == 0)
+        	ret.put(STR_DL_VLAN, U16.f(this.dataLayerVirtualLan));
+        	
+       
+        if ((wildcards & OFPFW_DL_VLAN_PCP) == 0)
+        	ret.put(STR_DL_VLAN_PCP, U8.f(this.dataLayerVirtualLanPriorityCodePoint));
+        	
+
+        // l3
+        if (getNetworkDestinationMaskLen() > 0)
+        	ret.put(STR_NW_DST, cidrToString(networkDestination,
+                    getNetworkDestinationMaskLen()));
+            
+        
+        if (getNetworkSourceMaskLen() > 0)
+        	ret.put(STR_NW_SRC, cidrToString(networkSource, getNetworkSourceMaskLen()));
+        	
+        
+        if ((wildcards & OFPFW_NW_PROTO) == 0)
+        	ret.put(STR_NW_PROTO, this.networkProtocol);
+        	
+           
+        if ((wildcards & OFPFW_NW_TOS) == 0)
+           ret.put(STR_NW_TOS,this.networkTypeOfService);
+
+        // l4
+        if ((wildcards & OFPFW_TP_DST) == 0)
+        	ret.put(STR_TP_DST,this.transportDestination);
+        
+        if ((wildcards & OFPFW_TP_SRC) == 0)
+            ret.put(STR_TP_SRC,this.transportSource);
+        
+        return ret;
     }
     
 }

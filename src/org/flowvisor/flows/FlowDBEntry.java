@@ -93,7 +93,7 @@ public class FlowDBEntry extends FlowEntry {
 	@Override
 	public Map<String, String> toBracketMap() {
 		Map<String, String> map = super.toBracketMap();
-		super.toBracketMap();
+		super.toBracketMap(); 
 		map.put("cookie", String.valueOf(cookie));
 		map.put("slice", this.sliceName);
 		map.put("duration",

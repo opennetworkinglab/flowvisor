@@ -2,6 +2,8 @@ package org.flowvisor.api.handlers;
 
 import java.util.HashMap;
 
+import org.flowvisor.api.handlers.monitoring.ListDatapathFlowDB;
+import org.flowvisor.api.handlers.monitoring.ListDatapathFlowRewriteDB;
 import org.flowvisor.api.handlers.monitoring.ListDatapathInfo;
 import org.flowvisor.api.handlers.monitoring.ListDatapathStats;
 import org.flowvisor.api.handlers.monitoring.ListDatapaths;
@@ -33,6 +35,8 @@ public class MonitoringHandler implements RequestHandler {
 		put("list-links", new ListLinks());
 		put("list-slice-health", new ListSliceHealth());
 		put("list-slice-stats", new ListSliceStats());
+		put("list-datapath-flowdb", new ListDatapathFlowDB());
+		put("list-datapath-flowrewritedb", new ListDatapathFlowRewriteDB());
 		put("register-event-callback", new RegisterEventCallback());
 		put("unregister-event-callback", new UnRegisterEventCallback());
 	}};

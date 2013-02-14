@@ -589,6 +589,19 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 		}
 		return false;
 	}
+	
+	public Map<String, Object> toMap() {
+		HashMap<String, Object> map = new LinkedHashMap<String, Object>();
+		if (dpid == ALL_DPIDS)
+			map.put("dpid", ALL_DPIDS_STR);
+		else
+			map.put("dpid", FlowSpaceUtil.dpidToString(dpid));
+		if (this.ruleMatch != null)
+			map.put("match", this.ruleMatch.toMap());
+		map.put("actionsList", actionsList);
+		map.put("priority", String.valueOf(this.priority));
+		return map;
+	}
 
 	@Override
 	public Map<String, String> toBracketMap() {
