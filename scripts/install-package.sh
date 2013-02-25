@@ -69,7 +69,7 @@ bin_PYSCRIPTS="\
 sbin_SCRIPTS="\
     fvconfig \
     flowvisor \
-    derby-interact.sh
+    derby-interact
     "
 
 LIBS="\
@@ -140,10 +140,11 @@ for d in /var/log/flowvisor ; do
     fi
 done
 
-
-
 echo "Creating /etc/flowvisor (owned by user=$fvuser  group=$fvgroup)"
 $install $verbose --owner=$fvuser --group=$fvgroup --mode=2755 -d $root/etc/flowvisor
+
+echo "Creating /etc/logrotate.d"
+$install $verbose --mode=755 -d $root/etc/logrotate.d
 
 echo Installing scripts
 $install $verbose --owner=$binuser --group=$bingroup --mode=755 $bin_SCRIPTS $root$prefix/bin
