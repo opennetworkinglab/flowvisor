@@ -13,7 +13,9 @@ import org.flowvisor.config.FlowvisorImpl;
 import org.flowvisor.config.SliceImpl;
 import org.flowvisor.config.SwitchImpl;
 import org.flowvisor.exceptions.MissingRequiredField;
+import org.flowvisor.flows.FlowMap;
 import org.flowvisor.flows.FlowSpaceUtil;
+import org.flowvisor.openflow.protocol.FVMatch;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
@@ -59,45 +61,40 @@ public class GetConfig implements ApiHandler<Map<String, Object>> {
     @SuppressWarnings("unchecked")
 	private void addFlowmodLimits(String sliceName, String dpidStr,
 			HashMap<String, Object> configs) throws MissingRequiredField, ConfigError {
-    	List<HashMap<String, Object>> list = new LinkedList<HashMap<String,Object>>();
+    	
+    	HashMap<String, HashMap<String, Object>> list = new HashMap<String,HashMap<String,Object>>();
     	HashMap<String, Object> subconfs = new HashMap<String, Object>();
 		if (sliceName != null && dpidStr != null) {
-			subconfs.put(SLICENAME, sliceName);
-			subconfs.put(FlowSpace.DPID, dpidStr);
-			subconfs.put(FMLIMIT, SwitchImpl.getProxy().getMaxFlowMods(sliceName, 
-					FlowSpaceUtil.parseDPID(dpidStr)));
-			list.add(subconfs);
+			long dpid = FlowSpaceUtil.parseDPID(dpidStr);
+			if (dpid == FVMatch.ANY_DPID) 
+				subconfs.put("any", SliceImpl.getProxy().getMaxFlowMods(sliceName));
+			else
+				subconfs.put(dpidStr, SwitchImpl.getProxy().getMaxFlowMods(sliceName, 
+					dpid));
+			list.put(sliceName,subconfs);
 		} else if (sliceName != null && dpidStr == null) {
-			subconfs.put(SLICENAME, sliceName);
-			subconfs.put(FlowSpace.DPID, "all");
-			subconfs.put(FMLIMIT, SliceImpl.getProxy().getMaxFlowMods(sliceName));
-			list.add((HashMap<String, Object>)subconfs.clone());
-			for (String dpid : HandlerUtils.getAllDevices()) {
-				subconfs.clear();
-				subconfs.put(SLICENAME, sliceName);
-				subconfs.put(FlowSpace.DPID, dpid);
-				subconfs.put(FMLIMIT, SwitchImpl.getProxy().getMaxFlowMods(sliceName, 
+			subconfs.put("any", SliceImpl.getProxy().getMaxFlowMods(sliceName));
+			for (String dpid : HandlerUtils.getAllDevices()) 
+				subconfs.put(dpid, SwitchImpl.getProxy().getMaxFlowMods(sliceName, 
 						FlowSpaceUtil.parseDPID(dpid)));
-				list.add((HashMap<String, Object>)subconfs.clone());
-			}
+			list.put(sliceName, subconfs);
 		} else if (dpidStr != null && sliceName == null) {
 			long dpid = FlowSpaceUtil.parseDPID(dpidStr);
 			List<String> slices = SliceImpl.getProxy().getAllSliceNames();
 			for (String slice : slices) {
+				subconfs.put(dpidStr, SwitchImpl.getProxy().getMaxFlowMods(slice,dpid));
+				list.put(slice, (HashMap<String, Object>) subconfs.clone());
 				subconfs.clear();
-				subconfs.put(SLICENAME, slice);
-				subconfs.put(FlowSpace.DPID, dpidStr);
-				subconfs.put(FMLIMIT, SwitchImpl.getProxy().getMaxFlowMods(slice,dpid));
-				list.add((HashMap<String, Object>)subconfs.clone());
 			}
 		} else {
 			List<String> slices = SliceImpl.getProxy().getAllSliceNames();
 			for (String slice : slices) {
 				subconfs.clear();
-				subconfs.put(SLICENAME, slice);
-				subconfs.put(FlowSpace.DPID, "all");
-				subconfs.put(FMLIMIT, SliceImpl.getProxy().getMaxFlowMods(sliceName));
-				list.add((HashMap<String, Object>)subconfs.clone());
+				subconfs.put("any", SliceImpl.getProxy().getMaxFlowMods(sliceName));
+				for (String dpid : HandlerUtils.getAllDevices()) 
+					subconfs.put(dpid, SwitchImpl.getProxy().getMaxFlowMods(sliceName, 
+						FlowSpaceUtil.parseDPID(dpid)));
+				list.put(slice,(HashMap<String, Object>)subconfs.clone());
 			}
 		}
 		configs.put(MAX, list);	

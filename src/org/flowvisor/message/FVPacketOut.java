@@ -73,7 +73,7 @@ public class FVPacketOut extends OFPacketOut implements Classifiable, Slicable {
 				) {
 					FVLog
 							.log(LogLevel.WARN, fvSlicer,
-									"EPERM bad encap packet: "
+									"EPERM packet not in flowspace: "
 											+ this.toVerboseString());
 					fvSlicer.sendMsg(FVMessageUtil.makeErrorMsg(
 							OFBadActionCode.OFPBAC_EPERM, this), fvSlicer);

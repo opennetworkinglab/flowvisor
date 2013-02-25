@@ -68,6 +68,5 @@ sslopts="-Djavax.net.ssl.keyStore=$SSL_KEYSTORE -Djavax.net.ssl.keyStorePassword
 # for ssl debugging options
 #sslopts="$sslopts -Djava.protocol.handler.pkgs=com.sun.net.ssl.internal.www.protocol -Djavax.net.debug=ssl"
 
-
-
-
+ test -f /etc/default/flowvisor && . /etc/default/flowvisor
+ test -f /etc/sysconfig/flowvisor && . /etc/sysconfig/flowvisor

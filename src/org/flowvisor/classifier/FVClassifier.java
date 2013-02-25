@@ -898,7 +898,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 					new TokenBucket());
 		} else {
 			slicerLimits.setRateLimiter(/*FlowSpaceUtil.dpidToString(this.getDPID()) + */(String)in.get(Slice.SLICE), 
-					new TokenBucket(200, new FixedIntervalRefillStrategy(rateLimit, 1, TimeUnit.SECONDS)));
+					new TokenBucket(rateLimit, new FixedIntervalRefillStrategy(rateLimit, 1, TimeUnit.SECONDS)));
 		}
 		
 	}
