@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ $# -ne 1 ] ; then
+if [ $# -ne 2 ] ; then
     echo "Usage: $0 version-string" >&2
     exit 1
 fi
