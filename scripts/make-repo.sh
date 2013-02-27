@@ -2,10 +2,10 @@
 
 # Deb
 # Assumes mini-dinstall has initialized (run once like below)
-#mini-dinstall -c /var/packages/repo/mini-dinstall.conf -b
-#s3cmd --verbose --acl-public --recursive sync /var/packages/repo/debian/stable s3://repo.onlab.us/debian/
-#s3cmd --verbose --acl-public --recursive sync /var/packages/repo/debian/staging s3://repo.onlab.us/debian/
-#s3cmd --verbose --acl-public --recursive sync /var/packages/repo/debian/unstable s3://repo.onlab.us/debian/
+mini-dinstall -c /var/packages/repo/mini-dinstall.conf -b
+s3cmd --verbose --acl-public --recursive sync /var/packages/repo/debian/stable s3://repo.onlab.us/debian/
+s3cmd --verbose --acl-public --recursive sync /var/packages/repo/debian/staging s3://repo.onlab.us/debian/
+s3cmd --verbose --acl-public --recursive sync /var/packages/repo/debian/unstable s3://repo.onlab.us/debian/
 
 # Rpm
 # Assumes createrepo has initialized all three directories (run w/o --update)

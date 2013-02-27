@@ -17,8 +17,9 @@ version=$1
 type=$2
 USER="flowvisor"
 GROUP="flowvisor"
-
+date=`date +"%a %b %d %Y"`
 base=`pwd`
+
 # Clean and setup RPM build environment
 mkdir -p $base/pkgbuild/BUILD
 mkdir -p $base/pkgbuild/RPMS
@@ -63,23 +64,15 @@ multiple switches in parallel, effectively slicing a network.
 if ! getent group flowvisor >/dev/null; then
     # Adding system group: flowvisor.
     echo "Creating FlowVisor (flowvisor) group."
-    addgroup --system flowvisor >/dev/null
+    /usr/sbin/groupadd -r flowvisor >/dev/null
 fi
 
 # creating flowvisor user if he isn't already there
 if ! getent passwd flowvisor >/dev/null; then
     # Adding system user: flowvisor.
     echo "Creating FlowVisor (flowvisor) user."
-    adduser \
-      --system \
-          --disabled-login \
-      --ingroup flowvisor \
-      --no-create-home \
-      --home /nonexistent \
-      --gecos "FlowVisor Hypervisor" \
-      --shell /bin/false \
-      flowvisor  >/dev/null
-fi
+    /usr/sbin/adduser -c FlowVisor -r -d / -g flowvisor -M --shell /sbin/nologin flowvisor  >/dev/null
+fi  
 
 %post
 if [ -d /usr/share/db/flowvisor/FlowVisorDB/seg0 ]; then
@@ -90,7 +83,7 @@ fi
 
 %files
 %defattr(644, root, root, 755)
-%config /etc/flowvisor
+%config %attr(755, flowvisor, flowvisor) /etc/flowvisor
 %attr(755, root, root) /etc/init.d/flowvisor
 %attr(755, root, root) /usr/bin/fvctl
 %attr(755, root, root) /usr/bin/fvctl-xml
@@ -98,19 +91,19 @@ fi
 %attr(755, root, root) /usr/sbin/derby-interact
 %attr(755, root, root) /usr/sbin/flowvisor
 %attr(755, root, root) /usr/sbin/fvconfig
-%config /usr/share/db/flowvisor
+%config %attr(755, flowvisor, flowvisor) /usr/share/db/flowvisor
 %doc /usr/share/doc/flowvisor
 %doc /usr/share/man/man1/fvconfig.1
 %doc /usr/share/man/man1/fvctl.1
 %doc /usr/share/man/man8/flowvisor.8
-/var/log/flowvisor
+%attr(755, flowvisor, flowvisor) /var/log/flowvisor
 %config /etc/logrotate.d/flowvisor
 
 %clean
 rm -r %buildroot
 
 %changelog
-* Tue Feb 20 2013 Marc De Leenheer <marc@onlab.us> $version-1
+* $date Marc De Leenheer <marc@onlab.us> $version-1
 - Initial RPM release.
 EOF
 
