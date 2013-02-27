@@ -58,6 +58,29 @@ An OpenFlow controller that acts as a hypervisor/proxy
 between a switch and multiple controllers.  Can slice
 multiple switches in parallel, effectively slicing a network.
 
+%pre
+# creating flowvisor group if he isn't already there
+if ! getent group flowvisor >/dev/null; then
+    # Adding system group: flowvisor.
+    echo "Creating FlowVisor (flowvisor) group."
+    addgroup --system flowvisor >/dev/null
+fi
+
+# creating flowvisor user if he isn't already there
+if ! getent passwd flowvisor >/dev/null; then
+    # Adding system user: flowvisor.
+    echo "Creating FlowVisor (flowvisor) user."
+    adduser \
+      --system \
+          --disabled-login \
+      --ingroup flowvisor \
+      --no-create-home \
+      --home /nonexistent \
+      --gecos "FlowVisor Hypervisor" \
+      --shell /bin/false \
+      flowvisor  >/dev/null
+fi
+
 %post
 if [ -d /usr/share/db/flowvisor/FlowVisorDB/seg0 ]; then
     echo "FlowVisorDB exists, leaving untouched."
