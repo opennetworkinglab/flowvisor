@@ -145,5 +145,5 @@ cd ..
 
 chown jenkins:nogroup *.deb
 chown jenkins:nogroup *.changes
-#mv *.deb /var/packages/repo/debian/mini-dinstall/incoming
-#mv *.changes /var/packages/repo/debian/mini-dinstall/incoming
+mv *.deb /var/packages/repo/debian/mini-dinstall/incoming
+mv *.changes /var/packages/repo/debian/mini-dinstall/incoming
