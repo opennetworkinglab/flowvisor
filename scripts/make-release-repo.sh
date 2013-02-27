@@ -12,8 +12,8 @@ rtype=$1
 release=`sed -n '/FLOWVISOR_VERSION = [^ ]\+/p' $fv_main | awk {' print $7 '} | sed 's/;//' | sed 's/\"//g'`
 version=`echo $release | sed -e 's/^flowvisor-//'`
 
-#echo "Making debian package (using sudo)" >&2
-#sudo ./scripts/make-deb-repo.sh $version $rtype
+echo "Making debian package (using sudo)" >&2
+sudo ./scripts/make-deb-repo.sh $version $rtype
 
 echo "Making rpm package (using sudo)" >&2
 sudo ./scripts/make-rpm-repo.sh $version $rtype
