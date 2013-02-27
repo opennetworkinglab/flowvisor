@@ -50,7 +50,7 @@ Vendor:		Open Networking Laboratory (ON.Lab)
 BuildArch:	noarch
 BuildRoot:	%{_topdir}/BUILDROOT
 Source:		%{name}-%{version}.tar.gz
-License:	GPL2
+License:	OpenFlow License
 Requires:	java-1.6.0-openjdk, python >= 2.6, logrotate
 
 %description
