@@ -98,7 +98,9 @@ LIBS="\
     servlet-api-2.5.jar \
     jna.jar \
     log4j-1.2.16.jar \
-    syslog4j-0.9.46-bin.jar
+    syslog4j-0.9.46-bin.jar \
+    jsonrpc2-base-1.30.jar \
+    jsonrpc2-server-1.8.jar
     "
 
 DOCS="\
