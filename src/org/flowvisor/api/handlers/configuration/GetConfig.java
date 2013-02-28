@@ -1,7 +1,6 @@
 package org.flowvisor.api.handlers.configuration;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -13,7 +12,6 @@ import org.flowvisor.config.FlowvisorImpl;
 import org.flowvisor.config.SliceImpl;
 import org.flowvisor.config.SwitchImpl;
 import org.flowvisor.exceptions.MissingRequiredField;
-import org.flowvisor.flows.FlowMap;
 import org.flowvisor.flows.FlowSpaceUtil;
 import org.flowvisor.openflow.protocol.FVMatch;
 
