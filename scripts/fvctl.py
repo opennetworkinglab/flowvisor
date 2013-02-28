@@ -647,9 +647,9 @@ def pa_listrewritedb(args, cmd):
     parser = OptionParser(usage=usage, description=ldesc)
     return parser.parse_args(args)
 
-def do_listflowdb(gopts, opts, args):
+def do_listrewritedb(gopts, opts, args):
     if len(args) != 2:
-        print "list-datapath-flowdb : Please specify the slicename and dpid"
+        print "list-datapath-flowrewritedb : Please specify the slicename and dpid"
         sys.exit()
     passwd = getPassword(gopts)
     req = { 'dpid' : args[1], 'slice-name' : args[0]}
