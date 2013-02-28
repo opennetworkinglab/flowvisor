@@ -26,8 +26,8 @@ mkdir -p $base/pkgbuild/RPMS
 mkdir -p $base/pkgbuild/SOURCES
 mkdir -p $base/pkgbuild/SPECS
 mkdir -p $base/pkgbuild/SRPMS
+mkdir -p $base/pkgbuild/BUILDROOT
 
-rm -rf $base/pkgbuild/BUILDROOT
 if [ ! -d $base/pkgbuild/root ] ; then 
     make prefix=/usr root=$base/pkgbuild/BUILDROOT/flowvisor-$version-1.x86_64 fvuser=$USER fvgroup=$GROUP pkg-install;
 else
