@@ -1,3 +1,24 @@
+FlowVisor 1.0.0 : February 28 2013
+    * FLOWVISOR-161 : Make it easy for GENI people to find versions other than the latest
+    * FLOWVISOR-160 : FV does not negotiate an acceptable OpenFlow version if a switch advertises >1.0
+    * FLOWVISOR-151 : JSON API for get-version
+    * FLOWVISOR-138 : Debian package depends on a lot of X libraries
+    * FLOWVISOR-128 : Rotate /var/log/flowvisor/flowvisor-stderr.log
+    * FLOWVISOR-112 : No per-slice control of NO_FLOOD
+    * FLOWVISOR-107 : FV should write log messages syslog can more easily condense 
+    * FLOWVISOR-94  : Changes to envs.sh are lost when the package is removed
+    * FLOWVISOR-91  : Adding flowspace rules takes longer when there are more rules
+    * FLOWVISOR-89  : Unified API for getting/setting configuration variables
+    * FLOWVISOR-87  : changeFlowSpace is very slow
+    * FLOWVISOR-80  : Publish a FlowVisor RPM
+    * FLOWVISOR-71  : slice-based flow stats
+    * FLOWVISOR-67  : Software rate limit per slice
+    * FLOWVISOR-65  : Provide RPC API as JSON service
+    * FLOWVISOR-60  : Need to be able to set a slice as "administratively down"
+    * FLOWVISOR-49  : dl_vlan only accepts in decimal and only prints in hex
+    * FLOWVISOR-7   : Queue_stats: FV doesn't filter the ports for a slice
+    * FLOWVISOR-6   : Aggregate_flow_stats_req: FV doesn't extract the request
+
 Flowvisor 0.10.0 : November 30 2012
     * FLOWVISOR-32  Assign queue to slice
     * FLOWVISOR-111 Per slice per dpid slice tcam usage limits
