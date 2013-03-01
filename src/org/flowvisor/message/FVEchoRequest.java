@@ -7,6 +7,7 @@ import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.ofswitch.TopologyConnection;
 import org.flowvisor.slicer.FVSlicer;
 
+
 /**
  * Given an echo request, just send an immediate response from the fv
  *
@@ -55,6 +56,11 @@ public class FVEchoRequest extends org.openflow.protocol.OFEchoRequest
 		reply.setXid(this.getXid());
 		reply.setPayload(this.getPayload());
 		return reply;
+	}
+	
+	@Override
+	public String toString() {
+		return "FVEchoRequest [ payload=" + this.getPayload() + "]";
 	}
 
 }

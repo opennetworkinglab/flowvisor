@@ -1,5 +1,6 @@
 package org.flowvisor.message;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.flowvisor.classifier.FVClassifier;
@@ -73,7 +74,7 @@ public class FVPacketOut extends OFPacketOut implements Classifiable, Slicable {
 				) {
 					FVLog
 							.log(LogLevel.WARN, fvSlicer,
-									"EPERM bad encap packet: "
+									"EPERM packet not in flowspace: "
 											+ this.toVerboseString());
 					fvSlicer.sendMsg(FVMessageUtil.makeErrorMsg(
 							OFBadActionCode.OFPBAC_EPERM, this), fvSlicer);
@@ -127,11 +128,14 @@ public class FVPacketOut extends OFPacketOut implements Classifiable, Slicable {
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public String toString() {
-		return super.toString() + ";actions="
-				+ FVMessageUtil.actionsToString(this.getActions());
-	}
-
+    public String toString() {
+        return "FVPacketOut [actions="
+                + FVMessageUtil.actionsToString(this.getActions()) + ", actionsLength=" + actionsLength + ", " +
+                " inPort=" + inPort + ", packetData=" +
+                 Arrays.toString(packetData) + "]";
+    }
+	
+	
 	private String toVerboseString() {
 		String pkt;
 		if (this.packetData != null && (this.packetData.length > 0))

@@ -9,7 +9,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -23,19 +23,11 @@ import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.eclipse.jetty.http.HttpHeaders;
-import org.flowvisor.flows.FlowEntry;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.ofswitch.TopologyController;
-import org.json.JSONDeserializers;
-import org.json.JSONParam;
-import org.json.JSONRequest;
-import org.json.JSONSerializers;
-import org.openflow.protocol.OFMatch;
-import org.openflow.protocol.action.OFAction;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
 
 public class TopologyCallback implements Runnable {
 
@@ -58,19 +50,20 @@ public class TopologyCallback implements Runnable {
 
 	XmlRpcClientConfigImpl config;
 	XmlRpcClient client;
-	Collection<JSONParam> params = new ArrayList<JSONParam>();
+	List<Object> params = new ArrayList<Object>();
 
 	private EventType eventType = EventType.GENERAL;
 
 	private int jsonCallbackId = 0;
+	private String user;
 
-	private static final Gson gson =
+	/*private static final Gson gson =
 		new GsonBuilder().registerTypeAdapter(OFAction.class, new JSONSerializers.OFActionSerializer())
 		.registerTypeAdapter(OFAction.class, new JSONDeserializers.OFActionDeserializer())
 		.registerTypeAdapter(OFMatch.class, new JSONSerializers.OFActionSerializer())
 		.registerTypeAdapter(OFMatch.class, new JSONDeserializers.OFMatchDeserializer())
 		.registerTypeAdapter(FlowEntry.class, new JSONSerializers.FlowEntrySerializer())
-		.registerTypeAdapter(FlowEntry.class, new JSONDeserializers.FlowEntryDeserializer()).create();
+		.registerTypeAdapter(FlowEntry.class, new JSONDeserializers.FlowEntryDeserializer()).create();*/
 
 	public TopologyCallback(String uRL, String methodName,String cookie) {
 		super();
@@ -98,6 +91,12 @@ public class TopologyCallback implements Runnable {
 		this(url, methodName, "");
 		this.eventType = eventType;
 	}
+	
+	public TopologyCallback(String user, String url, String methodName, EventType eventType, String cookie){
+		this(url, methodName, cookie);
+		this.eventType = eventType;
+		this.user = user;
+	}
 
 	public void spawn() {
 		new Thread(this).start();
@@ -110,6 +109,15 @@ public class TopologyCallback implements Runnable {
 	public String getMethodName(){
 		return this.methodName;
 	}
+	
+	public String getCookie() {
+		return this.cookie;
+	}
+	
+	public String getUser() {
+		return this.user;
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 *
@@ -166,7 +174,7 @@ public class TopologyCallback implements Runnable {
 		int responseCode = 200;
 
 		try {
-			JSONRequest jsonReq = new JSONRequest(this.methodName, params, nextId());
+			JSONRPC2Request jsonReq = new JSONRPC2Request(this.methodName, params, nextId());
 
 			URL u = new URL(this.URL);
 			connection = (HttpURLConnection) u.openConnection();
@@ -187,7 +195,7 @@ public class TopologyCallback implements Runnable {
 			}
 
 			writer = new OutputStreamWriter(connection.getOutputStream(), "UTF-8");
-			writer.write(gson.toJson(jsonReq));
+			writer.write(jsonReq.toJSONString());
 			writer.flush();
 			responseCode = connection.getResponseCode();
 
@@ -230,18 +238,18 @@ public class TopologyCallback implements Runnable {
 		return jsonCallbackId;
 	}
 
-	public void setParams(Collection<JSONParam> params){
+	public void setParams(List<Object> params){
 		this.params = params;
 	}
 
 	public void setParams(Object o) {
-		this.params = new ArrayList<JSONParam>();
-		this.params.add(new JSONParam(gson.toJson(o)));
+		this.params = new ArrayList<Object>();
+		this.params.add(o);
 				
 	}
 	
 	public void clearParams(){
-		this.params = new ArrayList<JSONParam>();
+		this.params = new ArrayList<Object>();
 	}
 
 	public void installDumbTrust() {

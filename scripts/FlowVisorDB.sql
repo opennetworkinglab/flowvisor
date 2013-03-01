@@ -4,8 +4,8 @@ AUTOCOMMIT off;
 
 CREATE TABLE Flowvisor (
   id INT GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
-  api_webserver_port INT DEFAULT 8080 ,
-  api_jetty_webserver_port INT DEFAULT -1 ,
+  api_webserver_port INT DEFAULT -1 ,
+  api_jetty_webserver_port INT DEFAULT 8080 ,
   checkpointing BOOLEAN DEFAULT false, 
   listen_port INT  DEFAULT 6633 ,
   track_flows BOOLEAN   DEFAULT false ,
@@ -19,6 +19,7 @@ CREATE TABLE Flowvisor (
   default_flood_perm VARCHAR(45) DEFAULT 'fvadmin',
   config_name VARCHAR(100) UNIQUE DEFAULT 'default',
   db_version INT,
+  fscache INT DEFAULT 30,
   PRIMARY KEY (id));
 
 CREATE TABLE Slice (
@@ -35,6 +36,7 @@ CREATE TABLE Slice (
   drop_policy VARCHAR(10) DEFAULT 'exact' ,
   lldp_spam BOOLEAN  DEFAULT true,
   max_flow_rules INT NOT NULL DEFAULT -1,
+  admin_status BOOLEAN DEFAULT TRUE,
   PRIMARY KEY (id));
 
 CREATE INDEX flowvisor_index ON Slice (flowvisor_id ASC);
@@ -82,6 +84,7 @@ CREATE TABLE FlowSpaceRule (
   tp_dst SMALLINT,
   forced_queue INT DEFAULT -1,
   wildcards INT,
+  name VARCHAR(64),
   PRIMARY KEY (id));
 
 CREATE INDEX prio_index ON FlowSpaceRule (priority ASC);
@@ -118,6 +121,7 @@ CREATE TABLE jSliceSwitchLimits (
     slice_id INT NOT NULL,
     switch_id INT NOT NULL,
     maximum_flow_mods INT NOT NULL DEFAULT -1,
+    rate_limit INT NOT NULL DEFAULT -1,
     PRIMARY KEY (id));
 
 CREATE INDEX slice_limit_index ON jSliceSwitchLimits (slice_id ASC);

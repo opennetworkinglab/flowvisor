@@ -9,7 +9,9 @@ import java.util.List;
 import org.flowvisor.FlowVisor;
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.classifier.XidPair;
+import org.flowvisor.classifier.XidPairWithMessage;
 import org.flowvisor.classifier.XidTranslator;
+import org.flowvisor.classifier.XidTranslatorWithMessage;
 import org.flowvisor.events.FVEventHandler;
 import org.flowvisor.exceptions.ActionDisallowedException;
 import org.flowvisor.log.FVLog;
@@ -47,6 +49,15 @@ public class FVMessageUtil {
 		int newXid = xidTranslator.translate(msg.getXid(), fvSlicer);
 		msg.setXid(newXid);
 	}
+	
+	
+	
+	public static void translateXidMsg(FVStatisticsRequest msg,
+			FVClassifier fvClassifier, FVSlicer fvSlicer) {
+		XidTranslatorWithMessage xidTranslator = (XidTranslatorWithMessage) fvClassifier.getXidTranslator();
+		int newXid = xidTranslator.translate(msg.clone(), msg.getXid(), fvSlicer);
+		msg.setXid(newXid);
+	}
 
 	/**
 	 * Undo the effect of translateXID, and return the FVSlicer this came from
@@ -56,7 +67,7 @@ public class FVMessageUtil {
 	 * @return the fvSlicer that was input in the translate step or null if not
 	 *         found
 	 */
-	static public FVSlicer untranslateXid(OFMessage msg,
+	 static public FVSlicer untranslateXid(OFMessage msg,
 			FVClassifier fvClassifier) {
 		XidTranslator xidTranslator = fvClassifier.getXidTranslator();
 		XidPair pair = xidTranslator.untranslate(msg.getXid());
@@ -66,6 +77,17 @@ public class FVMessageUtil {
 		String sliceName = pair.getSliceName();
 		return fvClassifier.getSlicerByName(sliceName);
 	}
+	 
+	 
+	 static public XidPairWithMessage untranslateXidMsg(OFMessage msg, 
+			 FVClassifier fvClassifier) {
+		 XidTranslatorWithMessage xidTranslator = (XidTranslatorWithMessage) fvClassifier.getXidTranslator();
+		 XidPairWithMessage pair = xidTranslator.untranslate(msg.getXid());
+		 if (pair == null)
+			 return null;
+		 pair.setSlicer( fvClassifier.getSlicerByName(pair.getSliceName()));
+		 return pair;
+	 }
 
 	/**
 	 * Is this slice allowed to use this list of actions with this ofmatch
@@ -107,6 +129,15 @@ public class FVMessageUtil {
 		FVMessageUtil.translateXid(msg, fvClassifier, fvSlicer);
 		fvClassifier.sendMsg(msg, fvSlicer);
 	}
+	
+	public static void translateXidMsgAndSend(
+			FVStatisticsRequest msg, FVClassifier fvClassifier,
+			FVSlicer fvSlicer) {
+		FVMessageUtil.translateXidMsg(msg, fvClassifier, fvSlicer);
+		fvClassifier.sendMsg(msg, fvSlicer);
+	}
+
+
 
 	public static void dropUnexpectedMesg(OFMessage msg, FVEventHandler handler) {
 		FVLog.log(LogLevel.WARN, handler, "dropping unexpected msg: " + msg);
@@ -172,4 +203,6 @@ public class FVMessageUtil {
 		}
 		return ret;
 	}
+
+	
 }

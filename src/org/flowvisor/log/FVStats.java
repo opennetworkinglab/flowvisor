@@ -121,4 +121,11 @@ public class FVStats {
 		}
 		return ret.toString();
 	}
+
+	public synchronized HashMap<String, Long> toMap() {
+		HashMap<String, Long> ret = new HashMap<String, Long>();
+		for (String ofType : new HashSet<String>(counters.keySet())) 
+			ret.put(ofType.toString(), counters.get(ofType));
+		return ret;
+	}
 }

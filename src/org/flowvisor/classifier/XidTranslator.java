@@ -24,6 +24,7 @@ public class XidTranslator {
 		this.nextID = MIN_XID;
 		this.xidMap = new LRULinkedHashMap<Integer, XidPair>(INIT_SIZE,
 				MAX_SIZE);
+		
 	}
 
 	public XidPair untranslate(int xid) {
@@ -37,4 +38,5 @@ public class XidTranslator {
 		xidMap.put(Integer.valueOf(ret), new XidPair(xid, fvSlicer.getSliceName()));
 		return ret;
 	}
+	
 }

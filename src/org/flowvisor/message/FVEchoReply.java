@@ -15,4 +15,11 @@ public class FVEchoReply extends org.openflow.protocol.OFEchoReply implements
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
 		fvClassifier.registerPong();
 	}
+	
+	
+	@Override
+	public String toString() {
+		return "FVEchoReply [ payload=" + this.getPayload() + "]";
+	}
+	
 }

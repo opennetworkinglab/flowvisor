@@ -16,4 +16,11 @@ public class FVFeaturesRequest extends OFFeaturesRequest implements
 	public void sliceFromController(FVClassifier fvClassifier, FVSlicer fvSlicer) {
 		FVMessageUtil.translateXidAndSend(this, fvClassifier, fvSlicer);
 	}
+	
+	@Override
+	public String toString() {
+		return "FVFeaturesRequest []"; 
+	}
+
+	
 }

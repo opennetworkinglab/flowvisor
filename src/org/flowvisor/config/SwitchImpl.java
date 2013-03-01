@@ -25,6 +25,7 @@ public class SwitchImpl implements Switch {
 	//Callbacks
 	private static String FFLOOD = "setFloodPerm";
 	private static String FFMLIMIT = "setFlowModLimit";
+	private static String FRATELIMIT = "setRateLimit";
 	
 	// STATEMENTS
 	private static String DSWITCH = "DELETE FROM " + TSWITCH;
@@ -46,7 +47,7 @@ public class SwitchImpl implements Switch {
 			FlowSpace.INPORT + "," + FlowSpace.VLAN + "," + FlowSpace.VPCP + "," + FlowSpace.DLSRC + "," + FlowSpace.DLDST + "," + FlowSpace.DLTYPE + "," +
 			FlowSpace.NWSRC + "," + FlowSpace.NWDST + "," + FlowSpace.NWPROTO + "," + FlowSpace.NWTOS + "," + FlowSpace.TPSRC + "," + FlowSpace.TPDST + ","
 			+ FlowSpace.WILDCARDS+ ") " + " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-	private static String SCOOKIE = "INSERT INTO COOKIE(contorller_cookie, fv_cookie) VALUES(?,?)";
+	private static String SCOOKIE = "INSERT INTO COOKIE(controller_cookie, fv_cookie) VALUES(?,?)";
 	
 	private static String CREATESWITCH = "INSERT INTO " + TSWITCH + "(" + DPID + "," + MFRDESC + "," + FLOOD + ","
 			+ HWDESC + "," + SWDESC + "," + SERIAL + "," + DPDESC + "," + CAPA + ") VALUES(?,?,?,?,?,?,?,?)"; 
@@ -58,10 +59,19 @@ public class SwitchImpl implements Switch {
 	private static String SLIMIT = "INSERT INTO " + TLIMIT + "(" + SLICE_ID + "," + SWITCH_ID + 
 						"," + FMLIMIT + ") VALUES(?,?,?)";
 	
+	private static String URATELIMIT = "UPDATE " + TLIMIT + " SET " + RATELIMIT + " = ? WHERE id = ?";
+	private static String SRATELIMIT = "INSERT INTO " + TLIMIT + "(" + SLICE_ID + "," + SWITCH_ID + 
+						"," + RATELIMIT + ") VALUES(?,?,?)";
+	
+	
+	
 	private static String GLIMIT = "SELECT " + FMLIMIT + " FROM " + TLIMIT + " AS L, " + Slice.TSLICE 
 							+ " AS S, " + TSWITCH + " AS SW WHERE SW.id = L." + SWITCH_ID + " AND S.id = L." + SLICE_ID 
 							+ " AND S." + Slice.SLICE + " = ? AND SW." + DPID + " = ?"; 
 	
+	private static String GRATELIMIT = "SELECT " + RATELIMIT + " FROM " + TLIMIT + " AS L, " + Slice.TSLICE 
+			+ " AS S, " + TSWITCH + " AS SW WHERE SW.id = L." + SWITCH_ID + " AND S.id = L." + SLICE_ID 
+			+ " AND S." + Slice.SLICE + " = ? AND SW." + DPID + " = ?"; 
 	
 	private static String DFLOWENTRY = "DELETE FROM FlowTableEntry WHERE id = ?";
 
@@ -88,7 +98,7 @@ public class SwitchImpl implements Switch {
 			if (set.next())
 				return set.getString(FLOOD);
 			else 
-				throw new ConfigError("Flood permission for dpid " + dpid + " not found");
+				return "";
 		} catch (SQLException e) {
 			FVLog.log(LogLevel.WARN, null, e.getMessage());
 		} finally {
@@ -110,11 +120,13 @@ public class SwitchImpl implements Switch {
 			ps = conn.prepareStatement(SFLOODSQL);
 			ps.setString(1, flood_perm);
 			ps.setLong(2, dpid);
-			if (ps.executeUpdate() == 0)
-				throw new ConfigError("Unable to set flood permission for dpid " + dpid);
+			if (ps.executeUpdate() == 0) {
+				createSwitch(dpid);
+				ps.executeUpdate();
+			}
 			notify(dpid, FFLOOD, flood_perm);
 		} catch (SQLException e) {
-			FVLog.log(LogLevel.WARN, null, e.getMessage());
+			throw new ConfigError("Unable to set flood permission for dpid " + dpid);
 		} finally {
 			close(set);
 			close(ps);
@@ -213,6 +225,95 @@ public class SwitchImpl implements Switch {
 			close(conn);	
 		}
 		
+	}
+	
+	@Override
+	public Integer getRateLimit(String sliceName, Long dp) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(GRATELIMIT);
+			ps.setString(1, sliceName);
+			ps.setLong(2, dp);
+			set = ps.executeQuery();
+			if (set.next())
+				return set.getInt(RATELIMIT);
+		} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+		} finally {
+			close(set);
+			close(ps);
+			close(conn);	
+		}
+		return -1;
+	}
+	
+	public void setRateLimit(String sliceName, Long dpid, int rate) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		int sliceid, switchid = -1;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(GSLICEID);
+			ps.setString(1, sliceName);
+			set = ps.executeQuery();
+			if (set.next())
+				sliceid = set.getInt("id");
+			else 
+				throw new ConfigError("Unknown slice " + sliceName);
+			ps = conn.prepareStatement(GSWITCHID);
+			ps.setLong(1, dpid);
+			set = ps.executeQuery();
+			if (set.next()) 
+				switchid = set.getInt("id");
+			else {
+				ps = conn.prepareStatement(CREATESWITCH, Statement.RETURN_GENERATED_KEYS);
+				ps.setLong(1, dpid);
+				ps.setString(2, "");
+				ps.setString(3, "");
+				ps.setString(4, "");
+				ps.setString(5, "");
+				ps.setString(6, "");
+				ps.setString(7, "");
+				ps.setInt(8, -1);
+				ps.executeUpdate();
+				set = ps.getGeneratedKeys();
+				set.next();
+				switchid = set.getInt(1);
+			}
+			ps = conn.prepareStatement(CHECKLIMIT);
+			ps.setInt(1, sliceid);
+			ps.setInt(2, switchid);
+			set = ps.executeQuery();
+			if (set.next()) {
+				int id = set.getInt("id");
+				ps = conn.prepareStatement(URATELIMIT);
+				ps.setInt(1, rate);
+				ps.setInt(2, id);
+				if (ps.executeUpdate() == 0)
+					throw new ConfigError("Unable to update slice rate limit for dpid " + dpid);
+			} else {
+				ps = conn.prepareStatement(SRATELIMIT);
+				ps.setInt(1, sliceid);
+				ps.setInt(2, switchid);
+				ps.setInt(3, rate);
+				if (ps.executeUpdate() == 0)
+					throw new ConfigError("Unable to insert slice rate limit for dpid " + dpid);
+			}
+			HashMap<String, Object> values = new HashMap<String, Object>();
+			values.put(Slice.SLICE, sliceName);
+			values.put("RATELIMIT", rate);
+			notify(dpid, FRATELIMIT, values);
+		} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+		} finally {
+			close(set);
+			close(ps);
+			close(conn);	
+		}
 	}
 	
 	public int pushFlowMod(OFFlowMod flowMod, String sliceName,
@@ -471,6 +572,7 @@ public class SwitchImpl implements Switch {
 				String sliceName = entry.getKey();
 				HashMap<String, Object> lims = entry.getValue();
 				setMaxFlowMods(sliceName, FlowSpaceUtil.parseDPID(((String) row.get(DPID))), ((Double)lims.get(FMLIMIT)).intValue());
+				setRateLimit(sliceName, FlowSpaceUtil.parseDPID(((String) row.get(DPID))), ((Double)lims.get(RATELIMIT)).intValue());
 			}
 			
 			/*
@@ -499,6 +601,34 @@ public class SwitchImpl implements Switch {
 			close(conn);	
 		}
 		
+	}
+	
+	private int createSwitch(long dpid) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(CREATESWITCH, Statement.RETURN_GENERATED_KEYS);
+			ps.setLong(1, dpid);
+			ps.setString(2, "");
+			ps.setString(3, "");
+			ps.setString(4, "");
+			ps.setString(5, "");
+			ps.setString(6, "");
+			ps.setString(7, "");
+			ps.setInt(8, -1);
+			ps.executeUpdate();
+			set = ps.getGeneratedKeys();
+			set.next();
+			return set.getInt(1);
+		} catch (SQLException e) {
+			throw new ConfigError("Switch element creation failed : " + e.getMessage());
+		} finally {
+			close(set);
+			close(ps);
+			close(conn);
+		}
 	}
 	
 	
@@ -586,6 +716,9 @@ public class SwitchImpl implements Switch {
 					"ADD CONSTRAINT limit_to_slice_fk FOREIGN KEY (slice_id) " +
 					"REFERENCES Slice (id) ON DELETE CASCADE");
 			version++;
+		}
+		if (version == 1) {
+			processAlter("ALTER TABLE jSliceSwitchLimits ADD COLUMN " + RATELIMIT + " INT NOT NULL DEFAULT -1");
 		}
 		
 	}

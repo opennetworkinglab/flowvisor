@@ -1,6 +1,8 @@
 package org.flowvisor.flows;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.SortedSet;
 
 import org.flowvisor.exceptions.FlowEntryNotFound;
@@ -20,6 +22,7 @@ import org.flowvisor.openflow.protocol.FVMatch;
 public class FederatedFlowMap implements FlowMap, Cloneable {
 	
 	private FlowSpaceRuleStore fsrs = new FlowSpaceRuleStore();
+	private Map<String, FlowEntry> namedFlowEntries = new HashMap<String, FlowEntry>();
 	
 	@Override
 	public List<FlowEntry> matches(long dpid, FVMatch match) {
@@ -44,6 +47,7 @@ public class FederatedFlowMap implements FlowMap, Cloneable {
 
 	@Override
 	public void addRule(FlowEntry rule) {
+		namedFlowEntries.put(rule.getName(), rule);
 		fsrs.addRule(rule);
 	}
 
@@ -93,6 +97,16 @@ public class FederatedFlowMap implements FlowMap, Cloneable {
 	
 	public type getType() {
 		return type.FEDERATED;
+	}
+
+	@Override
+	public FlowEntry findRuleByName(String name) throws FlowEntryNotFound {
+		System.out.println(namedFlowEntries.keySet());
+		FlowEntry fe = namedFlowEntries.get(name);
+		if (fe != null)
+			return fe;
+		throw new FlowEntryNotFound(name);
+		
 	}
 
 }

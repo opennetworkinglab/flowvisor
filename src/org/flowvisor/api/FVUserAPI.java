@@ -194,6 +194,18 @@ public interface FVUserAPI {
 	
 	
 	/**
+	 * Set the maximum rate of messages a slice can send to a switch.
+	 * 
+	 * @param sliceName - slice to apply the limit to.
+	 * @param rate - the limit
+	 * @return
+	 * @throws PermissionDeniedException
+	 */
+	
+	public boolean setRateLimit (String sliceName, String rate) 
+			throws PermissionDeniedException;
+	
+	/**
 	 * Set the maximum number of flow mods per slice per dpid.
 	 * If dpid is set to any then the global slice limit applies.
 	 * If no value is set then the number of slices is limitless.

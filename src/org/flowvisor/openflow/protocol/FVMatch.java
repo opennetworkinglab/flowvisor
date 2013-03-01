@@ -1,6 +1,8 @@
 package org.flowvisor.openflow.protocol;
 
 import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -18,10 +20,13 @@ public class FVMatch extends OFMatch {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private static final String STR_QUEUE = "queues";
-	private static final String STR_FORCE = "force_enqueue";
+	/*
+	 * TODO: Move this to the flowentry, once XMLRPC API goes away.
+	 */
+	public static final String STR_QUEUE = "queues";
+	public static final String STR_FORCE = "force_enqueue";
 	
-	private List<Integer> queues = null;
+	private List<Integer> queues = new LinkedList<Integer>();
 	private long force_queue = -1;
 	 
 
@@ -141,6 +146,10 @@ public class FVMatch extends OFMatch {
             str += "," + STR_TP_DST + "=" + this.transportDestination;
         if ((wildcards & OFPFW_TP_SRC) == 0)
             str += "," + STR_TP_SRC + "=" + this.transportSource;
+        
+        /*
+         * TODO: queue related stuff should go once XMLRPC API goes away.
+         */
         if (this.queues != null && this.queues.size() > 0)
         	str += "," + STR_QUEUE + " = " + this.queues;
         if (this.force_queue != -1) {
@@ -287,7 +296,7 @@ public class FVMatch extends OFMatch {
         }
     }
     
-	private static List<Integer> queueList(String qstr) throws IllegalArgumentException {
+	public static List<Integer> queueList(String qstr) throws IllegalArgumentException {
 		List<Integer> qlist = new LinkedList<Integer>();
 		String[] tmp = qstr.split(":");
 		for (int i = 0 ; i < tmp.length ; i++) {
@@ -326,7 +335,7 @@ public class FVMatch extends OFMatch {
      *            one of STR_NW_DST or STR_NW_SRC
      * @throws IllegalArgumentException
      */
-    private void setFromCIDR(String cidr, String which)
+    public void setFromCIDR(String cidr, String which)
             throws IllegalArgumentException {
         String values[] = cidr.split("/");
         String[] ip_str = values[0].split("\\.");
@@ -367,6 +376,7 @@ public class FVMatch extends OFMatch {
             FVMatch ret = (FVMatch) super.clone();
             ret.dataLayerDestination = this.dataLayerDestination.clone();
             ret.dataLayerSource = this.dataLayerSource.clone();
+            ret.queues = new LinkedList<Integer>(this.queues);
             return ret;
     }
     
@@ -394,6 +404,120 @@ public class FVMatch extends OFMatch {
     
     public void setForcedQueue(long queue) {
     	this.force_queue = queue;
+    }
+    
+    public boolean equals(FVMatch other) {
+    	if (this == other)
+    		return true;
+    	if (other == null)
+    		return false;
+    	
+    	if (canonicalizeWildcards(this.wildcards) != 
+    			canonicalizeWildcards(other.wildcards))
+    		return false;
+    	
+    	 if ((wildcards & OFPFW_IN_PORT) == 0 && this.inputPort != other.inputPort)
+             return false;
+
+         // l2
+         if ((wildcards & OFPFW_DL_DST) == 0 && 
+        		 !Arrays.equals(dataLayerDestination, other.dataLayerDestination))
+            return false;
+         
+         if ((wildcards & OFPFW_DL_SRC) == 0 && 
+        		 !Arrays.equals(dataLayerSource, other.dataLayerSource))
+             return false;
+             
+         if ((wildcards & OFPFW_DL_TYPE) == 0 && 
+        		 this.dataLayerType != other.dataLayerType)
+             return false;
+         
+         if ((wildcards & OFPFW_DL_VLAN) == 0 && 
+        		 this.dataLayerVirtualLan != other.dataLayerVirtualLan)
+             return false;
+         
+         if ((wildcards & OFPFW_DL_VLAN_PCP) == 0 && 
+        		 this.dataLayerVirtualLanPriorityCodePoint != other.dataLayerVirtualLanPriorityCodePoint)
+             return false;                
+
+         // l3
+      
+         if ((wildcards & OFPFW_NW_PROTO) == 0 && 
+        		 this.networkProtocol != other.networkProtocol)
+             return false;
+         
+         if ((wildcards & OFPFW_NW_TOS) == 0 && 
+        		 this.networkTypeOfService != other.networkTypeOfService)
+        	 return false;
+         
+         // l4
+         if ((wildcards & OFPFW_TP_DST) == 0 && 
+        		 this.transportDestination != other.transportDestination)
+        	 return false;
+         
+         
+         if ((wildcards & OFPFW_TP_SRC) == 0 && 
+         	this.transportSource != other.transportSource)
+             return false;
+             
+         
+    	
+    	return true;
+    }
+    
+    
+    public HashMap<String,Object> toMap() {
+    	
+        HashMap<String, Object> ret = new HashMap<String, Object>();
+
+        // l1
+        if ((wildcards & OFPFW_IN_PORT) == 0)
+            ret.put(STR_IN_PORT,U16.f(this.inputPort));
+
+        // l2
+        if ((wildcards & OFPFW_DL_DST) == 0)
+        	ret.put(STR_DL_DST, HexString.toHexString(this.dataLayerDestination));
+           
+        if ((wildcards & OFPFW_DL_SRC) == 0)
+        	ret.put(STR_DL_SRC, HexString.toHexString(this.dataLayerSource));
+           
+        if ((wildcards & OFPFW_DL_TYPE) == 0)
+        	ret.put(STR_DL_TYPE, U16.f(this.dataLayerType));
+        	
+   
+        if ((wildcards & OFPFW_DL_VLAN) == 0)
+        	ret.put(STR_DL_VLAN, U16.f(this.dataLayerVirtualLan));
+        	
+       
+        if ((wildcards & OFPFW_DL_VLAN_PCP) == 0)
+        	ret.put(STR_DL_VLAN_PCP, U8.f(this.dataLayerVirtualLanPriorityCodePoint));
+        	
+
+        // l3
+        if (getNetworkDestinationMaskLen() > 0)
+        	ret.put(STR_NW_DST, cidrToString(networkDestination,
+                    getNetworkDestinationMaskLen()));
+            
+        
+        if (getNetworkSourceMaskLen() > 0)
+        	ret.put(STR_NW_SRC, cidrToString(networkSource, getNetworkSourceMaskLen()));
+        	
+        
+        if ((wildcards & OFPFW_NW_PROTO) == 0)
+        	ret.put(STR_NW_PROTO, this.networkProtocol);
+        	
+           
+        if ((wildcards & OFPFW_NW_TOS) == 0)
+           ret.put(STR_NW_TOS,this.networkTypeOfService);
+
+        // l4
+        if ((wildcards & OFPFW_TP_DST) == 0)
+        	ret.put(STR_TP_DST,this.transportDestination);
+        
+        if ((wildcards & OFPFW_TP_SRC) == 0)
+            ret.put(STR_TP_SRC,this.transportSource);
+        
+        return ret;
     }
     
 }

@@ -26,7 +26,6 @@ import org.flowvisor.events.FVTimerEvent;
 import org.flowvisor.exceptions.UnhandledEvent;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
-import org.json.JSONParam;
 
 /**
  * A simple OpenFlow controller that runs inside the flowvisor to discover and
@@ -122,11 +121,26 @@ public class TopologyController extends OFSwitchAcceptor {
 		if(eventType == TopologyCallback.EventType.GENERAL)
 			this.generalCallBackDB.put(user, new TopologyCallback(URL,methodName, cookie));
 		else{
-			this.eventCallbacks.get(eventType).add(new TopologyCallback(URL, methodName, eventType));
+			this.eventCallbacks.get(eventType).add(new TopologyCallback(user, URL, methodName, eventType, cookie));
 		}
 
 	}
+	
+	public synchronized void deregisterCallback(String user, String method, String callbackType, String cookie){
 
+		Iterator<TopologyCallback> it = eventCallbacks.get(TopologyCallback.EventType.valueOf(callbackType)).iterator();
+		
+		while (it.hasNext()) {
+			TopologyCallback callback = it.next();
+			if (callback.getMethodName().equals(method) && callback.getCookie().equals(cookie) &&
+					callback.getUser().equals(user))
+				it.remove();
+		}
+	}
+
+	/*
+	 * TODO: This method blows. It should be remove when the XMLRPC api goes. 
+	 */
 	public synchronized void deregisterCallback(String method, String callbackType){
 
 		for(TopologyCallback callback : this.eventCallbacks.get(TopologyCallback.EventType.valueOf(callbackType))){
@@ -248,9 +262,8 @@ public class TopologyController extends OFSwitchAcceptor {
 	}
 
 	public void topoConnectionJustConnected(String dpidHex){
-		JSONParam param = new JSONParam(dpidHex);
-		ArrayList<JSONParam> params = new ArrayList<JSONParam>();
-		params.add(param);
+		ArrayList<Object> params = new ArrayList<Object>();
+		params.add(dpidHex);
 		for(TopologyCallback callback : eventCallbacks.get(TopologyCallback.EventType.DEVICE_CONNECTED)){
 			callback.setParams(params);
 			callback.run();

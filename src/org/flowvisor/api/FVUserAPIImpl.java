@@ -56,7 +56,7 @@ import org.openflow.util.U16;
  * @author capveg
  *
  */
-public class FVUserAPIImpl extends BasicJSONRPCService implements FVUserAPI {
+public class FVUserAPIImpl /*extends BasicJSONRPCService*/ implements FVUserAPI {
 	
 
 	/**
@@ -740,6 +740,19 @@ public class FVUserAPIImpl extends BasicJSONRPCService implements FVUserAPI {
 		throw new DPIDNotFound("No such switch: " + dpid);
 	}
 	
+	private List<FVClassifier> getAllClassifiers() {
+		List<FVClassifier> list = new LinkedList<FVClassifier>();
+		for (Iterator<FVEventHandler> it = FlowVisor.getInstance()
+				.getHandlersCopy().iterator(); it.hasNext();) {
+			FVEventHandler eventHandler = it.next();
+			if (eventHandler instanceof FVClassifier) {
+				FVClassifier classifier = (FVClassifier) eventHandler;
+				list.add(classifier);
+			}
+		}
+		return list;
+	}
+	
 	
 	private SlicerLimits getSliceLimits() throws DPIDNotFound{
 		for (Iterator<FVEventHandler> it = FlowVisor.getInstance()
@@ -882,7 +895,28 @@ public class FVUserAPIImpl extends BasicJSONRPCService implements FVUserAPI {
 			return lookupClassifier(dp).getCurrentFlowModCounter(sliceName);
 	}
 
-
+	@Override
+	public boolean setRateLimit(String sliceName,
+			String rate) throws PermissionDeniedException {
+		String user = APIUserCred.getUserName();
+		if (!APIAuth.transitivelyCreated(user, sliceName)
+				&& !FVConfig.isSupervisor(user))
+			throw new PermissionDeniedException("User " + user
+					+ " does not have perms to set the flow mod limit for slice " + sliceName);
+		int limit = Integer.parseInt(rate);
+		for (FVClassifier classifier : getAllClassifiers()) {
+			try {
+				SwitchImpl.getProxy().setRateLimit(sliceName, classifier.getDPID(), limit);
+			} catch (ConfigError e) {
+				FVLog.log(LogLevel.DEBUG, null, "Unable to set rate limit; " + e.getMessage());
+				return false;
+			}
+			FVLog.log(LogLevel.DEBUG, null, "Setting rate limit for slice " + sliceName + 
+					 " to " + limit);
+		}
+		
+		return true;
+	}
 
 	
 

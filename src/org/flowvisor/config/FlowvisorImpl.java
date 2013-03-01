@@ -42,6 +42,7 @@ public class FlowvisorImpl implements Flowvisor {
  	private static String GLOGGING = "SELECT " + LOGGING + " FROM FlowVisor WHERE id = ?";
  	private static String GLOGFACILITY = "SELECT " + LOGFACILITY + " FROM FlowVisor WHERE id = ?";
  	private static String GTOPO = "SELECT " + TOPO + " FROM Flowvisor WHERE id = ?";
+ 	private static String GFSTIME = "SELECT " + FSCACHE + " FROM Flowvisor WHERE id = ?";
  	
  	
  	private static String STRACKID = "UPDATE Flowvisor SET " + TRACK + " = ? WHERE id = ?";
@@ -54,6 +55,7 @@ public class FlowvisorImpl implements Flowvisor {
 	private static String SLISTEN = "UPDATE Flowvisor SET " + LISTEN + " = ? WHERE id = ?";
 	private static String SAPIPORT = "UPDATE Flowvisor SET " + APIPORT + " = ? WHERE id = ?";
 	private static String SJETTYPORT = "UPDATE Flowvisor SET " + JETTYPORT + " = ? WHERE id = ?";
+	private static String SFSTIME = "UPDATE Flowvisor SET " + FSCACHE + " = ? WHERE id = ?";
 	
 	private static String INSERT = "INSERT INTO " + FLOWVISOR + "(" + APIPORT + "," + 
 					JETTYPORT + "," + CHECKPOINT + "," + LISTEN + "," + TRACK + "," +
@@ -395,6 +397,55 @@ public class FlowvisorImpl implements Flowvisor {
 	@Override
 	public Boolean getTopologyServer() throws ConfigError {
 		return getTopologyServer(1);
+	}
+	
+	
+	@Override
+	public Integer getFlowStatsCache() throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(GFSTIME);
+			ps.setInt(1, 1);
+			set = ps.executeQuery();
+			if (set.next())
+				return set.getInt(FSCACHE);
+			else
+				throw new ConfigError("Flowstats cache timeout value not found.");
+		} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+		} finally {
+			close(set);
+			close(ps);
+			close(conn);
+			
+		}
+		return null;
+	}
+
+	@Override
+	public void setFlowStatsCache(Integer timer) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(SFSTIME);
+			ps.setInt(1, timer);
+			ps.setInt(2, 1);
+			if (ps.executeUpdate() == 0)
+				FVLog.log(LogLevel.WARN, null, "Flow stats cache timeout setting update had no effect.");
+			} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+			throw new ConfigError("Unable to update flow stats timer setting.");
+		} finally {
+			close(set);
+			close(ps);
+			close(conn);	
+		}	
+		
 	}
 	
 	@Override
@@ -902,6 +953,16 @@ public class FlowvisorImpl implements Flowvisor {
 			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + DB_VERSION + " INT");
 			version++;
 		}
+		if (version == 1) {
+			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + FSCACHE + " INT DEFAULT 30");
+			processAlter("ALTER TABLE Flowvisor DROP COLUMN " + APIPORT );
+			processAlter("ALTER TABLE Flowvisor DROP COLUMN " + JETTYPORT );
+			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + APIPORT + " INT DEFAULT 8081");
+			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + JETTYPORT + " INT DEFAULT 8080");
+			
+			
+			version++;
+		}
 		processAlter("UPDATE FlowVisor SET " + DB_VERSION + " = " + FlowVisor.FLOWVISOR_DB_VERSION);
 		
 	}
@@ -927,11 +988,17 @@ public class FlowvisorImpl implements Flowvisor {
 			if (set.next()) { 
 				return set.getInt(DB_VERSION);
 			} else {
-				System.exit(1);
+				System.err.println("Database empty, assuming latest DB Version.");
+				return FlowVisor.FLOWVISOR_DB_VERSION;
+				/*
+				System.exit(1);*/
 			}
 				
 		} catch (SQLException e) {
-			System.err.println("Updating database failed, exiting. : " + e.getMessage());
+			if (e.getNextException() != null)
+				System.err.println("Embedded DB issue, exiting : " + e.getNextException().getMessage());
+			else
+				System.err.println("Embedded DB missing, exiting: " + e.getMessage());
 			System.exit(1);
 		} finally {
 			close(ps);
@@ -940,5 +1007,7 @@ public class FlowvisorImpl implements Flowvisor {
 		
 		return 0;
 	}
+
+	
 
 }

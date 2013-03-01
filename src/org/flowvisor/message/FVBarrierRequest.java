@@ -6,6 +6,7 @@ package org.flowvisor.message;
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.slicer.FVSlicer;
 
+
 /**
  * @author capveg
  *
@@ -36,4 +37,9 @@ public class FVBarrierRequest extends org.openflow.protocol.OFBarrierRequest
 		FVMessageUtil.dropUnexpectedMesg(this, fvClassifier);
 	}
 
+	
+	@Override
+	public String toString() {
+		return "FVBarrierRequest []";
+	}
 }

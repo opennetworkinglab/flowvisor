@@ -1,6 +1,7 @@
 package org.flowvisor.message;
 
 import java.io.FileNotFoundException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -213,6 +214,20 @@ public class FVPacketIn extends OFPacketIn implements Classifiable, Slicable,
 			topologyConnection.signalFastPort(this.inPort);
 		}
 	}
+	
+	/*
+	 * (non-Javadoc)
+	 *
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+    public String toString() {
+        return "FVPacketIn [reason=" + 
+                 this.getReason().toString() + ", " +
+                " inPort=" + inPort + ", packetData=" +
+                 Arrays.toString(packetData) + "]";
+    }
+	
 
 	public static void main(String args[]) throws FileNotFoundException, ConfigError {
 		if (args.length < 3) {

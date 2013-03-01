@@ -22,6 +22,7 @@ public interface Slice extends FVAppConfig {
 	public static String FMTYPE = "flowmap_type";
 	public static String FLOWVISORID = "flowvisor_id";
 	public static String FMLIMIT = "max_flow_rules";
+	public static String ADMINDOWN = "admin_status";
 	
 	// Table name
 	public static String TSLICE = "Slice";
@@ -74,6 +75,18 @@ public interface Slice extends FVAppConfig {
 					throws InvalidSliceName, DuplicateControllerException;
 	
 	public void deleteSlice(String SliceName) throws InvalidSliceName;
+	
+	// ADDED FOR JSONRPC 
+	public void createSlice(String sliceName, String controller_hostname,
+			int controller_port, String drop_policy, String passwd,
+			String salt, String slice_email, String creatorSlice, boolean lldp_spam, 
+			int maxFlowMods, int flowvisor_id, int type)
+			throws DuplicateControllerException;
+	
+	public void deleteSlice(String SliceName, Boolean preserve) throws InvalidSliceName, ConfigError;
+	
+	public void setAdminStatus(String sliceName, boolean status);
+	boolean isSliceUp(String sliceName);
 		
 
 	

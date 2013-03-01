@@ -9,7 +9,10 @@ public class FlowEntryNotFound extends FVException {
 
 	public FlowEntryNotFound(int id) {
 		super(String.valueOf(id));
-		// TODO Auto-generated constructor stub
+	}
+	
+	public FlowEntryNotFound(String name) {
+		super(name);
 	}
 
 }

@@ -4,8 +4,8 @@
 package org.flowvisor.message.statistics;
 
 import org.flowvisor.classifier.FVClassifier;
+import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.slicer.FVSlicer;
-import org.openflow.protocol.OFMessage;
 
 /**
  * @author capveg
@@ -14,14 +14,16 @@ import org.openflow.protocol.OFMessage;
 public interface SlicableStatistic {
 
 	/**
-	 * Given this msg, classifier, and slicer decide how this statistic should
+	 * Given this stat, classifier, and slicer decide how this statistic should
 	 * be rewritten coming from the controller
 	 *
-	 * @param msg
+	 * @param approuvedStats
 	 * @param fvClassifier
 	 * @param fvSlicer
 	 */
+	
+	public void sliceFromController(FVStatisticsRequest msg, FVClassifier fvClassifier, FVSlicer fvSlicer);
 
-	public void sliceFromController(OFMessage msg, FVClassifier fvClassifier,
-			FVSlicer fvSlicer);
+	/*public void sliceFromController(List<OFStatistics> approvedStats, FVClassifier fvClassifier,
+			FVSlicer fvSlicer) throws StatDisallowedException;*/
 }

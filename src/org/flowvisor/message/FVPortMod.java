@@ -37,12 +37,12 @@ public class FVPortMod extends OFPortMod implements Classifiable, Slicable {
 			return;
 		}
 		// Second, update the port's flood state
-		boolean oldValue = fvSlicer.getFloodPortStatus(this.portNumber);
+//		boolean oldValue = fvSlicer.getFloodPortStatus(this.portNumber);
 		fvSlicer.setFloodPortStatus(this.portNumber,
 				(this.mask & OFPhysicalPort.OFPortConfig.OFPPC_NO_FLOOD
-						.ordinal()) == 0);
-		if (oldValue != fvSlicer.getFloodPortStatus(this.portNumber))
-			FVLog.log(LogLevel.CRIT, fvSlicer,
-					"FIXME: need to implement FLOODING port changes");
+						.getValue()) == 0);
+//		if (oldValue != fvSlicer.getFloodPortStatus(this.portNumber))
+//			FVLog.log(LogLevel.CRIT, fvSlicer,
+//					"FIXME: need to implement FLOODING port changes");
 	}
 }

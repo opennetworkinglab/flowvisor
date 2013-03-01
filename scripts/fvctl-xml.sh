@@ -2,6 +2,8 @@
 
 #base=PREFIX
 
+echo "Warning: The XMLRPC interface is deprecated, and will be removed in future versions"
+
 if [ -z $base ] ; then
     envs=`dirname $0`/../scripts/envs.sh
 else

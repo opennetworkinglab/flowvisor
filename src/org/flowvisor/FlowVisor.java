@@ -40,8 +40,8 @@ public class FlowVisor {
 	public final static int FLOWVISOR_VENDOR_EXTENSION = 0x80000001;
 
 	// VERSION
-	public final static String FLOWVISOR_VERSION = "flowvisor-0.10.0";
-	public final static int FLOWVISOR_DB_VERSION = 1;
+	public final static String FLOWVISOR_VERSION = "flowvisor-1.0.0";
+	public final static int FLOWVISOR_DB_VERSION = 2;
 
 
 	// Max slicename len ; used in LLDP for now; needs to be 1 byte
@@ -64,9 +64,9 @@ public class FlowVisor {
 			new Option("d", "debug", LogLevel.NOTE.toString(),
 					"Override default logging threshold in config"),
 			new Option("l", "logging", "Log to stderr instead of syslog"),
-			new Option("p", "port", 0, "Override port from config"),
+			new Option("p", "port", 0, "Override OpenFlow port from config"),
 			new Option("h", "help", "Print help"),
-			new Option("j", "jetty port",-1, "Override jetty port from config"),
+			new Option("j", "JSON web api port",8080, "Override JSON API port from config"),
 
 	});
 
@@ -226,9 +226,9 @@ public class FlowVisor {
 				
 				
 				fv.run(); 
-			} catch (NullPointerException e) {
-				System.err.println("Errors occurred. Please make sure that the database exists and/or no other FlowVisor is running.");
-				System.exit(0);
+			}  catch (NullPointerException e) {
+				System.err.println("Startup failed : " + e.getMessage());
+				System.exit(1);
 			} catch (Throwable e) {
 				e.printStackTrace();
 				FVLog.log(LogLevel.CRIT, null, "MAIN THREAD DIED!!!");
@@ -293,6 +293,11 @@ public class FlowVisor {
 			System.err.println("Writting jetty port to config: setting to "
 					+ jp);
 		}
+		
+		if(cmd.hasOption("h")){
+			usage("FlowVisor Help");
+			System.exit(0);
+		}
 
 	}
 
@@ -318,11 +323,11 @@ public class FlowVisor {
 	private static void usage(String string) {
 		System.err.println("FlowVisor version: " + FLOWVISOR_VERSION);
 		System.err
-				.println("Rob Sherwood: rsherwood@telekom.com/rob.sherwood@stanford.edu");
+				.println("Ali Al-Shabibi: ali.al-shabibi@onlab.us");
 		System.err
 				.println("---------------------------------------------------------------");
-		System.err.println("err: " + string);
-		SimpleCLI.printHelp("FlowVisor [options] config.xml",
+		System.err.println("\n msg: " + string + "\n");
+		SimpleCLI.printHelp("FlowVisor [options] [config.json]",
 				FlowVisor.getOptions());
 		System.exit(-1);
 	}

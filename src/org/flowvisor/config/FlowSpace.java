@@ -1,5 +1,8 @@
 package org.flowvisor.config;
 
+import java.util.HashMap;
+import java.util.List;
+
 import org.flowvisor.flows.FlowEntry;
 import org.flowvisor.flows.FlowMap;
 
@@ -32,6 +35,7 @@ public interface FlowSpace extends FVAppConfig {
 	public static String ACTION = "slice_action";
 	public static String QUEUE = "queue_id";
 	public static String FORCED_QUEUE = "forced_queue";
+	public static String NAME = "name";
 	
 	//Table name
 	public static String FS = "FlowSpaceRule";
@@ -83,7 +87,22 @@ public interface FlowSpace extends FVAppConfig {
 	 */
 	public int addRule(FlowEntry fe) throws ConfigError;
 
-
+	/**
+	 * Preserve the flowspace for future usage.
+	 * 
+	 * @param sliceName - flowspace for sliceName will be saved.
+	 * @throws ConfigError
+	 */
+	public void saveFlowSpace(String sliceName) throws ConfigError;
+	
 	public void notifyChange(FlowMap map);
+
+	
+	public HashMap<String, Object> toJson(HashMap<String, Object> map, String sliceName, Boolean show) throws ConfigError;
+
+
+	public void removeRuleByName(List<String> names) throws ConfigError;
+
+	
 	
 }

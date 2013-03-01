@@ -46,16 +46,19 @@ import org.flowvisor.log.LogLevel;
 import org.flowvisor.log.SendRecvDropStats;
 import org.flowvisor.log.SendRecvDropStats.FVStatsType;
 import org.flowvisor.message.FVMessageFactory;
+import org.flowvisor.message.FVMessageUtil;
 import org.flowvisor.message.FVPacketOut;
 import org.flowvisor.message.FVPortStatus;
 import org.flowvisor.message.SanityCheckable;
 import org.flowvisor.message.Slicable;
 import org.flowvisor.ofswitch.TopologyController;
+import org.openflow.protocol.OFError.OFBadRequestCode;
 import org.openflow.protocol.OFHello;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFPortStatus.OFPortReason;
+import org.openflow.protocol.OFType;
 import org.openflow.util.LRULinkedHashMap;
 
 
@@ -75,6 +78,7 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 	final int maxReconnectSeconds = 15;
 	int port; // the tcp port of our controller
 	boolean isConnected;
+	int connectCount = 0;
 	FVMessageAsyncStream msgStream;
 	short missSendLength;
 	boolean allowAllPorts;
@@ -160,10 +164,11 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 		this.keepAlive = new OFKeepAlive(this, this, loop);
 		this.keepAlive.scheduleNextCheck();
 		fvClassifier.loadLimit(sliceName);
+		fvClassifier.loadRateLimit(sliceName);
 		try {
 			this.fmlimit = SliceImpl.getProxy().getMaxFlowMods(sliceName);
 		} catch (ConfigError e) {
-			FVLog.log(LogLevel.WARN, this, "Global slice flow mod limit unreadle; disabling.");
+			FVLog.log(LogLevel.WARN, this, "Global slice flow mod limit unreadable; disabling.");
 			this.fmlimit = -1;
 		}
 	}
@@ -378,6 +383,8 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 		return new StringBuilder("slicer_").append(this.sliceName).append("_")
 				.append(fvClassifier.getSwitchName()).toString();
 	}
+	
+
 
 	/*
 	 * (non-Javadoc)
@@ -397,6 +404,10 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 	@Override
 	public void tearDown() {
 		closeDown(true);
+	}
+	
+	public int getConnectCount() {
+		return connectCount;
 	}
 
 	public void closeDown(boolean unregisterClassifier) {
@@ -530,6 +541,7 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 			}
 			FVLog.log(LogLevel.DEBUG, this, "connected");
 			this.isConnected = true;
+			this.connectCount++;
 			HashMap<String, Object> info = this.getStatusInfo();
 			TopologyController tc = TopologyController.getRunningInstance();
 			if (tc != null)
@@ -566,10 +578,19 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 							"msg failed sanity check; dropping: " + msg);
 					continue;
 				}
-				if (msg instanceof Slicable) {
-					((Slicable) msg).sliceFromController(fvClassifier, this);
+				if (msg instanceof Slicable ) {
 					// mark this channel as still alive
 					this.keepAlive.registerPong();
+					if (msg.getType() != OFType.HELLO && !fvClassifier.isRateLimited(this.getSliceName())) {
+						FVLog.log(LogLevel.WARN, this,
+								"dropping msg because slice", this.getSliceName(), " is rate limited: ",
+								msg);
+						this.sendMsg(FVMessageUtil.makeErrorMsg(OFBadRequestCode.OFPBRC_EPERM, msg), this);
+						
+						continue;
+					}
+					((Slicable) msg).sliceFromController(fvClassifier, this);
+					
 				} else
 					FVLog.log(LogLevel.CRIT, this,
 							"dropping msg that doesn't implement classify: ",
@@ -805,6 +826,10 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 			return true && fvClassifier.permitFlowMod(sliceName);
 		int currlimit = fvClassifier.getSlicerLimits().getSliceFMLimit(sliceName);
 		return ((currlimit < fmlimit) && (fvClassifier.permitFlowMod(sliceName)));
+	}
+
+	public boolean isUp() {
+		return SliceImpl.getProxy().isSliceUp(this.sliceName);
 	}
 
 

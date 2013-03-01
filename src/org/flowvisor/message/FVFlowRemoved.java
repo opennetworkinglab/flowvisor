@@ -4,6 +4,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.flowvisor.classifier.CookiePair;
+import org.flowvisor.classifier.CookieTranslator;
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.flows.FlowEntry;
 import org.flowvisor.flows.FlowMap;
@@ -32,13 +34,21 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 	 */
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
+		
 		FlowMap flowSpace = fvClassifier.getSwitchFlowMap();
 		Set<String> slicesToUpdate = new HashSet<String>();
-
+		
 		String sliceName = fvClassifier.getFlowDB().processFlowRemoved(this,
 				fvClassifier.getDPID());
+		
+		CookiePair pair = untanslateCookie(fvClassifier);
+		
+		//FVLog.log(LogLevel.DEBUG, fvClassifier, slicerFromCookie);
+		
 		if (sliceName != null)
 			slicesToUpdate.add(sliceName);
+		else if (pair != null) 
+			slicesToUpdate.add(pair.getSliceName());
 		else {
 			// flow tracking either disabled or broken
 			// just fall back to everyone who *could* have inserted this flow
@@ -56,6 +66,7 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 			}
 		}
 		// forward this msg to each of them
+		FVLog.log(LogLevel.DEBUG, fvClassifier, slicesToUpdate.toString());
 		for (String slice : slicesToUpdate) {
 			FVSlicer fvSlicer = fvClassifier.getSlicerByName(slice);
 			if (fvSlicer == null) {
@@ -66,6 +77,8 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 			}
 			fvSlicer.decrementFlowRules();
 			fvSlicer.getFlowRewriteDB().processFlowRemoved(this);
+			if (pair != null)
+				this.setCookie(pair.getCookie());
 			fvSlicer.sendMsg(this, fvClassifier);
 		}
 	}
@@ -80,6 +93,15 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 		return this;
 	}
 	
+	private CookiePair untanslateCookie(FVClassifier fvClassifier) {
+		CookieTranslator cookieTrans = fvClassifier.getCookieTranslator();
+		CookiePair pair = cookieTrans.untranslateAndRemove(this.cookie);
+		if (pair == null) {
+			return null;
+		}
+		return pair;
+	}
+	
 	@Override
 	public OFMatch getMatch() {
 		return this.match;
@@ -87,7 +109,7 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 
 	@Override
 	public String toString() {
-		return super.toString() + ";" + this.getMatch().toString();
+		return "FVFlowRemoved [match=" + this.getMatch().toString() + "]";
 	}
 
 }

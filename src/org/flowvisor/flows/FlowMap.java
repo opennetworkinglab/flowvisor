@@ -146,6 +146,13 @@ public interface FlowMap {
 	public SortedSet<FlowEntry> getRules();
 	
 	public void setRules(SortedSet<FlowEntry> r);
+	
+	
+	/*
+	 * Finds a rule by name.
+	 */
+	
+	public FlowEntry findRuleByName(String name) throws FlowEntryNotFound;
 
 	/**
 	 * Clone()
