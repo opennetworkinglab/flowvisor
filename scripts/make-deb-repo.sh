@@ -96,6 +96,13 @@ cat > postinst << EOF
 if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
 ${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
 
+chown -R flowvisor:flowvisor /etc/flowvisor /usr/libexec/flowvisor
+chown flowvisor:flowvisor /usr/bin/fvctl /usr/bin/fvctl-xml /usr/sbin/derby-interact /usr/sbin/flowvisor /usr/sbin/fvconfig
+chown -R flowvisor:flowvisor /usr/share/db/flowvisor
+chown -R flowvisor:flowvisor /usr/share/doc/flowvisor
+chown -R flowvisor:flowvisor /var/log/flowvisor
+
+
 if [ -d /usr/share/db/flowvisor/FlowVisorDB/seg0 ]; then
     echo "FlowVisorDB exists, leaving untouched."
 else
