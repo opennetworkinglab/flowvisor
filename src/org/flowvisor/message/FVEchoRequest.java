@@ -57,5 +57,10 @@ public class FVEchoRequest extends org.openflow.protocol.OFEchoRequest
 		reply.setPayload(this.getPayload());
 		return reply;
 	}
+	
+	@Override
+	public String toString() {
+		return "FVEchoRequest [ payload=" + this.getPayload() + "]";
+	}
 
 }
