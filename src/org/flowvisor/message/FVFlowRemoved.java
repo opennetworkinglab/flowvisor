@@ -109,7 +109,7 @@ public class FVFlowRemoved extends OFFlowRemoved implements Classifiable,
 
 	@Override
 	public String toString() {
-		return super.toString() + ";" + this.getMatch().toString();
+		return "FVFlowRemoved [match=" + this.getMatch().toString() + "]";
 	}
 
 }

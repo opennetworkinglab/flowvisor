@@ -17,4 +17,6 @@ public class FVGetConfigRequest extends OFGetConfigRequest implements
 		FVMessageUtil.translateXidAndSend(this, fvClassifier, fvSlicer);
 	}
 
+	
+	
 }

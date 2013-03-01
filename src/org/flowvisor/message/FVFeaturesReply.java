@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.flowvisor.classifier.FVClassifier;
+import org.flowvisor.flows.FlowSpaceUtil;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.ofswitch.TopologyConnection;
@@ -47,7 +48,8 @@ public class FVFeaturesReply extends org.openflow.protocol.OFFeaturesReply
 
 	@Override
 	public String toString() {
-		return super.toString() + ";ports=" + this.getPorts().size();
+		return "FVFeaturesReply [ dpid=" +  FlowSpaceUtil.dpidToString(this.datapathId)
+				+ ",ports=" + this.getPorts().size() + "]";
 	}
 
 	/**

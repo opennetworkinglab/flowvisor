@@ -192,9 +192,16 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 	 *
 	 * @see java.lang.Object#toString()
 	 */
-	@Override
-	public String toString() {
-		return super.toString() + ";actions="
-				+ FVMessageUtil.actionsToString(this.getActions());
-	}
+	
+    @Override
+    public String toString() {
+        return "FVFlowMod [ actions="
+                + FVMessageUtil.actionsToString(this.getActions()) + ", command=" + command
+                + ", cookie=" + cookie + ", flags=" + flags + ", hardTimeout="
+                + hardTimeout + ", idleTimeout=" + idleTimeout + ", match="
+                + match + ", outPort=" + outPort + ", priority=" + priority
+                + ", length=" + length + ", type=" + type + ", version="
+                + version + "]";
+    }
+
 }

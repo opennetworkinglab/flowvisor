@@ -37,4 +37,9 @@ public class FVBarrierRequest extends org.openflow.protocol.OFBarrierRequest
 		FVMessageUtil.dropUnexpectedMesg(this, fvClassifier);
 	}
 
+	
+	@Override
+	public String toString() {
+		return "FVBarrierRequest []";
+	}
 }

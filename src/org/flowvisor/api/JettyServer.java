@@ -167,7 +167,8 @@ public class JettyServer implements Runnable{
 			FVLog.log(LogLevel.INFO, null, "JSON service disabled in config (Jetty webserver port == -1)");
 			return;
 		}
-
+		
+		
 		Thread jettyThread = new Thread(new JettyServer(port));
 		jettyThread.start();
 	}
