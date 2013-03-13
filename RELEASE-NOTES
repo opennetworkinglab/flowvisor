@@ -16,6 +16,7 @@ FlowVisor 1.0.0 : February 28 2013
     * FLOWVISOR-65  : Provide RPC API as JSON service
     * FLOWVISOR-60  : Need to be able to set a slice as "administratively down"
     * FLOWVISOR-49  : dl_vlan only accepts in decimal and only prints in hex
+    * FLOWVISOR-24  : Need to flush old flow entries
     * FLOWVISOR-7   : Queue_stats: FV doesn't filter the ports for a slice
     * FLOWVISOR-6   : Aggregate_flow_stats_req: FV doesn't extract the request
 
