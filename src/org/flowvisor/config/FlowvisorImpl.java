@@ -955,10 +955,10 @@ public class FlowvisorImpl implements Flowvisor {
 		}
 		if (version == 1) {
 			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + FSCACHE + " INT DEFAULT 30");
-			processAlter("ALTER TABLE Flowvisor DROP COLUMN " + APIPORT );
+			//processAlter("ALTER TABLE Flowvisor DROP COLUMN " + APIPORT );
 			processAlter("ALTER TABLE Flowvisor DROP COLUMN " + JETTYPORT );
-			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + APIPORT + " INT DEFAULT 8081");
-			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + JETTYPORT + " INT DEFAULT 8080");
+			//processAlter("ALTER TABLE Flowvisor ADD COLUMN " + APIPORT + " INT DEFAULT 8081");
+			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + JETTYPORT + " INT DEFAULT 8081");
 			
 			
 			version++;
