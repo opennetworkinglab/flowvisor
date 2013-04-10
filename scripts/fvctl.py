@@ -822,7 +822,7 @@ ERRORS = {
     -32603 : "Internal Error"
 }
 
-USAGE="%prog {}"
+USAGE="%prog {0}"
 
 URL = "https://%s:%s"
 
