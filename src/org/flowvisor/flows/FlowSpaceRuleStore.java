@@ -323,6 +323,18 @@ public class FlowSpaceRuleStore {
 					new Pair<Boolean, BitSet>(testEmpty(set, port,
 							match.getInputPort(), ANY_IN_PORT, wildcards,
 							FVMatch.OFPFW_IN_PORT), set));
+			
+			rewrites.put(
+					FVMatch.OFPFW_DL_SRC,
+					new Pair<Boolean, BitSet>(testEmpty(set, dl_src,
+							FVMatch.toLong(match.getDataLayerSource()),
+							ANY_MAC, wildcards, FVMatch.OFPFW_DL_SRC), set));
+
+			rewrites.put(
+					FVMatch.OFPFW_DL_DST,
+					new Pair<Boolean, BitSet>(testEmpty(set, dl_dst,
+							FVMatch.toLong(match.getDataLayerDestination()),
+							ANY_MAC, wildcards, FVMatch.OFPFW_DL_DST), set));
 
 			rewrites.put(
 					FVMatch.OFPFW_DL_VLAN,
@@ -373,17 +385,7 @@ public class FlowSpaceRuleStore {
 							match.getTransportDestination() << 16,
 							ANY_TP << 16, wildcards, FVMatch.OFPFW_TP_DST), set));
 
-			rewrites.put(
-					FVMatch.OFPFW_DL_SRC,
-					new Pair<Boolean, BitSet>(testEmpty(set, dl_src,
-							FVMatch.toLong(match.getDataLayerSource()),
-							ANY_MAC, wildcards, FVMatch.OFPFW_DL_SRC), set));
-
-			rewrites.put(
-					FVMatch.OFPFW_DL_DST,
-					new Pair<Boolean, BitSet>(testEmpty(set, dl_dst,
-							FVMatch.toLong(match.getDataLayerDestination()),
-							ANY_MAC, wildcards, FVMatch.OFPFW_DL_DST), set));
+			
 
 			int field = 0;
 			boolean rewrite = false;
