@@ -122,6 +122,15 @@ public class FlowSpaceRuleStore {
 	public static short ANY_ETHER = -1;
 	public static short ANY_NW = -1;
 	public static short ANY_TP = -1;
+	
+	
+	final static short IPTYPE = 0x800;
+	final static short ARPTYPE = 0x806;
+	
+	final static short ICMP = 1;
+	final static short TCP = 6;
+	final static short UDP = 17;
+	final static short SCTP = 132;
 
 	/**
 	 * This is used so that we can delete the rules if need be.
@@ -300,11 +309,13 @@ public class FlowSpaceRuleStore {
 
 	public List<FlowIntersect> intersect(long dpid, FVMatch match) {
 		BitSet set = new BitSet();
+		normalize(match);
 		int wildcards = match.getWildcards();
 		TreeSet<FlowIntersect> ret = new TreeSet<FlowIntersect>();
 		HashMap<Integer, FlowIntersect> intersections = new HashMap<Integer, FlowIntersect>();
 		HashMap<Integer, Pair<Boolean, BitSet>> rewrites = new HashMap<Integer, Pair<Boolean, BitSet>>();
-
+		
+		
 		set.or(allRules);
 		
 		/*if ((wildcards & FVMatch.OFPFW_ALL) != 0) {
@@ -323,6 +334,18 @@ public class FlowSpaceRuleStore {
 					new Pair<Boolean, BitSet>(testEmpty(set, port,
 							match.getInputPort(), ANY_IN_PORT, wildcards,
 							FVMatch.OFPFW_IN_PORT), set));
+			
+			rewrites.put(
+					FVMatch.OFPFW_DL_SRC,
+					new Pair<Boolean, BitSet>(testEmpty(set, dl_src,
+							FVMatch.toLong(match.getDataLayerSource()),
+							ANY_MAC, wildcards, FVMatch.OFPFW_DL_SRC), set));
+
+			rewrites.put(
+					FVMatch.OFPFW_DL_DST,
+					new Pair<Boolean, BitSet>(testEmpty(set, dl_dst,
+							FVMatch.toLong(match.getDataLayerDestination()),
+							ANY_MAC, wildcards, FVMatch.OFPFW_DL_DST), set));
 
 			rewrites.put(
 					FVMatch.OFPFW_DL_VLAN,
@@ -373,17 +396,7 @@ public class FlowSpaceRuleStore {
 							match.getTransportDestination() << 16,
 							ANY_TP << 16, wildcards, FVMatch.OFPFW_TP_DST), set));
 
-			rewrites.put(
-					FVMatch.OFPFW_DL_SRC,
-					new Pair<Boolean, BitSet>(testEmpty(set, dl_src,
-							FVMatch.toLong(match.getDataLayerSource()),
-							ANY_MAC, wildcards, FVMatch.OFPFW_DL_SRC), set));
-
-			rewrites.put(
-					FVMatch.OFPFW_DL_DST,
-					new Pair<Boolean, BitSet>(testEmpty(set, dl_dst,
-							FVMatch.toLong(match.getDataLayerDestination()),
-							ANY_MAC, wildcards, FVMatch.OFPFW_DL_DST), set));
+			
 
 			int field = 0;
 			boolean rewrite = false;
@@ -458,6 +471,36 @@ public class FlowSpaceRuleStore {
 		}
 
 		return new ArrayList<FlowIntersect>(ret);
+	}
+
+	/**
+	 *  Protocol-specific fields within ofp_match will be ignored within
+   	 *	a single table when the corresponding protocol is not specified in the
+     *  match.  The IP header and transport header fields
+     *  will be ignored unless the Ethertype is specified as either IPv4 or
+     *  ARP. The tp_src and tp_dst fields will be ignored unless the network
+     *  protocol specified is as TCP, UDP or SCTP. Fields that are ignored
+     *  don't need to be wildcarded and should be set to 0.
+	 * 
+	 */
+
+	private void normalize(FVMatch match) {
+		int wildcards = match.getWildcards();
+		short etherType = match.getDataLayerType();
+		short proto = match.getNetworkProtocol();
+		if (etherType != IPTYPE && etherType != ARPTYPE) {
+			wildcards |= FVMatch.OFPFW_NW_SRC_ALL;
+			wildcards |= FVMatch.OFPFW_NW_DST_ALL;
+			wildcards |= FVMatch.OFPFW_NW_PROTO;
+			wildcards |= FVMatch.OFPFW_NW_TOS;
+			wildcards |= FVMatch.OFPFW_TP_DST;
+			wildcards |= FVMatch.OFPFW_TP_SRC;
+		}
+		if (proto != ICMP && proto != TCP && proto != UDP && proto != SCTP) {
+			wildcards |= FVMatch.OFPFW_TP_DST;
+			wildcards |= FVMatch.OFPFW_TP_SRC;
+		}
+		match.setWildcards(wildcards);
 	}
 
 	private FlowIntersect getIntersect(FlowEntry fe,
