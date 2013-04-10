@@ -489,16 +489,16 @@ public class FlowSpaceRuleStore {
 		short etherType = match.getDataLayerType();
 		short proto = match.getNetworkProtocol();
 		if (etherType != IPTYPE && etherType != ARPTYPE) {
-			wildcards &= FVMatch.OFPFW_NW_SRC_ALL;
-			wildcards &= FVMatch.OFPFW_NW_DST_ALL;
-			wildcards &= FVMatch.OFPFW_NW_PROTO;
-			wildcards &= FVMatch.OFPFW_NW_TOS;
-			wildcards &= FVMatch.OFPFW_TP_DST;
-			wildcards &= FVMatch.OFPFW_TP_SRC;
+			wildcards |= FVMatch.OFPFW_NW_SRC_ALL;
+			wildcards |= FVMatch.OFPFW_NW_DST_ALL;
+			wildcards |= FVMatch.OFPFW_NW_PROTO;
+			wildcards |= FVMatch.OFPFW_NW_TOS;
+			wildcards |= FVMatch.OFPFW_TP_DST;
+			wildcards |= FVMatch.OFPFW_TP_SRC;
 		}
 		if (proto != ICMP && proto != TCP && proto != UDP && proto != SCTP) {
-			wildcards &= FVMatch.OFPFW_TP_DST;
-			wildcards &= FVMatch.OFPFW_TP_SRC;
+			wildcards |= FVMatch.OFPFW_TP_DST;
+			wildcards |= FVMatch.OFPFW_TP_SRC;
 		}
 		match.setWildcards(wildcards);
 	}
