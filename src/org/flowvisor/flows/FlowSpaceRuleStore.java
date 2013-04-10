@@ -489,7 +489,7 @@ public class FlowSpaceRuleStore {
 		short etherType = match.getDataLayerType();
 		short proto = match.getNetworkProtocol();
 		if (etherType != IPTYPE && etherType != ARPTYPE) {
-			wildcards &= wildcards & FVMatch.OFPFW_NW_SRC_ALL;
+			wildcards &= FVMatch.OFPFW_NW_SRC_ALL;
 			wildcards &= FVMatch.OFPFW_NW_DST_ALL;
 			wildcards &= FVMatch.OFPFW_NW_PROTO;
 			wildcards &= FVMatch.OFPFW_NW_TOS;
