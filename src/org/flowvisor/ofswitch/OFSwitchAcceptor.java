@@ -44,17 +44,17 @@ public class OFSwitchAcceptor implements FVEventHandler {
 		} catch (java.net.SocketException e) {
 			// try default/ipv4 if that fails
 			try {
-				FVLog.log(LogLevel.NOTE, this, "failed to bind IPv6 address; trying IPv4");
+				FVLog.log(LogLevel.CRIT, this, "failed to bind IPv6 address; trying IPv4");
 				ssc.socket().bind(
 						new InetSocketAddress(port),
 						backlog);
 			} catch (BindException be) {
-				FVLog.log(LogLevel.FATAL, this, "Unable to listen on port " + port + 
+				FVLog.log(LogLevel.CRIT, this, "Unable to listen on port " + port + 
 						" on localhost; verify that nothing else is running on that port.");
 				System.exit(1);
 			} catch (java.net.SocketException se) {
-				FVLog.log(LogLevel.NOTE, this, "failed to bind IPv4 address; Quitting");
-				FVLog.log(LogLevel.NOTE, this, "OF Control address already in use.");
+				FVLog.log(LogLevel.CRIT, this, "failed to bind IPv4 address; Quitting");
+				FVLog.log(LogLevel.CRIT, this, "OF Control address already in use.");
 				e.printStackTrace();
 				System.exit(1);
 			} 
