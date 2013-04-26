@@ -322,7 +322,10 @@ def do_addFlowSpace(gopts, opts, args):
         acts.append(act)
     req['slice-action'] = acts
     ret = connect(gopts, "add-flowspace", passwd, data=[req])  
-    if ret:
+    if type(ret) is list:
+        for name in ret:
+            print "FlowSpace %s was ignored because it already exists" % name
+    else: 
         print "Flowspace %s has been created." % args[0]
 
 def pa_updateFlowSpace(args, cmd):
