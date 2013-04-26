@@ -12,6 +12,8 @@ import re
 from optparse import OptionParser
 
 def getPassword(opts):
+    if opts.no_passwd:
+        return ""
     if opts.fv_passwdfile is None:
         passwd = getpass.getpass("Password: ")
     else:
@@ -25,6 +27,8 @@ def addCommonOpts (parser):
                     help="Specify the FlowVisor web port; default=8080")
     parser.add_option("-u", "--user", dest="fv_user", default="fvadmin",
                     help="FlowVisor admin user; default='fvadmin'")
+    parser.add_option("-n", "--no-passwd", action="store_true",  dest="no_passwd", default=False,
+                    help="Run fvctl with no password; default false")
     parser.add_option("-f", "--passwd-file", dest="fv_passwdfile", default=None,
                     help="Password file; default=none")
     parser.add_option("-v", "--version", action="callback", callback=printVersion)
@@ -714,6 +718,10 @@ def connect(opts, cmd, passwd, data=None):
             sys.exit(1)
         else:
             print e
+    except urllib2.URLError, e:
+        print "Could not reach a FlowVisor RPC server at %s:%s." % (opts.host, opts.port) 
+        print "Please check that FlowVisor is running and try again."
+        sys.exit(1)
     except RuntimeError, e:
         print e
 
