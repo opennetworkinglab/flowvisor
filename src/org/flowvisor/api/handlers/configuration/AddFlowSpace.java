@@ -93,25 +93,8 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 			
 			List<OFAction> sliceActions = parseSliceActions(
 					HandlerUtils.<List<Map<String, Object>>>fetchField(SLICEACTIONS, fe, true, null));
-			List<FlowEntry> fes = flowSpace.matches(dpid, match);
-			boolean found = false;
-			for (FlowEntry entry : fes) {
-				for (OFAction sa : entry.getActionsList()) {
-					String maSlice = ((SliceAction) sa).getSliceName();
-					for (OFAction acts : sliceActions) {
-						String thSlice = ((SliceAction) acts).getSliceName();
-						if (thSlice.equals(maSlice)) {
-							FVLog.log(LogLevel.WARN, null, "Skipping match " + match +
-									" in slice " + thSlice + " because it already exists");
-							ignored.add(name);
-							found = true;
-							break;
-						}
-					}
-				}
-			}
-			if (found)
-				continue;
+			//List<FlowEntry> fes = flowSpace.matches(dpid, match);
+			
 			List<Integer> l = new LinkedList<Integer>();
 			for (Number n : HandlerUtils.<List<Number>>fetchField(QUEUE, fe, false, 
 											new LinkedList<Number>()))
