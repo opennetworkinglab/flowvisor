@@ -15,7 +15,6 @@ import org.flowvisor.config.FVConfig;
 import org.flowvisor.config.FVConfigurationController;
 import org.flowvisor.config.FlowSpace;
 import org.flowvisor.config.FlowSpaceImpl;
-import org.flowvisor.exceptions.FlowEntryNotFound;
 import org.flowvisor.exceptions.MissingRequiredField;
 import org.flowvisor.exceptions.UnknownMatchField;
 import org.flowvisor.flows.FlowEntry;

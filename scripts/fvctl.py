@@ -23,8 +23,8 @@ def getPassword(opts):
 def addCommonOpts (parser):
     parser.add_option("-h", "--hostname", dest="host", default="localhost",
                     help="Specify the FlowVisor host; default='localhost'")
-    parser.add_option("-p", "--port", dest="port", default="8080",
-                    help="Specify the FlowVisor web port; default=8080")
+    parser.add_option("-p", "--port", dest="port", default="8081",
+                    help="Specify the FlowVisor web port; default=8081")
     parser.add_option("-u", "--user", dest="fv_user", default="fvadmin",
                     help="FlowVisor admin user; default='fvadmin'")
     parser.add_option("-n", "--no-passwd", action="store_true",  dest="no_passwd", default=False,
