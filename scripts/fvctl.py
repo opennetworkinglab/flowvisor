@@ -12,6 +12,8 @@ import re
 from optparse import OptionParser
 
 def getPassword(opts):
+    if opts.no_passwd:
+        return ""
     if opts.fv_passwdfile is None:
         passwd = getpass.getpass("Password: ")
     else:
@@ -21,10 +23,12 @@ def getPassword(opts):
 def addCommonOpts (parser):
     parser.add_option("-h", "--hostname", dest="host", default="localhost",
                     help="Specify the FlowVisor host; default='localhost'")
-    parser.add_option("-p", "--port", dest="port", default="8080",
-                    help="Specify the FlowVisor web port; default=8080")
+    parser.add_option("-p", "--port", dest="port", default="8081",
+                    help="Specify the FlowVisor web port; default=8081")
     parser.add_option("-u", "--user", dest="fv_user", default="fvadmin",
                     help="FlowVisor admin user; default='fvadmin'")
+    parser.add_option("-n", "--no-passwd", action="store_true",  dest="no_passwd", default=False,
+                    help="Run fvctl with no password; default false")
     parser.add_option("-f", "--passwd-file", dest="fv_passwdfile", default=None,
                     help="Password file; default=none")
     parser.add_option("-v", "--version", action="callback", callback=printVersion)
@@ -318,7 +322,10 @@ def do_addFlowSpace(gopts, opts, args):
         acts.append(act)
     req['slice-action'] = acts
     ret = connect(gopts, "add-flowspace", passwd, data=[req])  
-    if ret:
+    if type(ret) is list:
+        for name in ret:
+            print "FlowSpace %s was ignored because it already exists" % name
+    else: 
         print "Flowspace %s has been created." % args[0]
 
 def pa_updateFlowSpace(args, cmd):
@@ -714,6 +721,10 @@ def connect(opts, cmd, passwd, data=None):
             sys.exit(1)
         else:
             print e
+    except urllib2.URLError, e:
+        print "Could not reach a FlowVisor RPC server at %s:%s." % (opts.host, opts.port) 
+        print "Please check that FlowVisor is running and try again."
+        sys.exit(1)
     except RuntimeError, e:
         print e
 

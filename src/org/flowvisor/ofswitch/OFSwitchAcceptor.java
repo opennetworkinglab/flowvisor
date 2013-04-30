@@ -51,6 +51,7 @@ public class OFSwitchAcceptor implements FVEventHandler {
 			} catch (BindException be) {
 				FVLog.log(LogLevel.FATAL, this, "Unable to listen on port " + port + 
 						" on localhost; verify that nothing else is running on that port.");
+				System.out.println("OF Control address already in use.");
 				System.exit(1);
 			} catch (java.net.SocketException se) {
 				FVLog.log(LogLevel.NOTE, this, "failed to bind IPv4 address; Quitting");
