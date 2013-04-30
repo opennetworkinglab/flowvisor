@@ -423,7 +423,7 @@ public class FlowSpaceRuleStore {
 						rule.setRuleMatch(match);
 						/*if ((rule.getRuleMatch().getWildcards() & entry
 								.getKey()) != 0)*/
-							setField(flow, rule.getRuleMatch(), field);
+						setField(flow, rule.getRuleMatch(), field);
 					} 
 
 					FVMatch ruleMatch = rules.get(i).getRuleMatch();

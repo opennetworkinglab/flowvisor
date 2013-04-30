@@ -33,11 +33,12 @@ import com.thetransactioncompany.jsonrpc2.JSONRPC2Response;
 
 public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 
-	
+	LinkedList<String> ignored = new LinkedList<String>();
 	
 	@Override
 	public JSONRPC2Response process(List<Map<String, Object>> params) {
 		JSONRPC2Response resp = null;
+		ignored.clear();
 		try {
 			final FlowMap flowSpace = FVConfig.getFlowSpaceFlowMap();
 			final List<FlowEntry> list = processFlows(params, flowSpace);
@@ -54,7 +55,7 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 	                });
 	                    
 			FVConfigurationController.instance().execute(future);	
-			resp = new JSONRPC2Response(true, 0);
+			resp = new JSONRPC2Response(ignored.size() > 0 ? ignored : true, 0);
 		} catch (ClassCastException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					cmdName() + ": " + e.getMessage()), 0);
@@ -88,8 +89,10 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 			priority = HandlerUtils.<Number>fetchField(FlowSpace.PRIO, fe, true, FlowEntry.DefaultPriority).intValue();
 			FVMatch match = HandlerUtils.matchFromMap(
 					HandlerUtils.<Map<String, Object>>fetchField(MATCH, fe, true, null));
+			
 			List<OFAction> sliceActions = parseSliceActions(
 					HandlerUtils.<List<Map<String, Object>>>fetchField(SLICEACTIONS, fe, true, null));
+			//List<FlowEntry> fes = flowSpace.matches(dpid, match);
 			
 			List<Integer> l = new LinkedList<Integer>();
 			for (Number n : HandlerUtils.<List<Number>>fetchField(QUEUE, fe, false, 

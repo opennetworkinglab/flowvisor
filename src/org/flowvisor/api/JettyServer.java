@@ -29,7 +29,7 @@ import org.flowvisor.log.LogLevel;
 
 public class JettyServer implements Runnable{
 
-	public static final int default_jetty_port = 8080;
+	public static final int default_jetty_port = 8081;
 
 	public static String REALM_NAME = "JETTYREALM";
 	private Server jettyServer;
