@@ -544,6 +544,8 @@ public class FVConfig {
 		System.err.println("Outputing config file " + filename);
 		FVConfig.writeToFile(filename);
 		
+		FVConfigurationController.instance().shutdown();
+		
 		
 	}
 
