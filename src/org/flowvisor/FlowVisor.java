@@ -149,6 +149,7 @@ public class FlowVisor {
 	}
 
 	public void run() throws ConfigError, IOException, UnhandledEvent {
+		FVLog.log(LogLevel.DEBUG, null, "HALLO");
 		FlowVisor.setInstance(this);
 		Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 				// init polling loop

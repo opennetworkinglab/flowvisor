@@ -26,7 +26,6 @@ public class FlowSpaceHandler extends ConcurrentHashMap<Integer, List<FlowEntry>
 	private boolean shutdown;
 	
 	public FlowSpaceHandler() {
-		flowSpace = FVConfig.getFlowSpaceFlowMap();
 		nextId = new AtomicInteger(0);
 		this.shutdown = false;
 	}
@@ -35,7 +34,7 @@ public class FlowSpaceHandler extends ConcurrentHashMap<Integer, List<FlowEntry>
 	public void run() {
 		while (!shutdown) {
 			if (!isEmpty()) {
-				
+				//flowSpace = getFlowMap();
 				Iterator<Entry<Integer, List<FlowEntry>>> it = this.entrySet().iterator();
 				while (it.hasNext()) {
 					Entry<Integer, List<FlowEntry>> entry = it.next();
@@ -83,6 +82,13 @@ public class FlowSpaceHandler extends ConcurrentHashMap<Integer, List<FlowEntry>
 	public void shutdown() {
 		this.shutdown = true;
 		
+	}
+	
+	private FlowMap getFlowMap() {
+		if (flowSpace == null)
+			flowSpace = FVConfig.getFlowSpaceFlowMap();
+		return flowSpace; 
+			
 	}
 	
 	private static String flowspaceAddChangeLogMessage(long dpid, OFMatch match,

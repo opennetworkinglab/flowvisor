@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.flowvisor.flows.FlowEntry;
+import org.flowvisor.log.FVLog;
+import org.flowvisor.log.LogLevel;
 
 public class FVConfigurationController {
 
