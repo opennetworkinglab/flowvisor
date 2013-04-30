@@ -6,9 +6,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
 
 import org.flowvisor.flows.FlowEntry;
 
@@ -19,8 +16,7 @@ public class FVConfigurationController {
 	private HashMap<Object, Set<ChangedListener>> listeners = null;
 	
 	private FlowSpaceHandler fsHandler = null;
-	
-	ExecutorService executor = null;
+
 
 	private FVConfigurationController(ConfDBSettings settings) {
 		this.settings  = settings;
@@ -28,7 +24,7 @@ public class FVConfigurationController {
 		fsHandler = new FlowSpaceHandler();
 		Thread fsThread = new Thread(fsHandler);
 		fsThread.start();
-		executor = Executors.newFixedThreadPool(20);
+		
 	}
 	
 	public static FVConfigurationController instance() {
@@ -92,10 +88,6 @@ public class FVConfigurationController {
 				new Class[] { FVAppConfig.class, instance.getClass().getInterfaces()[0]},
 				new FVConfigProxy(instance));
 		return configProxy;
-	}
-	
-	public void execute(FutureTask<Object> future) {
-		executor.execute(future);
 	}
 	
 	public ConfDBSettings getSettings() {

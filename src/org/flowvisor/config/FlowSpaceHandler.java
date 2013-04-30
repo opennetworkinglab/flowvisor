@@ -48,12 +48,15 @@ public class FlowSpaceHandler extends ConcurrentHashMap<Integer, List<FlowEntry>
 											fentry.getRuleMatch(), fentry.getPriority(),
 											fentry.getActionsList(), fentry.getName());
 							FVLog.log(LogLevel.INFO, null, logMsg);
-							FlowSpaceImpl.getProxy().notifyChange(flowSpace);
-							
 						} catch (ConfigError e) {
+							/*
+							 * TODO handle exception to log failure which will be used to create 
+							 * FSStatus message
+							 */
 							FVLog.log(LogLevel.WARN, null, e.getMessage());
 						}
 					}
+					FlowSpaceImpl.getProxy().notifyChange(flowSpace);
 					it.remove();
 				}
 			}
@@ -73,7 +76,7 @@ public class FlowSpaceHandler extends ConcurrentHashMap<Integer, List<FlowEntry>
 		return next;
 	}
 	
-	public boolean exists(Integer id) {
+	public boolean status(Integer id) {
 		return this.containsKey(id);
 	}
 	

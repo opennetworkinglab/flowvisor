@@ -94,15 +94,7 @@ public class UpdateSlice implements ApiHandler<Map<String, Object>> {
 		if (status == null)
 			return;
 		SliceImpl.getProxy().setAdminStatus(sliceName, status);
-		FVLog.log(LogLevel.WARN, null, "Setting slice status to ", status ? "enabled" : "disabled");
-		FutureTask<Object> future = new FutureTask<Object>(
-                new Callable<Object>() {
-                    public Object call() {
-                    	FlowSpaceImpl.getProxy().notifyChange(FVConfig.getFlowSpaceFlowMap());
-                    	return null;
-                    }
-                });
-		FVConfigurationController.instance().execute(future);
+		FlowSpaceImpl.getProxy().notifyChange(FVConfig.getFlowSpaceFlowMap());
 	}
 
 
