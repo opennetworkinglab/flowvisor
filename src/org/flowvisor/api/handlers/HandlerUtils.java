@@ -89,13 +89,17 @@ public class HandlerUtils {
 		
 		String nw_dst = HandlerUtils.<String>fetchField(FVMatch.STR_NW_DST, map, false, null);
 		if (nw_dst != null) {
+			match.setWildcards(wildcards);
 			match.setFromCIDR(nw_dst, FVMatch.STR_NW_DST);
+			wildcards = match.getWildcards();
 			map.remove(FVMatch.STR_NW_DST);
 		}
 		
 		String nw_src = HandlerUtils.<String>fetchField(FVMatch.STR_NW_SRC, map, false, null);
 		if (nw_src != null) {
+			match.setWildcards(wildcards);
 			match.setFromCIDR(nw_src, FVMatch.STR_NW_SRC);
+			wildcards = match.getWildcards();
 			map.remove(FVMatch.STR_NW_SRC);
 		}
 		

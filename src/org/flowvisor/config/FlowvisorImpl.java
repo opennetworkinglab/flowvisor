@@ -961,6 +961,7 @@ public class FlowvisorImpl implements Flowvisor {
 			processAlter("ALTER TABLE Flowvisor ADD COLUMN " + JETTYPORT + " INT DEFAULT 8081");
 			
 			
+			
 			version++;
 		}
 		processAlter("UPDATE FlowVisor SET " + DB_VERSION + " = " + FlowVisor.FLOWVISOR_DB_VERSION);

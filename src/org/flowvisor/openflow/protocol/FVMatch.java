@@ -333,6 +333,7 @@ public class FVMatch extends OFMatch {
      *            "192.168.0.0/16" or "172.16.1.5"
      * @param which
      *            one of STR_NW_DST or STR_NW_SRC
+	 * @return 
      * @throws IllegalArgumentException
      */
     public void setFromCIDR(String cidr, String which)

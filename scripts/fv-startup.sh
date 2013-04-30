@@ -50,7 +50,7 @@ abend ()
 case "$1" in
 start)
   echo Starting flowvisor with the configuration stored in DB >&2
-  echo "If DB unpopulated, laod config using 'fvconfig load config.json'" >&2
+  echo "If DB unpopulated, load config using 'fvconfig load config.json'" >&2
 
   sudo -u $FV_USER PREFIX/sbin/flowvisor >> /var/log/flowvisor/flowvisor-stderr.log 2>&1 &
   ;;
