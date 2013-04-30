@@ -60,7 +60,7 @@ public class FlowSpaceHandler extends ConcurrentHashMap<Integer, List<FlowEntry>
 				}
 			}
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(200);
 			} catch (InterruptedException e) {
 				FVLog.log(LogLevel.DEBUG, null, "Shutting down FlowSpace handler; exiting.");
 				break;
