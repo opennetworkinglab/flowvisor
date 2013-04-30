@@ -1,3 +1,13 @@
+FlowVisor 1.0.2 : April 29 2013
+    * FLOWVISOR-193 : fvctl add-flowspace <match> not working Right
+    * FLOWVISOR-195 : improve error reporting when FV is not running
+    * FLOWVISOR-197 : more concise fvctl actions w/default empty password
+    * FLOWVISOR-201 : Typo in system restart script
+    * FLOWVISOR-203 : No error message when trying to run FV with another controller already running
+    * FLOWVISOR-204 : Unfriendly error message when running fvctl to non-running FlowVisor
+    * FLOWVISOR-207 : different result when running from script vs copying/pasting commands
+    * FLOWVISOR-216 : Undo changes to default port configurations  
+
 FlowVisor 1.0.0 : February 28 2013
     * FLOWVISOR-161 : Make it easy for GENI people to find versions other than the latest
     * FLOWVISOR-160 : FV does not negotiate an acceptable OpenFlow version if a switch advertises >1.0
