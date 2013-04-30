@@ -34,7 +34,7 @@ public class FlowSpaceHandler extends ConcurrentHashMap<Integer, List<FlowEntry>
 	public void run() {
 		while (!shutdown) {
 			if (!isEmpty()) {
-				//flowSpace = getFlowMap();
+				flowSpace = getFlowMap();
 				Iterator<Entry<Integer, List<FlowEntry>>> it = this.entrySet().iterator();
 				while (it.hasNext()) {
 					Entry<Integer, List<FlowEntry>> entry = it.next();
