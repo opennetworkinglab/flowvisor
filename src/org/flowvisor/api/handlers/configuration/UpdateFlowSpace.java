@@ -3,13 +3,10 @@ package org.flowvisor.api.handlers.configuration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
 
 import org.flowvisor.api.handlers.ApiHandler;
 import org.flowvisor.api.handlers.HandlerUtils;
 import org.flowvisor.config.ConfigError;
-import org.flowvisor.config.FVConfig;
 import org.flowvisor.config.FVConfigurationController;
 import org.flowvisor.config.FlowSpace;
 import org.flowvisor.config.FlowSpaceImpl;
@@ -20,8 +17,6 @@ import org.flowvisor.flows.FlowEntry;
 import org.flowvisor.flows.FlowMap;
 import org.flowvisor.flows.FlowSpaceUtil;
 import org.flowvisor.flows.SliceAction;
-import org.flowvisor.log.FVLog;
-import org.flowvisor.log.LogLevel;
 import org.flowvisor.openflow.protocol.FVMatch;
 import org.openflow.protocol.action.OFAction;
 
@@ -38,23 +33,9 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		JSONRPC2Response resp = null;
 		try {
 			
-			final FlowMap flowSpace = FVConfig.getFlowSpaceFlowMap();
-			final List<FlowEntry> list = processFlows(params, flowSpace);
-			FutureTask<Object> future = new FutureTask<Object>(
-	                new Callable<Object>() {
-	                    public Object call() {
-							
-	                    	for (FlowEntry fe : list)
-	                    		updateFlowEntry(flowSpace, fe);
-							FVLog.log(LogLevel.INFO, null,
-									"Signalling FlowSpace Update to all event handlers");
-							FlowSpaceImpl.getProxy().notifyChange(flowSpace);
-							return null;
-	                    }
-	                });
-	                    
-			FVConfigurationController.instance().execute(future);	
-			resp = new JSONRPC2Response(true, 0);
+			final List<FlowEntry> list = processFlows(params);
+			int index = FVConfigurationController.instance().pendFlowSpace(list);
+			resp = new JSONRPC2Response(index, 0);
 		} catch (ClassCastException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					cmdName() + ": " + e.getMessage()), 0);
@@ -77,13 +58,14 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		
 	}
 
-	private List<FlowEntry> processFlows(List<Map<String, Object>> params, FlowMap flowSpace) 
+	private List<FlowEntry> processFlows(List<Map<String, Object>> params) 
 			throws ClassCastException, MissingRequiredField, ConfigError, FlowEntryNotFound, UnknownMatchField {
 		String name = null;
 		Long dpid = null;
 		Integer priority = null;
 		FlowEntry update = null;
 		LinkedList<FlowEntry> list = new LinkedList<FlowEntry>();
+		FlowMap flowSpace = FlowSpaceImpl.getProxy().getFlowMap();
 		for (Map<String,Object> fe : params) {
 			name = HandlerUtils.<String>fetchField(FSNAME, fe, false, null);
 			if (name == null)
@@ -149,21 +131,6 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		}
 		return list;
 		
-	}
-	
-	
-
-	private void updateFlowEntry(FlowMap flowSpace, FlowEntry update) {
-		try {
-			flowSpace.removeRule(update.getId());
-			FlowSpaceImpl.getProxy().removeRule(update.getId());
-			FlowSpaceImpl.getProxy().addRule(update);
-			flowSpace.addRule(update);
-		} catch (FlowEntryNotFound e) {
-			FVLog.log(LogLevel.WARN, null, "Unable to find flowEntry ", update);
-		} catch (ConfigError e) {
-			FVLog.log(LogLevel.WARN, null, e.getMessage());
-		}
 	}
 
 	

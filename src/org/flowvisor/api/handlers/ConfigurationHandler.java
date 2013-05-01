@@ -5,6 +5,7 @@ import java.util.HashMap;
 import org.flowvisor.api.handlers.configuration.AddFlowSpace;
 import org.flowvisor.api.handlers.configuration.AddSlice;
 import org.flowvisor.api.handlers.configuration.GetConfig;
+import org.flowvisor.api.handlers.configuration.ListFSInsertionStatus;
 import org.flowvisor.api.handlers.configuration.ListFlowSpace;
 import org.flowvisor.api.handlers.configuration.ListSlices;
 import org.flowvisor.api.handlers.configuration.ListVersion;
@@ -42,6 +43,7 @@ public class ConfigurationHandler implements RequestHandler {
 		put("save-config", new SaveConfig());
 		put("get-config", new GetConfig());
 		put("set-config", new SetConfig());
+		put("list-fs-status", new ListFSInsertionStatus());
 	}};
 	
 	
