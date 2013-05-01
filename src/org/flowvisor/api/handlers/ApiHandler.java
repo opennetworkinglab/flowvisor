@@ -30,6 +30,7 @@ public interface ApiHandler<T> {
 	final static String FQUEUE = "force-enqueue";
 	final static String QUEUE = "queues";
 	final static String SHOW = "show-disabled";
+	final static String FSID = "fs-id";
 	
 	
 	final static String MSG = "msg";

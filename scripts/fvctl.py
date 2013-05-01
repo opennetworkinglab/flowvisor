@@ -322,11 +322,8 @@ def do_addFlowSpace(gopts, opts, args):
         acts.append(act)
     req['slice-action'] = acts
     ret = connect(gopts, "add-flowspace", passwd, data=[req])  
-    if type(ret) is list:
-        for name in ret:
-            print "FlowSpace %s was ignored because it already exists" % name
-    else: 
-        print "Flowspace %s has been created." % args[0]
+    if ret:
+        print "FlowSpace %s was added with request id %s." % (args[0], ret)
 
 def pa_updateFlowSpace(args, cmd):
     usage = "%s [options] <flowspace-name>" % USAGE.format(cmd)
@@ -381,7 +378,7 @@ def do_updateFlowSpace(gopts, opts, args):
         sys.exit()
     ret = connect(gopts, "update-flowspace", passwd, data=[req])  
     if ret:
-        print "Flowspace %s has been updated." % args[0]
+        print "Flowspace %s was updated with request id %s" % (args[0], ret)
 
 def do_listVersion(gopts, opts, args):
     passwd = getPassword(gopts)
@@ -665,6 +662,21 @@ def do_listrewritedb(gopts, opts, args):
     for fbe in ret:
         print fbe
 
+def pa_listFSStatus(args, cmd):
+    usage = "%s <fs-id>" % USAGE.format(cmd)
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage, description=ldesc)
+    return parser.parse_args(args)
+
+def do_listFSStatus(gopts, opts, args):
+    if len(args) != 1:
+        print "list-fs-status : Please specify a flowspace id"
+        sys.exit()
+    passwd = getPassword(gopts)
+    req = { 'fs-id' : int(args[0]) }
+    ret = connect(gopts, "list-fs-status", passwd, data=req)
+    print "FlowSpace Request id %s : %s" % (args[0], ret)
+
 
 def pa_help(args, cmd):
     usage = "%s <cmd>" % USAGE.format(cmd)
@@ -810,6 +822,7 @@ CMDS = {
     'save-config' : (pa_saveConfig, do_saveConfig),
     'get-config' : (pa_getConfig, do_getConfig),
     'set-config' : (pa_setConfig, do_setConfig),
+    'list-fs-status' : (pa_listFSStatus, do_listFSStatus),
     'list-slice-info' : (pa_listSliceInfo, do_listSliceInfo),
     'list-datapaths' : (pa_none, do_listDatapaths),
     'list-datapath-info' : (pa_listDatapathInfo, do_listDatapathInfo),
@@ -918,6 +931,14 @@ DESCS = {
                     "global flood permissions. For flowmod limits, the limit is set per slice per dpid. The dpid in "
                     "case could be 'any'."
                    )),
+    'list-fs-status' : ("Check the insertion status of a add-flowspace or update-flowspace request.",
+                   ("In some cases, inserting FlowSpace can take a long time. This command allows you to check "
+                    "whether the FlowSpace request has been processed or rejected. Return values are: UNKNOWN, PENDING, "
+                    "SUCCESS, or an error message. PENDING means the request has not been handled yet, UNKNOWN means the "
+                    "given id is not known to the system and SUCCESS means the request was successfully handled. An error "
+                    "is returned when a request fails."
+                   )),
+
     'list-slice-info' : ("Displays slice information",
                     ("Displays slice information about the configured slices at the FlowVisor, "
                     "including the current message rate and the number of currently installed "

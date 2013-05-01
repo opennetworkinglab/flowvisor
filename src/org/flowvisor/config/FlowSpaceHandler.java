@@ -25,9 +25,12 @@ public class FlowSpaceHandler extends ConcurrentHashMap<Integer, List<FlowEntry>
 	private AtomicInteger nextId = null;
 	private boolean shutdown;
 	
+	private ConcurrentHashMap<Integer, String> errors = null;
+	
 	public FlowSpaceHandler() {
 		nextId = new AtomicInteger(0);
 		this.shutdown = false;
+		errors = new ConcurrentHashMap<Integer, String>();
 	}
 	
 	@Override
@@ -48,16 +51,14 @@ public class FlowSpaceHandler extends ConcurrentHashMap<Integer, List<FlowEntry>
 											fentry.getActionsList(), fentry.getName());
 							FVLog.log(LogLevel.INFO, null, logMsg);
 						} catch (ConfigError e) {
-							/*
-							 * TODO handle exception to log failure which will be used to create 
-							 * FSStatus message
-							 */
+							errors.put(entry.getKey(), e.getMessage());
 							FVLog.log(LogLevel.WARN, null, e.getMessage());
-						}
+						} finally {
+							it.remove();
+						}	
 					}
-					FlowSpaceImpl.getProxy().notifyChange(flowSpace);
-					it.remove();
 				}
+				FlowSpaceImpl.getProxy().notifyChange(flowSpace);
 			}
 			try {
 				Thread.sleep(200);
@@ -75,8 +76,15 @@ public class FlowSpaceHandler extends ConcurrentHashMap<Integer, List<FlowEntry>
 		return next;
 	}
 	
-	public boolean status(Integer id) {
-		return this.containsKey(id);
+	public String status(Integer id) {
+		if (id > (nextId.get() - 1))
+			return "UNKNOWN";
+		if (this.containsKey(id)) {
+			return "PENDING";
+		} else if (errors.containsKey(id)) {
+			return errors.get(id);
+		} 
+		return "SUCCESS";
 	}
 	
 	public void shutdown() {
