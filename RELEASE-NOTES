@@ -1,3 +1,7 @@
+FlowVisor 1.0.3 : April 30 2013
+    * FLOWVISOR-187 : Log level of packets not matching any slice in Flowvisor
+    * FLWOVISOR-217 : Clients can't detect failures that happen after a request is accepted
+
 FlowVisor 1.0.2 : April 29 2013
     * FLOWVISOR-193 : fvctl add-flowspace <match> not working Right
     * FLOWVISOR-195 : improve error reporting when FV is not running
