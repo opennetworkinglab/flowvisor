@@ -2,6 +2,7 @@ package org.flowvisor.config;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Properties;
 
 import javax.sql.DataSource;
 
@@ -57,14 +58,16 @@ public class ConfDBHandler implements ConfDBSettings {
 		if (pds != null) 
 			return pds;
 		
+		/*Properties props = new Properties();
+	    props.put("validationQuery", "SELECT 1 from dual;");
+	    props.put("testWhileIdle","true");*/
+	    
 		gop = new GenericObjectPool(null);
 		gop.setTestOnBorrow(true);
 		gop.setTestWhileIdle(true);
 		cf = new DriverManagerConnectionFactory(this.protocol + this.dbName, this.username, this.password);
-		pcf = new PoolableConnectionFactory(cf, gop, null, "SELECT 1",false, autoCommit);
+		pcf = new PoolableConnectionFactory(cf, gop, null, "SELECT 1;",false, autoCommit);
 		pds = new PoolingDataSource(pcf.getPool());
-		
-		System.out.println("GOT HERE");
 		
 		return pds;
 	}
