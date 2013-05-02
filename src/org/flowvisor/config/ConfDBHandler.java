@@ -58,9 +58,9 @@ public class ConfDBHandler implements ConfDBSettings {
 		if (pds != null) 
 			return pds;
 		
-		/*Properties props = new Properties();
-	    props.put("validationQuery", "SELECT 1 from dual;");
-	    props.put("testWhileIdle","true");*/
+		Properties props = new Properties();
+	    props.put("validationQuery", "SELECT 1;");
+	    props.put("testWhileIdle","true");
 	    
 		gop = new GenericObjectPool(null);
 		gop.setTestOnBorrow(true);
