@@ -58,9 +58,11 @@ public class ConfDBHandler implements ConfDBSettings {
 			return pds;
 		
 		gop = new GenericObjectPool(null);
+		gop.setTestOnBorrow(true);
+		gop.setTestWhileIdle(true);
 		cf = new DriverManagerConnectionFactory(this.protocol + this.dbName, this.username, this.password);
-		pcf = new PoolableConnectionFactory(cf, gop, null, null,false, autoCommit);
-		pds = new PoolingDataSource(gop);
+		pcf = new PoolableConnectionFactory(cf, gop, null, "SELECT 1 FROM flowvisor",false, autoCommit);
+		pds = new PoolingDataSource(pcf.getPool());
 		
 		return pds;
 	}
