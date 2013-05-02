@@ -5,12 +5,6 @@ import java.sql.SQLException;
 
 import javax.sql.DataSource;
 
-import org.apache.commons.dbcp.BasicDataSource;
-import org.apache.commons.dbcp.ConnectionFactory;
-import org.apache.commons.dbcp.DriverManagerConnectionFactory;
-import org.apache.commons.dbcp.PoolableConnectionFactory;
-import org.apache.commons.dbcp.PoolingDataSource;
-import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.derby.jdbc.EmbeddedConnectionPoolDataSource;
 import org.apache.derby.jdbc.EmbeddedDataSource;
 import org.flowvisor.log.FVLog;
@@ -28,31 +22,18 @@ import org.flowvisor.log.LogLevel;
  */
 public class ConfDBHandler implements ConfDBSettings {
 	
-	private String protocol = null;
 	private String dbName = null;
-	private String username = null;
-	private String password = null;
+
 	
-	private ConnectionFactory cf = null;
-	
-	@SuppressWarnings("unused")
-	private PoolableConnectionFactory pcf = null;
-	private GenericObjectPool gop = null;
 	private EmbeddedConnectionPoolDataSource pds = null;
-	
-	private Boolean autoCommit = false;
 			
 	
-	public ConfDBHandler(String protocol, String dbName, String username, String password, Boolean autoCommit) {
-		this.protocol = protocol;
+	public ConfDBHandler(String dbName) {
 		this.dbName = System.getProperty("derby.system.home") + "/" + dbName;
-		this.username = username;
-		this.password = password;
-		this.autoCommit = autoCommit;
 	}
 	
 	public ConfDBHandler() {
-		this("jdbc:derby:", "FlowVisorDB", "", "", true);
+		this("FlowVisorDB");
 	}
 	
 	private DataSource getDataSource() {
@@ -60,14 +41,7 @@ public class ConfDBHandler implements ConfDBSettings {
 			return pds;
 		
 	    
-		/*gop = new GenericObjectPool(null);
-		gop.setTestOnBorrow(true);
-		gop.setTestWhileIdle(true);
 		
-		cf = new DriverManagerConnectionFactory(this.protocol + this.dbName, this.username, this.password);
-		pcf = new PoolableConnectionFactory(cf, gop, null, "SELECT * from flowvisor;",false, autoCommit);
-		pcf.setValidationQueryTimeout(10);*/
-		//pds = new PoolingDataSource(pcf.getPool());
 		pds = new EmbeddedConnectionPoolDataSource();
 		pds.setDatabaseName(this.dbName);
 		
@@ -85,45 +59,11 @@ public class ConfDBHandler implements ConfDBSettings {
 		return getDataSource().getConnection(user, pass);
 	}
 	
-	@Override
-	public void returnConnection(Connection conn) {
-	/*	try {
-			gop.returnObject(conn);
-		} catch (Exception e) {
-			FVLog.log(LogLevel.CRIT, null, "Unable to return connection");
-		}
-		*/
-	}
-
-	@Override
-	public int getNumActive() {
-		return gop.getNumActive();
-	}
-
-	@Override
-	public int getNumIdle() {
-		return gop.getNumIdle();
-	}
-
-	@Override
-	public int getMaxActive() {
-		return gop.getMaxActive();
-	}
-
-	@Override
-	public int getMaxIdle() {
-		return gop.getMaxIdle();
-	}
-
-	@Override
-	public Boolean getDefaultAutoCommit() {
-		return autoCommit;
-	}
 
 	@Override
 	public void shutdown() {
 		try {
-			gop.close();
+			//gop.close();
 			((EmbeddedDataSource) getDataSource()).setShutdownDatabase("shutdown");
 		} catch (ClassCastException cce) {
 			//Isn't this a derby db?

@@ -689,7 +689,7 @@ public class SliceImpl implements Slice {
 	
 	@Override
 	public void close(Connection conn) {
-		settings.returnConnection(conn);
+		//settings.returnConnection(conn);
 		try {
 			conn.close();
 		} catch (Exception e) {
