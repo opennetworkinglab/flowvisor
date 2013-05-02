@@ -11,6 +11,7 @@ import org.apache.commons.dbcp.DriverManagerConnectionFactory;
 import org.apache.commons.dbcp.PoolableConnectionFactory;
 import org.apache.commons.dbcp.PoolingDataSource;
 import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.derby.jdbc.EmbeddedConnectionPoolDataSource;
 import org.apache.derby.jdbc.EmbeddedDataSource;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
@@ -37,7 +38,7 @@ public class ConfDBHandler implements ConfDBSettings {
 	@SuppressWarnings("unused")
 	private PoolableConnectionFactory pcf = null;
 	private GenericObjectPool gop = null;
-	private PoolingDataSource pds = null;
+	private EmbeddedConnectionPoolDataSource pds = null;
 	
 	private Boolean autoCommit = false;
 			
@@ -59,15 +60,16 @@ public class ConfDBHandler implements ConfDBSettings {
 			return pds;
 		
 	    
-		gop = new GenericObjectPool(null);
+		/*gop = new GenericObjectPool(null);
 		gop.setTestOnBorrow(true);
 		gop.setTestWhileIdle(true);
 		
 		cf = new DriverManagerConnectionFactory(this.protocol + this.dbName, this.username, this.password);
 		pcf = new PoolableConnectionFactory(cf, gop, null, "SELECT * from flowvisor;",false, autoCommit);
-		pcf.setValidationQueryTimeout(10);
-		pds = new PoolingDataSource(pcf.getPool());
-		
+		pcf.setValidationQueryTimeout(10);*/
+		//pds = new PoolingDataSource(pcf.getPool());
+		pds = new EmbeddedConnectionPoolDataSource();
+		pds.setDatabaseName(this.dbName);
 		
 		return pds;
 	}
@@ -85,11 +87,12 @@ public class ConfDBHandler implements ConfDBSettings {
 	
 	@Override
 	public void returnConnection(Connection conn) {
-		try {
+	/*	try {
 			gop.returnObject(conn);
 		} catch (Exception e) {
 			FVLog.log(LogLevel.CRIT, null, "Unable to return connection");
 		}
+		*/
 	}
 
 	@Override
