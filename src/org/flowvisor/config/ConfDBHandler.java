@@ -61,9 +61,10 @@ public class ConfDBHandler implements ConfDBSettings {
 		gop.setTestOnBorrow(true);
 		gop.setTestWhileIdle(true);
 		cf = new DriverManagerConnectionFactory(this.protocol + this.dbName, this.username, this.password);
-		pcf = new PoolableConnectionFactory(cf, gop, null, null,false, autoCommit);
-		pcf.setValidationQuery("SELECT 1");
+		pcf = new PoolableConnectionFactory(cf, gop, null, "SELECT 1",false, autoCommit);
 		pds = new PoolingDataSource(pcf.getPool());
+		
+		System.out.println("GOT HERE");
 		
 		return pds;
 	}
