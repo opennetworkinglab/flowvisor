@@ -3,7 +3,6 @@ package org.flowvisor.api.handlers.monitoring;
 import java.util.HashMap;
 
 import org.flowvisor.api.handlers.ApiHandler;
-import org.flowvisor.config.FVConfigurationController;
 import org.flowvisor.events.FVEventUtils;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
@@ -19,8 +18,8 @@ public class ListFVHealth implements ApiHandler<Object> {
 		HashMap<String, Object> retvals = new HashMap<String, Object>();
 		retvals.put(AVGDELAY, FVEventUtils.averageDelay);
 		retvals.put(INSTDELAY, FVEventUtils.instDelay);
-		retvals.put(ACTIVE, FVConfigurationController.instance().getSettings().getNumActive() );
-		retvals.put(IDLE, FVConfigurationController.instance().getSettings().getNumIdle());
+		/*retvals.put(ACTIVE, FVConfigurationController.instance().getSettings().getNumActive() );
+		retvals.put(IDLE, FVConfigurationController.instance().getSettings().getNumIdle());*/
 		
 		
 		resp = new JSONRPC2Response(retvals, 0);
