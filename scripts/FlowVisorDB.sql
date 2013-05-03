@@ -4,7 +4,7 @@ AUTOCOMMIT off;
 
 CREATE TABLE Flowvisor (
   id INT GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1),
-  api_webserver_port INT DEFAULT -1 ,
+  api_webserver_port INT DEFAULT 8080 ,
   api_jetty_webserver_port INT DEFAULT 8081 ,
   checkpointing BOOLEAN DEFAULT false, 
   listen_port INT  DEFAULT 6633 ,
