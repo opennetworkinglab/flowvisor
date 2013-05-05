@@ -314,7 +314,7 @@ def do_addFlowSpace(gopts, opts, args):
     acts = []
     for action in actions:
         parts = action.split('=')
-        act = { 'slice-name' : parts[0], "permission" : int(parts[1]) }
+        act = { 'slice-name' : parts[0], "permission" : parts[1] }
         acts.append(act)
     req['slice-action'] = acts
     ret = connect(gopts, "add-flowspace", passwd, data=[req])  
@@ -568,6 +568,8 @@ def pa_regEventCB(args, cmd):
     
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
+    parser.add_option("-d", "--dpid", dest="dpid", type="string", default=None,
+            help="Set the dpid for registering for the flowtable information; default='all'")
     return parser.parse_args(args)
 
 def do_regEventCB(gopts, opts, args):
@@ -576,6 +578,10 @@ def do_regEventCB(gopts, opts, args):
         sys.exit()
     passwd = getPassword(gopts)
     req = { 'url' : args[0], 'method' : args[1], 'event-type' : args[2], 'cookie' : args[3]}
+    if opts.dpid is not None:
+        req['dpid'] = opts.dpid
+    else:
+        req['dpid'] = 'all'
     ret = connect(gopts, "register-event-callback", passwd, data=req)
     if ret:
         print "Callback %s successfully added" % args[3]
@@ -586,6 +592,8 @@ def pa_unregEventCB(args, cmd):
     
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
+    parser.add_option("-d", "--dpid", dest="dpid", type="string", default=None,
+        help="Set the dpid for unregistering for the flowtable information; default='all'")
     return parser.parse_args(args)
 
 def do_unregEventCB(gopts, opts, args):
@@ -593,11 +601,14 @@ def do_unregEventCB(gopts, opts, args):
         print "unregister-event-callback : Must specify all the arguments"
         sys.exit()
     passwd = getPassword(gopts)
-    req = { 'method' : args[1], 'event-type' : args[2], 'cookie' : args[3]}
+    req = { 'method' : args[0], 'event-type' : args[1], 'cookie' : args[2]}
+    if opts.dpid is not None:
+        req['dpid'] = opts.dpid
+    else:
+        req['dpid'] = 'all'
     ret = connect(gopts, "unregister-event-callback", passwd, data=req)
     if ret:
-        print "Callback %s successfully removed" % args[3]
-
+        print "Callback %s successfully removed" % args[2]
 
 def do_listFVHealth(gopts, opts, args):
     passwd = getPassword(gopts)
@@ -943,7 +954,8 @@ DESCS = {
                     )),
     'register-event-callback' : ("Registers your server, for events from FlowVisor",
                     ("Registers for events from FlowVisor. Possible events are: DEVICE_CONNECTED, "
-                    "SLICE_CONNECTED, and SLICE_DISCONNECTED. More may be added later."
+                    "SLICE_CONNECTED, SLICE_DISCONNECTED and FLOWTABLE_CALLBACK. For FLOWTABLE_CALLBACK"
+                    " event type dpid has to be input with -d option. More events may be added later."
                     )),
     'unregister-event-callback' : ("Unregisters your server from FlowVisor",
                     ("Unregisters your server from FlowVisor thereby deactivating event "

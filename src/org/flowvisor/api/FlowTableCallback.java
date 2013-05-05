@@ -25,27 +25,16 @@ import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
-import org.flowvisor.ofswitch.TopologyController;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
+import com.thetransactioncompany.*;
 
-public class TopologyCallback implements Runnable {
-
-	public enum EventType{
-		GENERAL,
-		DEVICE_CONNECTED,
-		SLICE_CONNECTED,
-		SLICE_DISCONNECTED,
-		FLOWTABLE_CALLBACK
-		//DEVICE_DISCONNECTED,
-	//	PORT_ADDED,
-	//	PORT_REMOVED
-	}
-
+public class FlowTableCallback implements Runnable {
 	String URL;
-	String cookie;
+	Long dpid;
 	String methodName;
-	
+	String cookie;
+
 	String httpBasicUserName;
 	String httpBasicPassword;
 
@@ -53,25 +42,15 @@ public class TopologyCallback implements Runnable {
 	XmlRpcClient client;
 	List<Object> params = new ArrayList<Object>();
 
-	private EventType eventType = EventType.GENERAL;
-
 	private int jsonCallbackId = 0;
 	private String user;
 
-	/*private static final Gson gson =
-		new GsonBuilder().registerTypeAdapter(OFAction.class, new JSONSerializers.OFActionSerializer())
-		.registerTypeAdapter(OFAction.class, new JSONDeserializers.OFActionDeserializer())
-		.registerTypeAdapter(OFMatch.class, new JSONSerializers.OFActionSerializer())
-		.registerTypeAdapter(OFMatch.class, new JSONDeserializers.OFMatchDeserializer())
-		.registerTypeAdapter(FlowEntry.class, new JSONSerializers.FlowEntrySerializer())
-		.registerTypeAdapter(FlowEntry.class, new JSONDeserializers.FlowEntryDeserializer()).create();*/
-
-	public TopologyCallback(String uRL, String methodName,String cookie) {
-		super();
+	public FlowTableCallback(String uRL, String methodName, Long dpid)
+	{
 		URL = uRL;
 		this.methodName=methodName;
-		this.cookie = cookie;
-
+		this.dpid=dpid;
+		
 		int indexAt;
 
 		indexAt=uRL.indexOf("@");
@@ -87,16 +66,11 @@ public class TopologyCallback implements Runnable {
 		}
 
 	}
-
-	public TopologyCallback(String url, String methodName, EventType eventType){
-		this(url, methodName, "");
-		this.eventType = eventType;
-	}
 	
-	public TopologyCallback(String user, String url, String methodName, EventType eventType, String cookie){
-		this(url, methodName, cookie);
-		this.eventType = eventType;
+	public FlowTableCallback(String user, String url, String methodName, String cookie, Long dpid){
+		this(url, methodName, dpid);
 		this.user = user;
+		this.cookie = cookie;
 	}
 
 	public void spawn() {
@@ -111,12 +85,17 @@ public class TopologyCallback implements Runnable {
 		return this.methodName;
 	}
 	
-	public String getCookie() {
-		return this.cookie;
-	}
 	
 	public String getUser() {
 		return this.user;
+	}
+	
+	public Long getDpid(){
+		return this.dpid;
+	}
+	
+	public String getCookie(){
+		return this.cookie;
 	}
 	
 	/*
@@ -126,48 +105,6 @@ public class TopologyCallback implements Runnable {
 	 */
 	@Override
 	public void run() {
-		if (eventType != EventType.GENERAL){
-			runSpecificCallback();
-			return;
-		}
-
-		this.installDumbTrust();
-		config = new XmlRpcClientConfigImpl();
-		URL urlType;
-		try {
-			urlType = new URL(this.URL);
-			config.setServerURL(urlType);
-		} catch (MalformedURLException e) {
-			// should never happen; we test this on input
-			throw new RuntimeException(e);
-		}
-		config.setEnabledForExtensions(true);
-
-		if (httpBasicUserName!=null && httpBasicUserName!="" && httpBasicPassword!="" && httpBasicPassword!=null)
-		{
-			config.setBasicUserName(httpBasicUserName);
-			config.setBasicPassword(httpBasicPassword);
-		}
-
-		client = new XmlRpcClient();
-		// client.setTransportFactory(new
-		// XmlRpcCommonsTransportFactory(client));
-		// client.setTransportFactory(new )
-		client.setConfig(config);
-		try {
-			String call = urlType.getPath();
-			if (call.startsWith("/"))
-				call = call.substring(1);
-			//this.client.execute(this.methodName, new Object[] { cookie });
-			this.client.execute(this.methodName,new Object[]{ null});
-		} catch (XmlRpcException e) {
-			FVLog.log(LogLevel.WARN, TopologyController.getRunningInstance(),
-					"topoCallback to URL=" + URL + " failed: " + e);
-		}
-
-	}
-
-	private void runSpecificCallback(){
 		HttpURLConnection connection = null;
 		OutputStreamWriter writer = null;
 		InputStreamReader reader = null;
@@ -227,7 +164,45 @@ public class TopologyCallback implements Runnable {
 				}
 			}
 		}
+
+		/*this.installDumbTrust();
+		config = new XmlRpcClientConfigImpl();
+		URL urlType;
+		try {
+			urlType = new URL(this.URL);
+			config.setServerURL(urlType);
+		} catch (MalformedURLException e) {
+			// should never happen; we test this on input
+			throw new RuntimeException(e);
+		}
+		config.setEnabledForExtensions(true);
+
+		if (httpBasicUserName!=null && httpBasicUserName!="" && httpBasicPassword!="" && httpBasicPassword!=null)
+		{
+			config.setBasicUserName(httpBasicUserName);
+			config.setBasicPassword(httpBasicPassword);
+		}
+
+		client = new XmlRpcClient();
+		// client.setTransportFactory(new
+		// XmlRpcCommonsTransportFactory(client));
+		// client.setTransportFactory(new )
+		client.setConfig(config);
+		try {
+			String call = urlType.getPath();
+			if (call.startsWith("/"))
+				call = call.substring(1);
+			//this.client.execute(this.methodName, new Object[] { cookie });
+			this.client.execute(this.methodName,new Object[]{ null});
+		} catch (XmlRpcException e) {
+			FVLog.log(LogLevel.WARN, TopologyController.getRunningInstance(),
+					"topoCallback to URL=" + URL + " failed: " + e);
+		}*/
+
 	}
+
+	/*private void runSpecificCallback(){
+			}*/
 
 	/**
 	 * Next id.

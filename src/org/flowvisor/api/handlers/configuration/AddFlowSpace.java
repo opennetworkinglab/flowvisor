@@ -37,6 +37,8 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 	
 	@Override
 	public JSONRPC2Response process(List<Map<String, Object>> params) {
+		FVLog.log(LogLevel.DEBUG, null,
+				"process AddFlowSpace");
 		JSONRPC2Response resp = null;
 		try {
 			final FlowMap flowSpace = FVConfig.getFlowSpaceFlowMap();
@@ -75,6 +77,8 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 
 	private List<FlowEntry> processFlows(List<Map<String, Object>> params, FlowMap flowSpace) 
 			throws ClassCastException, MissingRequiredField, ConfigError, UnknownMatchField {
+		FVLog.log(LogLevel.DEBUG, null,
+				"processFlows of AddFlowSpace");
 		String name = null;
 		Long dpid = null;
 		Integer priority = null;
@@ -132,14 +136,50 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 
 	private List<OFAction> parseSliceActions(List<Map<String, Object>> sactions) 
 			throws ClassCastException, MissingRequiredField {
+		FVLog.log(LogLevel.DEBUG, null,
+				"Inside parseSliceActions in AddFlowSpace");
 		List<OFAction> sa = new LinkedList<OFAction>();
-		for (Map<String, Object> sact : sactions) {
+		/*for (Map<String, Object> sact : sactions) {
 			SliceAction sliceAction = new SliceAction(
 					HandlerUtils.<String>fetchField(SLICENAME, sact, true, null),
 					HandlerUtils.<Number>fetchField(PERM, sact, true, null).intValue());
 			sa.add(sliceAction);
+		}*/
+		for (Map<String, Object> sact : sactions) {
+			String sliceName = HandlerUtils.<String>fetchField(SLICENAME, sact, true, null);
+			String perm = HandlerUtils.<String>fetchField(PERM, sact, true, null);
+			int permission=0;
+			if (perm.matches("[rwd]+"))
+				permission = permToInt(perm);
+			else if(perm.matches("[0-9]+"))
+				permission = Integer.parseInt(perm);	
+			SliceAction sliceAction = new SliceAction(
+					sliceName, permission);
+			sa.add(sliceAction);
 		}
 		return sa;
+	}
+
+	private int permToInt(String perm) {
+		int len = perm.length();
+		int permission=0;
+		FVLog.log(LogLevel.DEBUG, null,
+				"The len of the string  is: "+len);
+		int index=0;
+		while(index<len){
+			//System.out.println("Char at index "+index + "is: "+perm.charAt(index));
+			if(perm.charAt(index)=='d' || perm.charAt(index)=='D')
+				permission+=1;
+			else if(perm.charAt(index)=='r' || perm.charAt(index)=='R')
+				permission+=2;
+			else if(perm.charAt(index)=='w' || perm.charAt(index)=='W')
+				permission+=4;
+			index++;
+		}
+		FVLog.log(LogLevel.INFO, null,
+				"The slice is given the foll. permission: "+permission);
+		return permission;
+		
 	}
 
 	@Override

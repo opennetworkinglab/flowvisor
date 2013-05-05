@@ -15,7 +15,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
-
+import org.flowvisor.api.FlowTableCallback;
+import org.flowvisor.api.TopologyCallback;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.ConfigurationEvent;
 import org.flowvisor.config.FVConfig;
@@ -60,6 +61,7 @@ import org.flowvisor.message.statistics.FVAggregateStatisticsReply;
 import org.flowvisor.message.statistics.FVAggregateStatisticsRequest;
 import org.flowvisor.message.statistics.FVFlowStatisticsReply;
 import org.flowvisor.message.statistics.FVFlowStatisticsRequest;
+import org.flowvisor.ofswitch.TopologyController;
 import org.flowvisor.openflow.protocol.FVMatch;
 import org.flowvisor.resources.SlicerLimits;
 import org.flowvisor.resources.ratelimit.FixedIntervalRefillStrategy;
@@ -116,13 +118,19 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	private boolean wantStatsDescHack;
 	String floodPermsSlice; // the slice that has permission to use native
 	private Boolean flowTracking = false;
+	private Boolean registeredForFlowTable;
+
+	/*private HashMap<String, TopologyCallback> flowTableCallbackDb;
+	private HashMap<String, HashMap<Long, FlowTableCallback>> flowTableCallbackDb;
+	private HashMap<Long, FlowTableCallback> dpidMap;*/
+	private List<FlowTableCallback> flowTableList;
 
 	
 	private HashMap<String, Integer> fmlimits = new HashMap<String, Integer>();
 	private HashMap<String, Integer> currfmlimits = new HashMap<String, Integer>();
 	private SlicerLimits slicerLimits;
 	
-	
+	//If the window is open, pollFlowTableStats can be called to poll for the statistics from the switch!
 	private boolean statsWindowOpen = true;
 	private HashMap<String, ArrayList<FVFlowStatisticsReply>> flowStats = 
 			new HashMap<String, ArrayList<FVFlowStatisticsReply>>();
@@ -154,6 +162,14 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		this.activePorts = new HashSet<Short>();
 		this.wantStatsDescHack = true;
 		FlowvisorImpl.addListener(this);
+	
+		//Initializing the below two var for the new feature - obtaining flowTable from the switch
+		this.registeredForFlowTable = false;
+		this.flowTableList= new ArrayList<FlowTableCallback>();
+		//this.flowTableCallbackDb = new HashMap<String, TopologyCallback>();
+		/*this.flowTableCallbackDb = new HashMap<String,  HashMap<Long , FlowTableCallback>>();
+		this.dpidMap = new HashMap<Long, FlowTableCallback>();*/
+		
 		// need to initialize values.
 		try {
 			setFlowTracking(FlowvisorImpl.getProxy().gettrack_flows());
@@ -374,18 +390,27 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			loop.queueEvent(e); // queue event
 			return; // and process later
 		}
-		if (e instanceof FVIOEvent)
+		if (e instanceof FVIOEvent){
 			handleIOEvent((FVIOEvent) e);
-		else if (e instanceof OFKeepAlive)
+		}
+		else if (e instanceof OFKeepAlive){
 			handleKeepAlive(e);
+		}
 	/*	else if (e instanceof ConfigUpdateEvent)
 			updateConfig((ConfigUpdateEvent) e);*/
-		else if (e instanceof TearDownEvent)
+		else if (e instanceof TearDownEvent){
 			this.tearDown();
-		else if (e instanceof FVRequestTimeoutEvent)
+		}
+		else if (e instanceof FVRequestTimeoutEvent){
 			handleRequestTimeout();
-		else if (e instanceof FVStatsTimer)
+		}
+		else if (e instanceof FVStatsTimer){
 			this.statsWindowOpen = true;
+			//TopologyController tc = TopologyController.getRunningInstance();
+			//this.registeredForFlowTable = tc.getRegisteredForFlowTable();
+			if (this.registeredForFlowTable)
+				pollFlowTableStats(null);		
+		}
 		else
 			throw new UnhandledEvent(e);
 	}
@@ -479,7 +504,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 							classifyOFMessage(m);
 							// mark this channel as still alive
 							this.keepAlive.registerPong();
-						} else
+						}
+						else
 							handleOFMessage_unidenitified(m);
 
 					}
@@ -1083,9 +1109,19 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 
 	
 	public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply) {
-		
 		flowStats.clear();
 		List<OFStatistics> stats = fvStatisticsReply.getStatistics();
+		
+		
+		//Adding for registering a FlowTable
+		if (this.registeredForFlowTable == true && !this.flowTableList.isEmpty()){
+			for (FlowTableCallback fcb : this.flowTableList) {
+				fcb.setParams(stats);
+				fcb.spawn();
+				fcb.clearParams();
+			}
+		}
+		
 		for (OFStatistics s : stats) {
 			FVFlowStatisticsReply stat = (FVFlowStatisticsReply) s;
 			CookiePair pair = getCookieTranslator().untranslate(stat.getCookie());
@@ -1138,8 +1174,35 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		return !this.statsWindowOpen;
 	}
 
+	public void registerCallBack(String userName, String url, String method, String cookie, TopologyCallback.EventType eventType, Long dpid) {
+			this.registeredForFlowTable = true;
+			pollFlowTableStats(null);
+			this.flowTableList.add(new FlowTableCallback(userName,url,method,cookie,dpid));
+			//String key = url + method;
+			//this.flowTableCallbackDb.put(key, new TopologyCallback(userName,url,method,cookie,eventType,dpid));
+			/*this.dpidMap.put(dpid, new FlowTableCallback(userName, url, method, dpid)); 
+			this.flowTableCallbackDb.put(userName, dpidMap);*/
+	}
 	
+	public void deRegisterCallBack(String userName, String method,String cookie, TopologyCallback.EventType eventType, Long dpid){
+		Iterator<FlowTableCallback> it = flowTableList.iterator();
+		
+		while (it.hasNext()) {
+			FlowTableCallback callback = it.next();
+			if (callback.getMethodName().equals(method) && callback.getCookie().equals(cookie) &&
+					callback.getUser().equals(userName))
+				it.remove();
+		}		
+	}
+	
+	/*private synchronized void processCallback() {
+		FVLog.log(LogLevel.INFO, this, "processing callback for flowtable registration");
+		if(flowTableCallbackDb != null){
+			for (FlowTableCallback fcb : this.flowTableCallbackDb.values()){
+				fcb.spawn();			
+			}
+		}
+	}*/
 
-	
 
 }
