@@ -245,6 +245,9 @@ def toHex(match):
             match[field] = hex(value)
     return match
 
+def prettify(fs):
+    pass
+
 
 def do_listFlowSpace(gopts, opts, args):
     passwd = getPassword(gopts)
@@ -264,6 +267,7 @@ def do_listFlowSpace(gopts, opts, args):
         print "  None"
         sys.exit()
     for item in ret:
+        prettify(item)
         if opts.pretty:
             print json.dumps(item, sort_keys=True, indent=1)
             print "\n\n"
@@ -754,6 +758,14 @@ def toInt(val):
         return int(val,16) 
     return int(val)
 
+def toMacInt(val):
+    if val is None:
+        return
+    if val.find(":") != -1:
+        return int(val.replace(':', ''),16)
+    if val.find("-") != -1:
+        int(val.replace('-', ''),16)
+
 def toStr(val):
     return str(val)
 
@@ -789,10 +801,10 @@ CONVFIELDS = [ 'dl_type', 'dl_vlan', 'dl_vpcp' ]
 MATCHSTRS = {
     'in_port' : ('in_port', toInt),
     'input_port' : ('in_port', toInt),
-    'dl_dst' : ('dl_dst', toInt),
-    'eth_dst' : ('dl_dst', toInt),
-    'dl_src' : ('dl_src', toInt),
-    'eth_src' : ('dl_src',toInt),
+    'dl_dst' : ('dl_dst', toStr),
+    'eth_dst' : ('dl_dst', toStr),
+    'dl_src' : ('dl_src', toStr),
+    'eth_src' : ('dl_src',toStr),
     'dl_type' : ('dl_type',toInt),
     'eth_type' : ('dl_type',toInt),
     'dl_vlan' : ('dl_vlan', toInt),

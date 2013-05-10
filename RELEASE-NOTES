@@ -1,6 +1,18 @@
+FlowVisor 1.0.6 : May 10 2013
+   * FLOWVISOR-230 : fvctl list-slice-info gives confusing error message if you specify a non-existent slice
+   * FLOWVISOR-231 : fvctl and network specs
+   * FLOWVISOR-232 : Error adding flowspace rules with MAC addresses
+
+FlowVisor 1.0.5 : May 2 2013
+   * FLOWVISOR-216 : Undo changes to default port configurations
+   * Potential fix for FV crashes; awaiting confirmation
+
+FlowVisor 1.0.4 : May 1 2013
+    * FLOWVISOR-226 : fvconfig load hangs
+
 FlowVisor 1.0.3 : April 30 2013
     * FLOWVISOR-187 : Log level of packets not matching any slice in Flowvisor
-    * FLWOVISOR-217 : Clients can't detect failures that happen after a request is accepted
+    * FLOWVISOR-217 : Clients can't detect failures that happen after a request is accepted
 
 FlowVisor 1.0.2 : April 29 2013
     * FLOWVISOR-193 : fvctl add-flowspace <match> not working Right
