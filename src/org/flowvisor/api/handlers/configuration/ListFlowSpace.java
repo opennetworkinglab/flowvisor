@@ -92,7 +92,7 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 		ret.put(SLICEACTIONS, neoacts);
 	    
 	 
-	    ret.put(MATCH, map);
+	    ret.put(MATCH, humanify(map));
 	    return ret;
 	}
 
@@ -104,6 +104,12 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 	@Override
 	public String cmdName() {
 		return "list-flowspace";
+	}
+	
+	private HashMap<String, Object> humanify(HashMap<String, Object> map) {
+		
+		
+		return map;
 	}
 
 }
