@@ -856,7 +856,7 @@ public class SliceImpl implements Slice {
 			version++;
 		}
 		if (version == 1) {
-			processAlter("ALTER TABLE Slice ADD COLUMN " + ADMINDOWN + " BOOLEAN NOT NULL DEFAULT FALSE");
+			processAlter("ALTER TABLE Slice ADD COLUMN " + ADMINDOWN + " BOOLEAN NOT NULL DEFAULT TRUE");
 			version++;
 		}
 		
