@@ -537,12 +537,13 @@ public class FVConfig {
 			
 		if (args.length > 3)
 			FVConfig.setAPIWSPort(Integer.valueOf(args[3]));
-			
-		FVConfigurationController.init(new ConfDBHandler());
+		
 		
 		
 		System.err.println("Outputing config file " + filename);
 		FVConfig.writeToFile(filename);
+		
+		FVConfigurationController.instance().shutdown();
 		
 		
 	}

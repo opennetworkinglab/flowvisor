@@ -40,7 +40,9 @@ public class FlowVisor {
 	public final static int FLOWVISOR_VENDOR_EXTENSION = 0x80000001;
 
 	// VERSION
+
 	public final static String FLOWVISOR_VERSION = "flowvisor-1.1.0";
+
 	public final static int FLOWVISOR_DB_VERSION = 2;
 
 
@@ -66,7 +68,7 @@ public class FlowVisor {
 			new Option("l", "logging", "Log to stderr instead of syslog"),
 			new Option("p", "port", 0, "Override OpenFlow port from config"),
 			new Option("h", "help", "Print help"),
-			new Option("j", "JSON web api port",8080, "Override JSON API port from config"),
+			new Option("j", "JSON web api port",8081, "Override JSON API port from config"),
 
 	});
 
@@ -111,7 +113,7 @@ public class FlowVisor {
 	 */
 	public void setPort(int port) {
 		try {
-			FlowvisorImpl.getProxy().setAPIWSPort(port);
+			FlowvisorImpl.getProxy().setListenPort(port);
 		} catch (ConfigError e) {
 			FVLog.log(LogLevel.WARN, null, "Failed to set api port");
 		}
@@ -149,6 +151,7 @@ public class FlowVisor {
 	}
 
 	public void run() throws ConfigError, IOException, UnhandledEvent {
+		FVLog.log(LogLevel.DEBUG, null, "HALLO");
 		FlowVisor.setInstance(this);
 		Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 				// init polling loop

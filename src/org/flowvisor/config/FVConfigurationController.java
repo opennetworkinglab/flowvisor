@@ -4,22 +4,27 @@ import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
+
+import org.flowvisor.flows.FlowEntry;
 
 public class FVConfigurationController {
 
 	private ConfDBSettings settings = null;
 	private static FVConfigurationController instance = null;
 	private HashMap<Object, Set<ChangedListener>> listeners = null;
-	ExecutorService executor = null;
+	
+	private FlowSpaceHandler fsHandler = null;
+
 
 	private FVConfigurationController(ConfDBSettings settings) {
 		this.settings  = settings;
 		this.listeners = new HashMap<Object, Set<ChangedListener>>();
-		executor = Executors.newFixedThreadPool(1);
+		fsHandler = new FlowSpaceHandler();
+		Thread fsThread = new Thread(fsHandler);
+		fsThread.start();
+		
 	}
 	
 	public static FVConfigurationController instance() {
@@ -30,6 +35,10 @@ public class FVConfigurationController {
 	
 	public static void init(ConfDBSettings settings) {
 		instance = new FVConfigurationController(settings);
+	}
+	
+	public Integer pendFlowSpace(List<FlowEntry> fes) {
+		return fsHandler.add(fes);
 	}
 	
 	public void addChangeListener(Object key, ChangedListener listener) {
@@ -81,17 +90,18 @@ public class FVConfigurationController {
 		return configProxy;
 	}
 	
-	public void execute(FutureTask<Object> future) {
-		executor.execute(future);
-	}
-	
 	public ConfDBSettings getSettings() {
 		return settings;
 	}
 	
 	public void shutdown() {
 		settings.shutdown();
-		executor.shutdown();
+		fsHandler.shutdown();
+		
+	}
+
+	public String flowSpaceStatus(Integer id) {
+		return fsHandler.status(id);
 	}
 
 	

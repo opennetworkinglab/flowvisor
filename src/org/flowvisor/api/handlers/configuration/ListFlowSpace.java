@@ -13,6 +13,7 @@ import org.flowvisor.config.FVConfig;
 import org.flowvisor.config.FlowSpace;
 import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.exceptions.MissingRequiredField;
+import org.flowvisor.openflow.protocol.FVMatch;
 
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
@@ -92,7 +93,7 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 		ret.put(SLICEACTIONS, neoacts);
 	    
 	 
-	    ret.put(MATCH, map);
+	    ret.put(MATCH, humanify(map));
 	    return ret;
 	}
 
@@ -105,5 +106,40 @@ public class ListFlowSpace implements ApiHandler<Map<String, Object>> {
 	public String cmdName() {
 		return "list-flowspace";
 	}
+	
+	private HashMap<String, Object> humanify(HashMap<String, Object> map) {
+		if (map == null)
+			return map;
+		Integer ip_src = (Integer) map.get(FVMatch.STR_NW_SRC);
+		Integer ip_dst = (Integer) map.get(FVMatch.STR_NW_DST);
+		Integer wildcards = (Integer) map.get(FlowSpace.WILDCARDS);
+		
+		if (ip_src != null) {
+			int ip_src_mask = Math.max(32 - ((wildcards & FVMatch.OFPFW_NW_SRC_MASK) >> FVMatch.OFPFW_NW_SRC_SHIFT),0);
+			map.put(FVMatch.STR_NW_SRC, cidrToString(ip_src, ip_src_mask));
+		}
+		if (ip_dst != null) {
+			int ip_dst_mask = Math.max(32 - ((wildcards & FVMatch.OFPFW_NW_DST_MASK) >> FVMatch.OFPFW_NW_DST_SHIFT),0);	
+			map.put(FVMatch.STR_NW_DST, cidrToString(ip_dst, ip_dst_mask));
+		}
+		
+		return map;
+	}
+	
+	
+	private String cidrToString(int ip, int prefix) {
+        String str;
+        if (prefix >= 32) {
+            str = FVMatch.ipToString(ip);
+        } else {
+            // use the negation of mask to fake endian magic
+            int mask = ~((1 << (32 - prefix)) - 1);
+            str = FVMatch.ipToString(ip & mask) + "/" + prefix;
+        }
+
+        return str;
+    }
+	
+	
 
 }

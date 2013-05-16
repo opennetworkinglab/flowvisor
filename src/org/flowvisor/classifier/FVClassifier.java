@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -108,7 +109,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	boolean doneID;
 	FVMessageAsyncStream msgStream;
 	OFFeaturesReply switchInfo;
-	Map<String, FVSlicer> slicerMap;
+	ConcurrentHashMap<String, FVSlicer> slicerMap;
 	XidTranslator xidTranslator;
 	CookieTranslator cookieTranslator;
 	short missSendLength;
@@ -158,7 +159,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		this.switchInfo = null;
 		this.doneID = false;
 		this.floodPermsSlice = ""; // disabled, at first
-		this.slicerMap = new HashMap<String, FVSlicer>();
+		this.slicerMap = new ConcurrentHashMap<String, FVSlicer>();
 		this.xidTranslator = new XidTranslatorWithMessage();
 		this.cookieTranslator = new CookieTranslator();
 		this.missSendLength = 128;
