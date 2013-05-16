@@ -237,7 +237,6 @@ public class LLDPTrailer {
 			FVLog.log(LogLevel.ALERT, null, "Wrong OUI2");
 		}
 		catch(IndexOutOfBoundsException ioe){
-			System.out.println("Yikes! The LLDP packet in is not well formed - IndexOutOfBound while getting the trailer ");
 			FVLog.log(LogLevel.CRIT, null, "Yikes! The LLDP packet-in is not well formed - IndexOutOfBound while getting the trailer ");
 		}
 		
