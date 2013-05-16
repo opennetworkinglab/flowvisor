@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.codec.binary.Hex;
 import org.flowvisor.api.FlowTableCallback;
 import org.flowvisor.api.TopologyCallback;
 import org.flowvisor.config.ConfigError;
@@ -22,6 +23,7 @@ import org.flowvisor.config.ConfigurationEvent;
 import org.flowvisor.config.FVConfig;
 
 import org.flowvisor.config.FlowMapChangedListener;
+import org.flowvisor.config.FlowSpace;
 import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.config.FlowvisorChangedListener;
 import org.flowvisor.config.FlowvisorImpl;
@@ -81,8 +83,10 @@ import org.openflow.protocol.OFType;
 import org.openflow.protocol.OFError.OFHelloFailedCode;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionOutput;
+import org.openflow.protocol.statistics.OFFlowStatisticsReply;
 import org.openflow.protocol.statistics.OFStatistics;
 import org.openflow.protocol.statistics.OFStatisticsType;
+import org.openflow.util.HexString;
 
 /**
  * Map OF messages from the switch to the appropriate slice
@@ -1111,14 +1115,79 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply) {
 		flowStats.clear();
 		List<OFStatistics> stats = fvStatisticsReply.getStatistics();
+		FVLog.log(LogLevel.DEBUG, this, " Inside classifyFlowStats, stats is: ",stats);
 		
+		List<Object> params = new ArrayList<Object>();
+		//Serialize the stats to send it via JSON
 		
+		for (int i=0; i<stats.size(); i++){
+			OFFlowStatisticsReply reply = (OFFlowStatisticsReply) stats.get(i);
+			
+			HashMap <String,Object> cache = new HashMap<String,Object>();
+			
+			cache.put(FlowSpace.PRIO, String.valueOf(reply.getPriority()));
+			cache.put(FlowSpace.ACTION, reply.getActions().toString());
+			cache.put("OFMatch", reply.getMatch().toString());
+			cache.put(FlowSpace.DPID, getDPID());
+			cache.put("tableId ", HexString.toHexString(reply.getTableId()));
+			cache.put("nanoSecondDuration ", reply.getDurationNanoseconds());
+			cache.put("durationInSeconds ",reply.getDurationSeconds());
+			cache.put("hardTimeOut ",reply.getHardTimeout());
+			cache.put("idleTimeOut ", reply.getIdleTimeout());
+			cache.put("cookie ",reply.getCookie());
+			cache.put("packetCount ", reply.getPacketCount());
+			cache.put("byteCount ",reply.getByteCount());
+			cache.put("length ", reply.getLength());
+
+			//cache.put(FlowSpace.DLDST, HexString.toHexString(reply.getMatch().getDataLayerDestination()));
+			//cache.put(FlowSpace.DLSRC, HexString.toHexString(reply.getMatch().getDataLayerSource()));
+			//cache.put(FlowSpace.DLTYPE, reply.getMatch().getDataLayerType());
+			//cache.put(FlowSpace.INPORT, reply.getMatch().getInputPort());
+			//cache.put(FlowSpace.NWDST, reply.getMatch().getNetworkDestination());
+			//cache.put(FlowSpace.NWPROTO, reply.getMatch().getNetworkProtocol());
+			//cache.put(FlowSpace.NWSRC, reply.getMatch().getNetworkSource());
+			//cache.put(FlowSpace.NWTOS, reply.getMatch().getNetworkTypeOfService());
+			//cache.put(FlowSpace.TPDST, reply.getMatch().getTransportDestination());
+			//cache.put(FlowSpace.TPSRC, reply.getMatch().getTransportSource());
+			//cache.put(FlowSpace.VLAN, reply.getMatch().getDataLayerVirtualLan());
+			//cache.put(FlowSpace.VPCP, reply.getMatch().getDataLayerVirtualLanPriorityCodePoint());
+			//cache.put(FlowSpace.WILDCARDS, reply.getMatch().getWildcards());
+
+	        params.add(cache);
+		}
+		//Probably not the most efficient way of doing but for now - 
+		/*HashMap <String,Object> cache = new HashMap<String,Object>();
+    	int initOffset=0;
+    	int finalOffset=0;
+
+    	for (int i=0; i<stats.size(); i++){
+        String st = stats.toString();
+
+        String temp = new String();
+       
+        initOffset =  stats.indexOf("=", stats.indexOf("length") + "length".length());
+        finalOffset = stats.indexOf(",",initOffset);
+        temp = stats.substring(initOffset+1, finalOffset);
+        System.out.println("Length is: "+temp);
+        cache.put("length", temp);
+       
+        initOffset =  stats.indexOf("=", stats.indexOf("tableId") + "tableId".length());
+        finalOffset = stats.indexOf(",",initOffset);
+        System.out.println("initOffset : "+initOffset+"finalOffset: "+finalOffset);
+        temp = stats.substring(initOffset+1, finalOffset);
+        System.out.println("Temp is: "+temp);
+        cache.put("tableId", temp);
+       
+        System.out.println("Cache is: "+cache);
+		
+    	}*/
 		//Adding for registering a FlowTable
 		if (this.registeredForFlowTable == true && !this.flowTableList.isEmpty()){
+			FVLog.log(LogLevel.DEBUG, this, "Inside registeredForFlowTable ",this.registeredForFlowTable);
 			for (FlowTableCallback fcb : this.flowTableList) {
-				fcb.setParams(stats);
-				fcb.spawn();
-				fcb.clearParams();
+				fcb.setParams(params);
+				fcb.run(); // Is this ok to use run, there will be only one thread of fcb per classifier?
+				
 			}
 		}
 		
@@ -1194,15 +1263,5 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 				it.remove();
 		}		
 	}
-	
-	/*private synchronized void processCallback() {
-		FVLog.log(LogLevel.INFO, this, "processing callback for flowtable registration");
-		if(flowTableCallbackDb != null){
-			for (FlowTableCallback fcb : this.flowTableCallbackDb.values()){
-				fcb.spawn();			
-			}
-		}
-	}*/
-
 
 }

@@ -4,6 +4,7 @@
 package org.flowvisor.message.lldp;
 
 import java.nio.ByteBuffer;
+import java.util.List;
 
 import org.flowvisor.FlowVisor;
 import org.flowvisor.classifier.FVClassifier;
@@ -12,6 +13,9 @@ import org.flowvisor.log.LogLevel;
 import org.flowvisor.message.FVPacketIn;
 import org.flowvisor.message.FVPacketOut;
 import org.flowvisor.slicer.FVSlicer;
+import org.openflow.protocol.OFPhysicalPort;
+import org.openflow.protocol.action.OFAction;
+import org.openflow.protocol.action.OFActionOutput;
 
 /**
  * Set of utilities for handling our LLDP virtualization hacks
@@ -24,7 +28,7 @@ public class LLDPUtil {
 	final public static short ETHER_VLAN = (short) 0x8100;
 	final public static byte[] LLDP_MULTICAST = { 0x01, 0x23, 0x20, 0x00, 0x00,
 			0x01 };
-	final static int MIN_FV_NAME = 20;
+	final public static int MIN_FV_NAME = 20;
 
 	/**
 	 * If this msg is lldp, then 1) add a slice identifying trailer 2) send to
@@ -41,6 +45,8 @@ public class LLDPUtil {
 	 */
 	static public boolean handleLLDPFromController(FVPacketOut po,
 			FVClassifier fvClassifier, FVSlicer fvSlicer) {
+
+		FVLog.log(LogLevel.DEBUG,null,"inside handleLLDPFromController in LLDPUtil" );
 		if (!LLDPCheck(po.getPacketData()))
 			return false;
 		String fvName = FlowVisor.getInstance().getInstanceName();
@@ -48,9 +54,42 @@ public class LLDPUtil {
 		 * This is a hack to ensure that the resulting lldp packet is larger
 		 * than 60: #133
 		 */
-		if (fvName.length() < MIN_FV_NAME) // pad out to min length size
-			fvName = String.format("%1$" + LLDPUtil.MIN_FV_NAME + "s", fvName);
-
+		/*if (fvName.length() < MIN_FV_NAME) // pad out to min length size
+			fvName = String.format("%1$" + LLDPUtil.MIN_FV_NAME + "s", fvName);*/
+		
+		//Get the ports from the classifier and check if it belongs to that slice
+		//and send only those ports relevant to this slice to form a new LLDP Trailer.
+		/*List<OFPhysicalPort> ports = fvClassifier.getSwitchInfo().getPorts();
+		
+		
+		//OFPhysicalPort port = (OFPhysicalPort)po.getInPort();
+		FVLog.log(LogLevel.DEBUG,null,"inside The pkt is lldp." );
+		
+		short outport=-1000;
+		List<OFAction> actions = po.getActions();
+		for (OFAction act : actions) {
+			if (act instanceof OFActionOutput) {
+				OFActionOutput outact = (OFActionOutput) act;
+				outport = outact.getPort();
+				FVLog.log(LogLevel.DEBUG,null,"outport: ",outport );
+			}
+		}
+		
+		
+		for (OFPhysicalPort port: ports){
+			FVLog.log(LogLevel.DEBUG,null,"port is: ",port.getPortNumber() );
+			//FVLog.log(LogLevel.DEBUG,null,"port is);
+			//if (fvSlicer.portInSlice(port.getPortNumber()) && port.getPortNumber() == outport){ 
+			if (port.getPortNumber() == outport){ 
+				String hw = new String(port.getHardwareAddress());
+				FVLog.log(LogLevel.DEBUG,null,"The ports are: ", port.getPortNumber());
+				FVLog.log(LogLevel.DEBUG,null,"The hw addr is: ", hw );
+				LLDPTrailer trailer = new LLDPTrailer(fvSlicer.getSliceName(), fvName, port.getPortNumber(), port.getHardwareAddress());
+				FVLog.log(LogLevel.DEBUG, null, "DPID = ",fvClassifier.getDPID());
+				trailer.appendTo(po);
+			}
+		}*/
+		
 		LLDPTrailer trailer = new LLDPTrailer(fvSlicer.getSliceName(), fvName);
 		trailer.appendTo(po);
 		FVLog.log(LogLevel.DEBUG, fvSlicer, "applied lldp hack: " + po
@@ -90,6 +129,7 @@ public class LLDPUtil {
 	 */
 	static public boolean handleLLDPFromSwitch(FVPacketIn pi,
 			FVClassifier fvClassifier) {
+		FVLog.log(LogLevel.DEBUG,null,"inside handleLLDPFromSwitch in LLDPUtil" );
 		if (!LLDPCheck(pi.getPacketData()))
 			return false;
 		LLDPTrailer trailer = LLDPTrailer.getTrailer(pi);

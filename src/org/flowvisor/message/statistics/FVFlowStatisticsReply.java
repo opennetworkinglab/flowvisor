@@ -24,6 +24,7 @@ public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 	
 	@Override
 	public void classifyFromSwitch(FVStatisticsReply msg, FVClassifier fvClassifier) {
+		FVLog.log(LogLevel.DEBUG, null, "Inside classifyFromSwitch in FVFlowStatisticsReply");
 		fvClassifier.classifyFlowStats(msg);
 		XidPairWithMessage pair = FVMessageUtil
 				.untranslateXidMsg(msg, fvClassifier);

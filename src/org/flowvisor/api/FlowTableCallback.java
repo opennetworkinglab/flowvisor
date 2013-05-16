@@ -25,6 +25,9 @@ import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
+import org.openflow.protocol.statistics.OFStatistics;
+
+import java.util.HashMap;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
 import com.thetransactioncompany.*;
@@ -105,6 +108,45 @@ public class FlowTableCallback implements Runnable {
 	 */
 	@Override
 	public void run() {
+		runSpecificCallback();
+		//clearParams();
+		return;
+	}
+		/*this.installDumbTrust();
+		config = new XmlRpcClientConfigImpl();
+		URL urlType;
+		try {
+			urlType = new URL(this.URL);
+			config.setServerURL(urlType);
+		} catch (MalformedURLException e) {
+			// should never happen; we test this on input
+			throw new RuntimeException(e);
+		}
+		config.setEnabledForExtensions(true);
+
+		if (httpBasicUserName!=null && httpBasicUserName!="" && httpBasicPassword!="" && httpBasicPassword!=null)
+		{
+			config.setBasicUserName(httpBasicUserName);
+			config.setBasicPassword(httpBasicPassword);
+		}
+
+		client = new XmlRpcClient();
+		// client.setTransportFactory(new
+		// XmlRpcCommonsTransportFactory(client));
+		// client.setTransportFactory(new )
+		client.setConfig(config);
+		try {
+			String call = urlType.getPath();
+			if (call.startsWith("/"))
+				call = call.substring(1);
+			//this.client.execute(this.methodName, new Object[] { cookie });
+			this.client.execute(this.methodName,new Object[]{ null});
+		} catch (XmlRpcException e) {
+			FVLog.log(LogLevel.WARN, TopologyController.getRunningInstance(),
+					"topoCallback to URL=" + URL + " failed: " + e);
+		}*/
+
+	private void runSpecificCallback(){
 		HttpURLConnection connection = null;
 		OutputStreamWriter writer = null;
 		InputStreamReader reader = null;
@@ -112,14 +154,23 @@ public class FlowTableCallback implements Runnable {
 		int responseCode = 200;
 
 		try {
-			JSONRPC2Request jsonReq = new JSONRPC2Request(this.methodName, params, nextId());
-
+			FVLog.log(LogLevel.DEBUG, null, "Params: ",this.params);
+			/*params.clear();
+			HashMap <Integer,String> cache = new HashMap<Integer,String>();
+			cache.put(1,"One");
+			params.add(cache);
+			cache.put(2,"two");
+			params.add(cache);*/
+			
+			
+			JSONRPC2Request jsonReq = new JSONRPC2Request(this.methodName, this.params, nextId());
+			
 			URL u = new URL(this.URL);
 			connection = (HttpURLConnection) u.openConnection();
 
 			connection.setRequestMethod("POST");
 			connection.setRequestProperty("Content-Type",
-			"application/x-www-form-urlencoded");
+			"application/json");
 			connection.setDoOutput(true);
 
 			if (httpBasicUserName!=null && httpBasicUserName!="" && httpBasicPassword!="" && httpBasicPassword!=null){
@@ -159,50 +210,11 @@ public class FlowTableCallback implements Runnable {
 							connection.disconnect();
 						} catch (Exception e) {
 						}
-
 					}
 				}
 			}
 		}
-
-		/*this.installDumbTrust();
-		config = new XmlRpcClientConfigImpl();
-		URL urlType;
-		try {
-			urlType = new URL(this.URL);
-			config.setServerURL(urlType);
-		} catch (MalformedURLException e) {
-			// should never happen; we test this on input
-			throw new RuntimeException(e);
-		}
-		config.setEnabledForExtensions(true);
-
-		if (httpBasicUserName!=null && httpBasicUserName!="" && httpBasicPassword!="" && httpBasicPassword!=null)
-		{
-			config.setBasicUserName(httpBasicUserName);
-			config.setBasicPassword(httpBasicPassword);
-		}
-
-		client = new XmlRpcClient();
-		// client.setTransportFactory(new
-		// XmlRpcCommonsTransportFactory(client));
-		// client.setTransportFactory(new )
-		client.setConfig(config);
-		try {
-			String call = urlType.getPath();
-			if (call.startsWith("/"))
-				call = call.substring(1);
-			//this.client.execute(this.methodName, new Object[] { cookie });
-			this.client.execute(this.methodName,new Object[]{ null});
-		} catch (XmlRpcException e) {
-			FVLog.log(LogLevel.WARN, TopologyController.getRunningInstance(),
-					"topoCallback to URL=" + URL + " failed: " + e);
-		}*/
-
 	}
-
-	/*private void runSpecificCallback(){
-			}*/
 
 	/**
 	 * Next id.
@@ -216,11 +228,13 @@ public class FlowTableCallback implements Runnable {
 
 	public void setParams(List<Object> params){
 		this.params = params;
+		FVLog.log(LogLevel.DEBUG, null, "inside setParams: ",this.params);
 	}
 
 	public void setParams(Object o) {
 		this.params = new ArrayList<Object>();
 		this.params.add(o);
+		FVLog.log(LogLevel.DEBUG, null, "inside setParams: ",this.params);
 				
 	}
 	
