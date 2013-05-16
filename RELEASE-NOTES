@@ -1,3 +1,11 @@
+
+FlowVisor 1.1 -DEV: May 15 2013
+    * FLOWVISOR-59 : Flowvisor should be able to ask the flow table from the switch
+    * FLOWVISOR-62 : Allow slice perms to be specfied with "rwd" in addition to by number
+    * FLOWVISOR-187: Log level of packets not matching any slice in Flowvisor
+    * FLOWVISOR-15 : LLDP packet made by FlowVisor doesn't have "the end of LLDPDU" nor a TLV header before padding(0xcafebabe) 
+    * FLOWVISOR-158: Control planes with multiple flowvisors should not broadcast LLDP packet-ins to all slices  
+
 FlowVisor 1.0.0 : February 28 2013
     * FLOWVISOR-161 : Make it easy for GENI people to find versions other than the latest
     * FLOWVISOR-160 : FV does not negotiate an acceptable OpenFlow version if a switch advertises >1.0
