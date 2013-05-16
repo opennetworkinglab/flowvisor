@@ -202,17 +202,14 @@ public class LLDPTrailer {
 		try{
 		FVLog.log(LogLevel.DEBUG, null, " packet capacity: ", packet.capacity());
 		int offset = packet.capacity() - END_LLDPDU_LEN ;
-		FVLog.log(LogLevel.DEBUG, null, " packet offset: ",packet.get(offset));
+
 		if (packet.get(offset) != 0)
 			FVLog.log(LogLevel.WARN, null, "End of LLDPDU is missing");
-		FVLog.log(LogLevel.DEBUG, null, " offset: ", offset);
+
 		offset -= FLOWNAMELEN_LEN;
-		FVLog.log(LogLevel.DEBUG, null, " offset: ", offset);
 		byte flowLen = packet.get(offset);
-		FVLog.log(LogLevel.DEBUG, null, "flowLen = ", flowLen);
 		offset -= SLICENAMELEN_LEN;
 		byte sliceLen = packet.get(offset);
-		FVLog.log(LogLevel.DEBUG, null, "sliceLen = ", sliceLen);
 		offset = offset - (flowLen + sliceLen); // this includes the NULL
 		packet.position(offset);
 		
@@ -220,12 +217,6 @@ public class LLDPTrailer {
 		fvName = StringByteSerializer.readFrom(packet, flowLen);
  
 		FVLog.log(LogLevel.DEBUG, null, "sliceName = ", sliceName, "fvName= ", fvName);
-		/*for(int i=0; i<4 ; i++){//4 is the length of OUI Id and its subtype.
-			offset = offset - 1; 
-			if (packet.get(offset) != 0x01)
-				FVLog.log(LogLevel.CRIT, null, "The oui is not correct, not our LLDPDU; "+
-			"OUI in reverse order is: ", packet.get(offset));
-		}*/
 		
 		//Check for the OUI Id and its subtype from backwards -
 		offset -= 1;
@@ -275,7 +266,7 @@ public class LLDPTrailer {
 	}
 
 	public int length() {
-		FVLog.log(LogLevel.DEBUG, null, "Slice Name = ", sliceName,
+		FVLog.log(LogLevel.MOBUG, null, "Slice Name = ", sliceName,
 				"flowVisor Name = ", flowVisorName,
 				"SliceLength = ", sliceName.length(),
 				"FlowVisor Length = ", flowVisorName.length(),
@@ -299,7 +290,7 @@ public class LLDPTrailer {
 				+ PORT_HEADER_LEN + PORT_SUBTYPE_LEN + PORT_LEN + TTL_HEADER_LEN 
 				+ TTL_LEN + OUI_HEADER_LEN + ouiLen + END_LLDPDU_LEN;
 		String hw = new String(this.hardwareAddress);*/
-		FVLog.log(LogLevel.DEBUG, null, 
+		FVLog.log(LogLevel.MOBUG, null, 
 				"OUI_HEADER_LEN = ", OUI_HEADER_LEN,
 				"END_LLDPDU_LEN = ", END_LLDPDU_LEN
 				);

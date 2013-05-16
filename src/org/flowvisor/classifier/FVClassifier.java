@@ -1247,10 +1247,6 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			this.registeredForFlowTable = true;
 			pollFlowTableStats(null);
 			this.flowTableList.add(new FlowTableCallback(userName,url,method,cookie,dpid));
-			//String key = url + method;
-			//this.flowTableCallbackDb.put(key, new TopologyCallback(userName,url,method,cookie,eventType,dpid));
-			/*this.dpidMap.put(dpid, new FlowTableCallback(userName, url, method, dpid)); 
-			this.flowTableCallbackDb.put(userName, dpidMap);*/
 	}
 	
 	public void deRegisterCallBack(String userName, String method,String cookie, TopologyCallback.EventType eventType, Long dpid){
