@@ -112,7 +112,9 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		}*/
 		for (Map<String, Object> sact : sactions) {
 			String sliceName = HandlerUtils.<String>fetchField(SLICENAME, sact, true, null);
-			String perm = HandlerUtils.<String>fetchField(PERM, sact, true, null);
+			String perm = String.valueOf(HandlerUtils.<String>fetchField(PERM, sact, true, null));
+			FVLog.log(LogLevel.DEBUG, null,
+					"perm is:",perm);
 			int permission=0;
 			if (perm.matches("[rwd]+"))
 				permission = permToInt(perm);
