@@ -50,6 +50,7 @@ public class LLDPUtil {
 		if (!LLDPCheck(po.getPacketData()))
 			return false;
 		String fvName = FlowVisor.getInstance().getInstanceName();
+		FVLog.log(LogLevel.DEBUG,null,"fvName is: ",fvName, "sliceName is: ", fvSlicer.getSliceName() );
 		/**
 		 * This is a hack to ensure that the resulting lldp packet is larger
 		 * than 60: #133
@@ -110,10 +111,13 @@ public class LLDPUtil {
 			return false; // not lddp if no packet exists or too short
 		ByteBuffer packet = ByteBuffer.wrap(packetArray);
 		short ether_type = packet.getShort(12);
+		FVLog.log(LogLevel.DEBUG,null,"Checking if the pkt is LLDP?", ether_type );
 		if (ether_type == ETHER_VLAN)
 			ether_type = packet.getShort(16);
-		if (ether_type != ETHER_LLDP)
+		if (ether_type != ETHER_LLDP){
+			FVLog.log(LogLevel.DEBUG,null,"The pkt is not LLDP" );
 			return false;
+		}
 		// TODO think about checking for NOX OID
 		return true;
 	}

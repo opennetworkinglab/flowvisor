@@ -202,22 +202,26 @@ public class LLDPTrailer {
 		try{
 		FVLog.log(LogLevel.DEBUG, null, " packet capacity: ", packet.capacity());
 		int offset = packet.capacity() - END_LLDPDU_LEN ;
-
-		if (packet.get(offset) != 0)
+		//FVLog.log(LogLevel.DEBUG, null, "offset0: ",offset);
+		if (packet.get(offset) != 0){
 			FVLog.log(LogLevel.WARN, null, "End of LLDPDU is missing");
-
+			return null;//didn't find the End Trailer, so does not contain the rest too!
+		}
 		offset -= FLOWNAMELEN_LEN;
+		//FVLog.log(LogLevel.DEBUG, null, "offset1: ",offset);
 		byte flowLen = packet.get(offset);
+		FVLog.log(LogLevel.DEBUG, null, "flowLen: ",flowLen);
 		offset -= SLICENAMELEN_LEN;
+		//FVLog.log(LogLevel.DEBUG, null, "offset2: ",offset);
 		byte sliceLen = packet.get(offset);
+		FVLog.log(LogLevel.DEBUG, null, "sliceLen: ",sliceLen);
 		offset = offset - (flowLen + sliceLen); // this includes the NULL
+		//FVLog.log(LogLevel.DEBUG, null, "offset3: ",offset);
 		packet.position(offset);
-		
+		FVLog.log(LogLevel.MOBUG, null, "packet: ",packet.toString());
 		sliceName = StringByteSerializer.readFrom(packet, sliceLen);
 		fvName = StringByteSerializer.readFrom(packet, flowLen);
  
-		FVLog.log(LogLevel.DEBUG, null, "sliceName = ", sliceName, "fvName= ", fvName);
-		
 		//Check for the OUI Id and its subtype from backwards -
 		offset -= 1;
 		FVLog.log(LogLevel.DEBUG, null, " OUI Subtype: ",packet.get(offset));
@@ -237,7 +241,12 @@ public class LLDPTrailer {
 			FVLog.log(LogLevel.ALERT, null, "Wrong OUI2");
 		}
 		catch(IndexOutOfBoundsException ioe){
-			FVLog.log(LogLevel.CRIT, null, "Yikes! The LLDP packet-in is not well formed - IndexOutOfBound while getting the trailer ");
+			FVLog.log(LogLevel.CRIT, null, "Yikes! The LLDP packet-in is not well formed - " +
+					"		IndexOutOfBound while getting the trailer ",ioe);
+		}
+		catch(IllegalArgumentException iae){
+			FVLog.log(LogLevel.CRIT, null, "Yikes! Got an illegal argument-something wrong " +
+					"		with the positioning of the offset in the ByteBuffer! ",iae);
 		}
 		
 		/*offset = offset - (OUI_HEADER_LEN + TTL_LEN + TTL_HEADER_LEN + PORT_LEN);

@@ -1139,7 +1139,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			cache.put("packetCount ", reply.getPacketCount());
 			cache.put("byteCount ",reply.getByteCount());
 			cache.put("length ", reply.getLength());
-
+			
 			//cache.put(FlowSpace.DLDST, HexString.toHexString(reply.getMatch().getDataLayerDestination()));
 			//cache.put(FlowSpace.DLSRC, HexString.toHexString(reply.getMatch().getDataLayerSource()));
 			//cache.put(FlowSpace.DLTYPE, reply.getMatch().getDataLayerType());
@@ -1186,8 +1186,9 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		if (this.registeredForFlowTable == true && !this.flowTableList.isEmpty()){
 			FVLog.log(LogLevel.DEBUG, this, "Inside registeredForFlowTable ",this.registeredForFlowTable);
 			for (FlowTableCallback fcb : this.flowTableList) {
+				fcb.clearParams();
 				fcb.setParams(params);
-				fcb.run(); // Is this ok to use run, there will be only one thread of fcb per classifier?
+				fcb.spawn(); // Is this ok to use run, there will be only one thread of fcb per classifier?
 				
 			}
 		}
