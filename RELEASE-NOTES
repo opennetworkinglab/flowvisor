@@ -1,6 +1,7 @@
 FlowVisor 1.1 -DEV: May 15 2013
     * FLOWVISOR-59 : Flowvisor should be able to ask the flow table from the switch
     * FLOWVISOR-62 : Allow slice perms to be specfied with "rwd" in addition to by number
+    * FLOWVISOR-191: fvctl add-flowspace should check whether a slice exist before returning
     * FLOWVISOR-187: Log level of packets not matching any slice in Flowvisor
     * FLOWVISOR-15 : LLDP packet made by FlowVisor doesn't have "the end of LLDPDU" nor a TLV header before padding(0xcafebabe) 
     * FLOWVISOR-158: Control planes with multiple flowvisors should not broadcast LLDP packet-ins to all slices  
