@@ -445,6 +445,7 @@ public class FVSlicer implements FVEventHandler, FVSendMsg, FlowvisorChangedList
 		info.put("controller-port", this.port);
 		info.put("shutdown-status", this.isShutdown);
 		info.put("floodperms", this.floodPerms);
+		FVLog.log(LogLevel.DEBUG, this, "FVSlicer StatusInfo: " + info);
 		return info;
 	}
 

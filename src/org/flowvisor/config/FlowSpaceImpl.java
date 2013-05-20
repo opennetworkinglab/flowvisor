@@ -628,7 +628,7 @@ public class FlowSpaceImpl implements FlowSpace {
 
 	@Override
 	public void close(Connection conn) {
-		settings.returnConnection(conn);
+		//settings.returnConnection(conn);
 		try {
 			conn.close();
 		} catch (SQLException e) {

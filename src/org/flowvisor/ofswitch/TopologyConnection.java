@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.flowvisor.FlowVisor;
 import org.flowvisor.classifier.FVSendMsg;
 import org.flowvisor.events.FVEvent;
 import org.flowvisor.events.FVEventHandler;
@@ -48,6 +49,7 @@ import org.openflow.protocol.action.OFActionOutput;
 import org.openflow.protocol.action.OFActionType;
 import org.openflow.protocol.statistics.OFStatisticsType;
 import org.openflow.util.HexString;
+import org.openflow.util.StringByteSerializer;
 
 /**
  * Divide ports on a switch in to "slowPorts" and "fastPorts" send topology
@@ -75,9 +77,11 @@ public class TopologyConnection implements FVEventHandler, FVSendMsg {
 	private final Set<Short> fastPorts;
 	private Iterator<Short> slowIterator;
 	private final Map<Short, OFPhysicalPort> phyMap;
-	static final byte lldpSysD[] = { 0x0c, 0x08 }; // Type 6, length 8
+	static final byte lldpSysD[] = { 0x0c, 0x08 }; // Type 6, length 8 
 	SendRecvDropStats stats;
-
+	public final static int FLOWNAMELEN_LEN = 1;
+	public final static int FLOWNAMELEN_NULL = 1;
+	public final static byte OUI_TYPE = 127;
 	// probes can be dropped before a link
 	// down event
 
@@ -481,14 +485,41 @@ public class TopologyConnection implements FVEventHandler, FVSendMsg {
 		bb.put(id);
 		bb.putShort(portNumber);
 
-		// TTL TLV
-		byte ttl[] = { 0x06, 0x02, 0x00, 0x70 };
+		// TTL TLV - Isn't this 112 sec?
+		byte ttl[] = { 0x06, 0x02, 0x00, 0x78 };
 		bb.put(ttl); // type 3, length 2, 120 seconds
 
 		// SysD TLV
 		bb.put(lldpSysD);
 		bb.putLong(this.featuresReply.getDatapathId());
+		
+		//OUI TLV
+		String fvName = FlowVisor.getInstance().getInstanceName();
 
+		/*if (fvName.length() < LLDPUtil.MIN_FV_NAME) // pad out to min length size
+			fvName = String.format("%1$" + LLDPUtil.MIN_FV_NAME + "s", fvName);*/
+		
+		int ouiLen = 4 +  fvName.length() +  FLOWNAMELEN_LEN + FLOWNAMELEN_NULL;
+																						//4 - length of OUI Id + it's subtype 
+		int ouiHeader = (ouiLen & 0x1ff) | ((OUI_TYPE & 0x007f) << 9);
+		bb.putShort((short)ouiHeader);
+		
+		// ON.Labs OUI = a42305 and assigning the subtype to 0x01
+		byte oui[] = { (byte)0xa4, (byte)0x23, (byte)0x05};
+		//byte oui[] = {0x0a, 0x04, 0x02, 0x03, 0x00, 0x05};
+		bb.put(oui);
+		byte ouiSubtype[] = { 0x01 };
+		bb.put(ouiSubtype);
+		StringByteSerializer.writeTo(bb, fvName.length() + 1,
+				fvName);
+		bb.put((byte) (fvName.length() + 1));
+		
+		//EndOfLLDPDU TLV
+		byte endType[] = { 0x00 };
+		bb.put(endType);
+		byte endLength[] = {0x00 };
+		bb.put(endLength);
+		
 		while (bb.position() <= (size - 4))
 			bb.putInt(0xcafebabe); // fill with well known padding
 		return buf;
@@ -527,7 +558,13 @@ public class TopologyConnection implements FVEventHandler, FVSendMsg {
 		// 30 - ttl value
 		// 32 - sysdesc tl
 		// 34 - dpid
-		// 42 - padding
+		// 42 – oui header
+		// 44 – oui id
+		// 47 – oui subtype
+		// 48 – oui string (2 bytes for fvName; 1 for null; 1 for fvNameLength)
+		// 52 – endOfLLDPDU
+		// 54 - padding 
+		
 		int vlan_offset = 0;
 		if (packet == null || packet.length != LLDPLen)
 			return null; // invalid lldp (to us, anyhow)
