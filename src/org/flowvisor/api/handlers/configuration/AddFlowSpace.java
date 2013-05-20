@@ -149,11 +149,11 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		while(index<len){
 			//System.out.println("Char at index "+index + "is: "+perm.charAt(index));
 			if(perm.charAt(index)=='d' || perm.charAt(index)=='D')
-				permission+=1;
+				permission+=SliceAction.DELEGATE;//1;
 			else if(perm.charAt(index)=='r' || perm.charAt(index)=='R')
-				permission+=2;
+				permission+=SliceAction.READ;//2;
 			else if(perm.charAt(index)=='w' || perm.charAt(index)=='W')
-				permission+=4;
+				permission+=SliceAction.WRITE;//4;
 			index++;
 		}
 		FVLog.log(LogLevel.INFO, null,
