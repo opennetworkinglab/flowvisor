@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.flowvisor.api.FVUserAPIImpl;
 import org.flowvisor.api.handlers.ApiHandler;
 import org.flowvisor.api.handlers.HandlerUtils;
 import org.flowvisor.config.ConfigError;
@@ -12,6 +13,7 @@ import org.flowvisor.config.FVConfigurationController;
 import org.flowvisor.config.FlowSpace;
 import org.flowvisor.exceptions.MissingRequiredField;
 import org.flowvisor.exceptions.UnknownMatchField;
+import org.flowvisor.exceptions.SliceNotFound;
 import org.flowvisor.flows.FlowEntry;
 import org.flowvisor.flows.FlowSpaceUtil;
 import org.flowvisor.flows.SliceAction;
@@ -50,13 +52,17 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		} catch (UnknownMatchField e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					cmdName() + ": Unknown field(s) in match struct : " + e.getMessage()), 0);
+		} catch (SliceNotFound e){
+			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(),
+					cmdName() + ": Slice Name " + e.getMessage() + " does not exist!"), 0);
 		}
+		
 		return resp;
 		
 	}
 
 	private List<FlowEntry> processFlows(List<Map<String, Object>> params/*, FlowMap flowSpace*/) 
-			throws ClassCastException, MissingRequiredField, ConfigError, UnknownMatchField {
+			throws ClassCastException, MissingRequiredField, ConfigError, UnknownMatchField, SliceNotFound {
 		FVLog.log(LogLevel.DEBUG, null,
 				"processFlows of AddFlowSpace");
 		String name = null;
@@ -100,7 +106,7 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 	
 
 	private List<OFAction> parseSliceActions(List<Map<String, Object>> sactions) 
-			throws ClassCastException, MissingRequiredField {
+			throws ClassCastException, MissingRequiredField, SliceNotFound {
 		FVLog.log(LogLevel.DEBUG, null,
 				"Inside parseSliceActions in AddFlowSpace");
 		List<OFAction> sa = new LinkedList<OFAction>();
@@ -112,6 +118,13 @@ public class AddFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		}*/
 		for (Map<String, Object> sact : sactions) {
 			String sliceName = HandlerUtils.<String>fetchField(SLICENAME, sact, true, null);
+			//Check if the slice exists before adding the flowspace!
+			if(!FVUserAPIImpl.doesSliceExist(sliceName)){
+				FVLog.log(LogLevel.CRIT, null,
+						"The slice ", sliceName, " does not exist. Please enter a valid " +
+								" existing sliceName to insert the flowSpace");
+				throw new SliceNotFound(sliceName);
+			}
 			String perm = String.valueOf(HandlerUtils.<String>fetchField(PERM, sact, true, null));
 			FVLog.log(LogLevel.DEBUG, null,
 					"perm is:",perm);
