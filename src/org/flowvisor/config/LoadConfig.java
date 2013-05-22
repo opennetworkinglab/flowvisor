@@ -137,6 +137,7 @@ public class LoadConfig {
 		if (args.length > 0) {
 			FVConfigurationController.init(new ConfDBHandler());
 			FVConfig.readFromFile(args[0]);
+			FVConfigurationController.instance().shutdown();
 			return;
 		}
 			

@@ -12,6 +12,8 @@ import re
 from optparse import OptionParser
 
 def getPassword(opts):
+    if opts.no_passwd:
+        return ""
     if opts.fv_passwdfile is None:
         passwd = getpass.getpass("Password: ")
     else:
@@ -21,10 +23,12 @@ def getPassword(opts):
 def addCommonOpts (parser):
     parser.add_option("-h", "--hostname", dest="host", default="localhost",
                     help="Specify the FlowVisor host; default='localhost'")
-    parser.add_option("-p", "--port", dest="port", default="8080",
-                    help="Specify the FlowVisor web port; default=8080")
+    parser.add_option("-p", "--port", dest="port", default="8081",
+                    help="Specify the FlowVisor web port; default=8081")
     parser.add_option("-u", "--user", dest="fv_user", default="fvadmin",
                     help="FlowVisor admin user; default='fvadmin'")
+    parser.add_option("-n", "--no-passwd", action="store_true",  dest="no_passwd", default=False,
+                    help="Run fvctl with no password; default false")
     parser.add_option("-f", "--passwd-file", dest="fv_passwdfile", default=None,
                     help="Password file; default=none")
     parser.add_option("-v", "--version", action="callback", callback=printVersion)
@@ -241,6 +245,9 @@ def toHex(match):
             match[field] = hex(value)
     return match
 
+def prettify(fs):
+    pass
+
 
 def do_listFlowSpace(gopts, opts, args):
     passwd = getPassword(gopts)
@@ -260,6 +267,7 @@ def do_listFlowSpace(gopts, opts, args):
         print "  None"
         sys.exit()
     for item in ret:
+        prettify(item)
         if opts.pretty:
             print json.dumps(item, sort_keys=True, indent=1)
             print "\n\n"
@@ -319,7 +327,7 @@ def do_addFlowSpace(gopts, opts, args):
     req['slice-action'] = acts
     ret = connect(gopts, "add-flowspace", passwd, data=[req])  
     if ret:
-        print "Flowspace %s has been created." % args[0]
+        print "FlowSpace %s was added with request id %s." % (args[0], ret)
 
 def pa_updateFlowSpace(args, cmd):
     usage = "%s [options] <flowspace-name>" % USAGE.format(cmd)
@@ -374,7 +382,7 @@ def do_updateFlowSpace(gopts, opts, args):
         sys.exit()
     ret = connect(gopts, "update-flowspace", passwd, data=[req])  
     if ret:
-        print "Flowspace %s has been updated." % args[0]
+        print "Flowspace %s was updated with request id %s" % (args[0], ret)
 
 def do_listVersion(gopts, opts, args):
     passwd = getPassword(gopts)
@@ -658,6 +666,21 @@ def do_listrewritedb(gopts, opts, args):
     for fbe in ret:
         print fbe
 
+def pa_listFSStatus(args, cmd):
+    usage = "%s <fs-id>" % USAGE.format(cmd)
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage, description=ldesc)
+    return parser.parse_args(args)
+
+def do_listFSStatus(gopts, opts, args):
+    if len(args) != 1:
+        print "list-fs-status : Please specify a flowspace id"
+        sys.exit()
+    passwd = getPassword(gopts)
+    req = { 'fs-id' : int(args[0]) }
+    ret = connect(gopts, "list-fs-status", passwd, data=req)
+    print "FlowSpace Request id %s : %s" % (args[0], ret)
+
 
 def pa_help(args, cmd):
     usage = "%s <cmd>" % USAGE.format(cmd)
@@ -714,6 +737,10 @@ def connect(opts, cmd, passwd, data=None):
             sys.exit(1)
         else:
             print e
+    except urllib2.URLError, e:
+        print "Could not reach a FlowVisor RPC server at %s:%s." % (opts.host, opts.port) 
+        print "Please check that FlowVisor is running and try again."
+        sys.exit(1)
     except RuntimeError, e:
         print e
 
@@ -730,6 +757,14 @@ def toInt(val):
     if val is not None and val.find('0x') != -1:
         return int(val,16) 
     return int(val)
+
+def toMacInt(val):
+    if val is None:
+        return
+    if val.find(":") != -1:
+        return int(val.replace(':', ''),16)
+    if val.find("-") != -1:
+        int(val.replace('-', ''),16)
 
 def toStr(val):
     return str(val)
@@ -766,10 +801,10 @@ CONVFIELDS = [ 'dl_type', 'dl_vlan', 'dl_vpcp' ]
 MATCHSTRS = {
     'in_port' : ('in_port', toInt),
     'input_port' : ('in_port', toInt),
-    'dl_dst' : ('dl_dst', toInt),
-    'eth_dst' : ('dl_dst', toInt),
-    'dl_src' : ('dl_src', toInt),
-    'eth_src' : ('dl_src',toInt),
+    'dl_dst' : ('dl_dst', toStr),
+    'eth_dst' : ('dl_dst', toStr),
+    'dl_src' : ('dl_src', toStr),
+    'eth_src' : ('dl_src',toStr),
     'dl_type' : ('dl_type',toInt),
     'eth_type' : ('dl_type',toInt),
     'dl_vlan' : ('dl_vlan', toInt),
@@ -799,6 +834,7 @@ CMDS = {
     'save-config' : (pa_saveConfig, do_saveConfig),
     'get-config' : (pa_getConfig, do_getConfig),
     'set-config' : (pa_setConfig, do_setConfig),
+    'list-fs-status' : (pa_listFSStatus, do_listFSStatus),
     'list-slice-info' : (pa_listSliceInfo, do_listSliceInfo),
     'list-datapaths' : (pa_none, do_listDatapaths),
     'list-datapath-info' : (pa_listDatapathInfo, do_listDatapathInfo),
@@ -822,7 +858,7 @@ ERRORS = {
     -32603 : "Internal Error"
 }
 
-USAGE="%prog {}"
+USAGE="%prog {0}"
 
 URL = "https://%s:%s"
 
@@ -907,6 +943,14 @@ DESCS = {
                     "global flood permissions. For flowmod limits, the limit is set per slice per dpid. The dpid in "
                     "case could be 'any'."
                    )),
+    'list-fs-status' : ("Check the insertion status of a add-flowspace or update-flowspace request.",
+                   ("In some cases, inserting FlowSpace can take a long time. This command allows you to check "
+                    "whether the FlowSpace request has been processed or rejected. Return values are: UNKNOWN, PENDING, "
+                    "SUCCESS, or an error message. PENDING means the request has not been handled yet, UNKNOWN means the "
+                    "given id is not known to the system and SUCCESS means the request was successfully handled. An error "
+                    "is returned when a request fails."
+                   )),
+
     'list-slice-info' : ("Displays slice information",
                     ("Displays slice information about the configured slices at the FlowVisor, "
                     "including the current message rate and the number of currently installed "

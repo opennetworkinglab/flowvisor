@@ -1,3 +1,29 @@
+FlowVisor 1.0.6 : May 10 2013
+   * FLOWVISOR-230 : fvctl list-slice-info gives confusing error message if you specify a non-existent slice
+   * FLOWVISOR-231 : fvctl and network specs
+   * FLOWVISOR-232 : Error adding flowspace rules with MAC addresses
+
+FlowVisor 1.0.5 : May 2 2013
+   * FLOWVISOR-216 : Undo changes to default port configurations
+   * Potential fix for FV crashes; awaiting confirmation
+
+FlowVisor 1.0.4 : May 1 2013
+    * FLOWVISOR-226 : fvconfig load hangs
+
+FlowVisor 1.0.3 : April 30 2013
+    * FLOWVISOR-187 : Log level of packets not matching any slice in Flowvisor
+    * FLOWVISOR-217 : Clients can't detect failures that happen after a request is accepted
+
+FlowVisor 1.0.2 : April 29 2013
+    * FLOWVISOR-193 : fvctl add-flowspace <match> not working Right
+    * FLOWVISOR-195 : improve error reporting when FV is not running
+    * FLOWVISOR-197 : more concise fvctl actions w/default empty password
+    * FLOWVISOR-201 : Typo in system restart script
+    * FLOWVISOR-203 : No error message when trying to run FV with another controller already running
+    * FLOWVISOR-204 : Unfriendly error message when running fvctl to non-running FlowVisor
+    * FLOWVISOR-207 : different result when running from script vs copying/pasting commands
+    * FLOWVISOR-216 : Undo changes to default port configurations  
+
 FlowVisor 1.0.0 : February 28 2013
     * FLOWVISOR-161 : Make it easy for GENI people to find versions other than the latest
     * FLOWVISOR-160 : FV does not negotiate an acceptable OpenFlow version if a switch advertises >1.0
