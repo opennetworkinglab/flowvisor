@@ -1,5 +1,6 @@
 package org.flowvisor.message.statistics;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -16,11 +17,13 @@ import org.flowvisor.slicer.FVSlicer;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.statistics.OFQueueStatisticsReply;
 import org.openflow.protocol.statistics.OFStatistics;
+import org.openflow.util.U16;
+import org.openflow.util.U64;
 
 public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
 		ClassifiableStatistic, SlicableStatistic {
 
-
+	private HashMap<String, Object> statsMap = new HashMap<String, Object>();
 	
     @Override
     public void sliceFromController(FVStatisticsRequest msg, FVClassifier fvClassifier,
@@ -34,6 +37,7 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
 
     @Override
     public void classifyFromSwitch(FVStatisticsReply msg, FVClassifier fvClassifier) {
+    	statsMap = toMap(msg);
     	FVSlicer fvSlicer = FVMessageUtil.untranslateXid(msg, fvClassifier);
     	if (fvSlicer == null) {
     		FVLog.log(LogLevel.WARN, fvClassifier,
@@ -89,6 +93,25 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
     	}
 
     }
+    
+	private HashMap<String, Object> toMap(FVStatisticsReply msg) {
+		List<OFStatistics> stats = msg.getStatistics();
+		HashMap <String,Object> cache = new HashMap<String,Object>();
+		
+		for (int i=0; i<stats.size(); i++){
+			OFQueueStatisticsReply reply = (OFQueueStatisticsReply) stats.get(i);
+			cache.put("port_no", U16.f(reply.getPortNumber()));
+			cache.put("queue_id", reply.getQueueId());
+			cache.put("tx_bytes", U64.f(reply.getTransmitBytes()));
+			cache.put("tx_packets", U64.f(reply.getTransmitPackets()));
+			cache.put("tx_errors", U64.f(reply.getTransmitErrors()));
+		}
+		return cache;
+	}
+	
+	public HashMap<String,Object> getMap(){
+		return statsMap;
+	}
 
 
 }

@@ -41,7 +41,7 @@ public class FlowVisor {
 
 	// VERSION
 
-	public final static String FLOWVISOR_VERSION = "flowvisor-1.1.3";
+	public final static String FLOWVISOR_VERSION = "flowvisor-1.1.4";
 
 	public final static int FLOWVISOR_DB_VERSION = 2;
 
