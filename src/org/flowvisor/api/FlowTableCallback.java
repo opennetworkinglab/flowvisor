@@ -3,7 +3,6 @@ package org.flowvisor.api;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -19,18 +18,13 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.xmlrpc.XmlRpcException;
 import org.apache.xmlrpc.client.XmlRpcClient;
 import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
 import org.eclipse.jetty.http.HttpHeaders;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
-import org.openflow.protocol.statistics.OFStatistics;
-
-import java.util.HashMap;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;
-import com.thetransactioncompany.*;
 
 public class FlowTableCallback implements Runnable {
 	String URL;
