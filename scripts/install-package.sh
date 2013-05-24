@@ -7,7 +7,6 @@ prefix_default=/usr/local
 root_default=""
 binuser=flowvisor
 bingroup=flowvisor
- 
 install="$sudo install"
 base=`dirname $0`/..
 scriptd=$base/scripts
@@ -15,6 +14,8 @@ libs=$base/lib
 dist=$base/dist
 #jni=$base/jni
 config=flowvisor-config.json
+jsonscript=fvctl-json
+apiscript=fvctl
 #verbose=-v
 
 usage="$0 [-p prefix_dir] [-u flowvisor_user] [-g flowvisor_group] [-r root_dir]"
@@ -63,7 +64,7 @@ bin_SCRIPTS="\
     "
 
 bin_PYSCRIPTS="\
-    fvctl \
+    fvctl-json \
     "
 
 sbin_SCRIPTS="\
@@ -159,7 +160,6 @@ sed -i -e "s/FVUSER/$fvuser/" fv-startup
 sed -i -e "s,PREFIX,$prefix," fv-startup
 $install $verbose --owner=$binuser --group=$bingroup --mode=755 fv-startup  $root/etc/init.d/flowvisor
 
-
 echo Installing jars
 cd $owd
 cd $libs
@@ -213,6 +213,10 @@ $install $verbose --mode=644 $scriptd/logrotate $root/etc/logrotate.d/flowvisor
 echo Installing documentation
 cd $owd
 $install $verbose --owner=$binuser --group=$bingroup --mode=644 $DOCS $root$prefix/share/doc/flowvisor
+    
+echo "Linking fvctl to fvctl-json"
+sudo ln -s $root$prefix/bin/$jsonscript $root$prefix/bin/$apiscript
+
 #$CHOWN $fvuser:$fvgroup $root$prefix/share/doc/flowvisor
 #if [ ! -f $root/etc/flowvisor/config.json ] ; then 
 #    echo Generating a default config FlowVisor config
