@@ -26,8 +26,8 @@ libs=$base/lib
 dist=$base/dist
 #jni=$base/jni
 config=flowvisor-config.json
-apiscript=fvctl
 jsonscript=fvctl-json
+apiscript=fvctl
 #verbose=-v
 
 usage="$0 [-p prefix_dir] [-u flowvisor_user] [-g flowvisor_group] [-r root_dir]"
@@ -277,7 +277,8 @@ cd $owd
 $install $verbose --owner=$binuser --group=$bingroup --mode=644 $DOCS $root$prefix/share/doc/flowvisor
 
 echo "Linking fvctl to fvctl-json"
-sudo ln -s $root$prefix/bin/$jsonscript $root$prefix/bin/$apiscript
+cd $root$prefix/bin
+ln -s $jsonscript $apiscript
 
 if [ ! -f $root/etc/flowvisor/config.json ] ; then 
     echo Generating a default config FlowVisor config
