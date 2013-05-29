@@ -215,7 +215,8 @@ cd $owd
 $install $verbose --owner=$binuser --group=$bingroup --mode=644 $DOCS $root$prefix/share/doc/flowvisor
     
 echo "Linking fvctl to fvctl-json"
-ln -s $root$prefix/bin/$jsonscript $root$prefix/bin/$apiscript
+cd $root$prefix/bin
+ln -s $jsonscript $apiscript
 
 #$CHOWN $fvuser:$fvgroup $root$prefix/share/doc/flowvisor
 #if [ ! -f $root/etc/flowvisor/config.json ] ; then 
