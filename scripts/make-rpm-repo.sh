@@ -85,7 +85,7 @@ fi
 %defattr(644, root, root, 755)
 %config %attr(755, flowvisor, flowvisor) /etc/flowvisor
 %attr(755, root, root) /etc/init.d/flowvisor
-%attr(755, root, root) /usr/bin/fvctl
+%attr(755, root, root) /usr/bin/fvctl-json
 %attr(755, root, root) /usr/bin/fvctl-xml
 /usr/libexec/flowvisor
 %attr(755, root, root) /usr/sbin/derby-interact
