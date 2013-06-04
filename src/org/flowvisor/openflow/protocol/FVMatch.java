@@ -131,11 +131,11 @@ public class FVMatch extends OFMatch {
             str += ","
                     + STR_NW_DST
                     + "="
-                    + cidrToString(networkDestination,
+                    + cidrToIp.cidrToString(networkDestination,
                             getNetworkDestinationMaskLen());
         if (getNetworkSourceMaskLen() > 0)
             str += "," + STR_NW_SRC + "="
-                    + cidrToString(networkSource, getNetworkSourceMaskLen());
+                    + cidrToIp.cidrToString(networkSource, getNetworkSourceMaskLen());
         if ((wildcards & OFPFW_NW_PROTO) == 0)
             str += "," + STR_NW_PROTO + "=" + this.networkProtocol;
         if ((wildcards & OFPFW_NW_TOS) == 0)
@@ -161,7 +161,7 @@ public class FVMatch extends OFMatch {
         return "OFMatch[" + str + "]";
     }
 
-    private String cidrToString(int ip, int prefix) {
+    /*private String cidrToString(int ip, int prefix) {
         String str;
         if (prefix >= 32) {
             str = ipToString(ip);
@@ -172,8 +172,22 @@ public class FVMatch extends OFMatch {
         }
 
         return str;
+    }*/
+    
+    public static class cidrToIp{
+    	public static String cidrToString(int ip, int prefix) {
+    		String str;
+    		if (prefix >= 32) {
+    			str = ipToString(ip);
+    	    } else {
+    	    	// use the negation of mask to fake endian magic
+    	    	int mask = ~((1 << (32 - prefix)) - 1);
+    	    	str = ipToString(ip & mask) + "/" + prefix;
+    	    }
+
+    		return str;
+    	}
     }
-   
 
     /**
      * Set this OFMatch's parameters based on a comma-separated key=value pair
@@ -496,12 +510,12 @@ public class FVMatch extends OFMatch {
 
         // l3
         if (getNetworkDestinationMaskLen() > 0)
-        	ret.put(STR_NW_DST, cidrToString(networkDestination,
+        	ret.put(STR_NW_DST, cidrToIp.cidrToString(networkDestination,
                     getNetworkDestinationMaskLen()));
             
         
         if (getNetworkSourceMaskLen() > 0)
-        	ret.put(STR_NW_SRC, cidrToString(networkSource, getNetworkSourceMaskLen()));
+        	ret.put(STR_NW_SRC, cidrToIp.cidrToString(networkSource, getNetworkSourceMaskLen()));
         	
         
         if ((wildcards & OFPFW_NW_PROTO) == 0)

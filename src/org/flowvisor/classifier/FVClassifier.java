@@ -16,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.codec.binary.Hex;
 import org.flowvisor.api.FlowTableCallback;
 import org.flowvisor.api.TopologyCallback;
 import org.flowvisor.config.ConfigError;
@@ -24,7 +23,6 @@ import org.flowvisor.config.ConfigurationEvent;
 import org.flowvisor.config.FVConfig;
 
 import org.flowvisor.config.FlowMapChangedListener;
-import org.flowvisor.config.FlowSpace;
 import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.config.FlowvisorChangedListener;
 import org.flowvisor.config.FlowvisorImpl;
@@ -64,7 +62,6 @@ import org.flowvisor.message.statistics.FVAggregateStatisticsReply;
 import org.flowvisor.message.statistics.FVAggregateStatisticsRequest;
 import org.flowvisor.message.statistics.FVFlowStatisticsReply;
 import org.flowvisor.message.statistics.FVFlowStatisticsRequest;
-import org.flowvisor.ofswitch.TopologyController;
 import org.flowvisor.openflow.protocol.FVMatch;
 import org.flowvisor.resources.SlicerLimits;
 import org.flowvisor.resources.ratelimit.FixedIntervalRefillStrategy;
@@ -83,12 +80,8 @@ import org.openflow.protocol.OFPort;
 import org.openflow.protocol.OFType;
 import org.openflow.protocol.OFError.OFHelloFailedCode;
 import org.openflow.protocol.action.*;
-import org.openflow.protocol.statistics.OFFlowStatisticsReply;
 import org.openflow.protocol.statistics.OFStatistics;
 import org.openflow.protocol.statistics.OFStatisticsType;
-import org.openflow.util.HexString;
-import org.openflow.util.U16;
-import org.openflow.util.U8;
 
 /**
  * Map OF messages from the switch to the appropriate slice
@@ -1114,210 +1107,21 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	}
 
 	
+	//public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply, HashMap<String,Object> cache) {
 	public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply) {
 		flowStats.clear();
 		List<OFStatistics> stats = fvStatisticsReply.getStatistics();
-		FVLog.log(LogLevel.DEBUG, this, " Inside classifyFlowStats, stats is: ",stats);
-		
-		List<Object> params = new ArrayList<Object>();
-		//Serialize the stats to send it via JSON
-		
-		for (int i=0; i<stats.size(); i++){
-			OFFlowStatisticsReply reply = (OFFlowStatisticsReply) stats.get(i);
-			
-			HashMap <String,Object> cache = new HashMap<String,Object>();
-			
-			cache.put(FlowSpace.PRIO, String.valueOf(reply.getPriority()));
-			
-			//Put all the individual action fields into the cache
-			//cache.put(FlowSpace.ACTION, reply.getActions().toString());
-			for (OFAction act : reply.getActions()) {
-			switch (act.getType()) {
-			case OUTPUT:
-				OFActionOutput out = (OFActionOutput) act;
-				cache.put("OFPAT_OUTPUT type", out.getType().toString());
-				cache.put("OFPAT_OUTPUT len", U16.f(out.getLength()));
-				cache.put("OFPAT_OUTPUT port", U16.f(out.getPort()));
-				cache.put("OFPAT_OUTPUT max_len", U16.f(out.getMaxLength()));
-				break;
-			
-			case OPAQUE_ENQUEUE:
-				OFActionEnqueue enq = (OFActionEnqueue) act;
-				cache.put("OFPAT_ENQUEUE type", enq.getType().toString());
-				cache.put("OFPAT_ENQUEUE len", U16.f(enq.getLength()));
-				cache.put("OFPAT_ENQUEUE port", U16.f(enq.getPort()));
-				cache.put("OFPAT_ENQUEUE queue_id", enq.getQueueId());
-				break;
-			
-			case SET_VLAN_VID:
-				OFActionVirtualLanIdentifier vid = (OFActionVirtualLanIdentifier)act;
-				cache.put("OFPAT_SET_VLAN_VID type", vid.getType().toString());
-				cache.put("OFPAT_SET_VLAN_VID len", U16.f(vid.getLength()));
-				cache.put("OFPAT_SET_VLAN_VID vlan_vid", U16.f(vid.getVirtualLanIdentifier()));
-				break;
-				
-			case SET_VLAN_PCP:
-				OFActionVirtualLanPriorityCodePoint vpcp = (OFActionVirtualLanPriorityCodePoint) act;
-				cache.put("OFPAT_SET_VLAN_PCP type", vpcp.getType().toString());
-				cache.put("OFPAT_SET_VLAN_PCP len", U16.f(vpcp.getLength()));
-				cache.put("OFPAT_SET_VLAN_PCP vlan_pcp", U8.f(vpcp.getVirtualLanPriorityCodePoint()));
-				break;
-			
-			case STRIP_VLAN:	
-				OFActionStripVirtualLan svlan = (OFActionStripVirtualLan) act;
-				cache.put("OFPAT_STRIP_VLAN type", svlan.getType().toString());
-				break;
-			
-			case SET_DL_DST:
-				OFActionDataLayerDestination dl_dst = (OFActionDataLayerDestination) act;
-				cache.put("OFPAT_SET_DL_DST type",dl_dst.getType().toString());
-				cache.put("OFPAT_SET_DL_DST len",U16.f(dl_dst.getLength()));
-				cache.put("OFPAT_SET_DL_DST dl_addr", HexString.toHexString(dl_dst.getDataLayerAddress()));
-				break;
-				
-			case SET_DL_SRC:
-				OFActionDataLayerSource dl_src = (OFActionDataLayerSource) act;
-				cache.put("OFPAT_SET_DL_SRC type",dl_src.getType().toString());
-				cache.put("OFPAT_SET_DL_SRC len",U16.f(dl_src.getLength()));
-				cache.put("OFPAT_SET_DL_SRC dl_addr", HexString.toHexString(dl_src.getDataLayerAddress()));
-				break;
-			
-			case SET_NW_DST:
-				OFActionNetworkLayerDestination nw_dst = (OFActionNetworkLayerDestination) act;
-				cache.put("OFPAT_SET_NW_DST type", nw_dst.getType().toString());
-				cache.put("OFPAT_SET_NW_DST len", U16.f(nw_dst.getLength()));
-				cache.put("OFPAT_SET_NW_DST	nw_addr", FlowSpaceUtil.intToIp(nw_dst.getNetworkAddress()));	
-				break;
 
-			case SET_NW_SRC:
-				OFActionNetworkLayerSource nw_src = (OFActionNetworkLayerSource) act;
-				cache.put("OFPAT_SET_NW_SRC type", nw_src.getType().toString());
-				cache.put("OFPAT_SET_NW_SRC len", U16.f(nw_src.getLength()));
-				cache.put("OFPAT_SET_NW_SRC	nw_addr", FlowSpaceUtil.intToIp(nw_src.getNetworkAddress()));	
-				break;
-				
-			case SET_NW_TOS:
-				OFActionNetworkTypeOfService nw_tos = (OFActionNetworkTypeOfService) act;
-				cache.put("OFPAT_SET_NW_TOS type", nw_tos.getType().toString());
-				cache.put("OFPAT_SET_NW_TOS len", U16.f(nw_tos.getLength()));
-				cache.put("OFPAT_SET_NW_TOS nw_tos", U8.f(nw_tos.getNetworkTypeOfService()));
-				break;
-				
-			case SET_TP_DST:
-				OFActionTransportLayerDestination tp_dst = (OFActionTransportLayerDestination) act;
-				cache.put("OFPAT_SET_TP_DST type", tp_dst.getType().toString());
-				cache.put("OFPAT_SET_TP_DST len", U16.f(tp_dst.getLength()));		
-				cache.put("OFPAT_SET_TP_DST tp_port", U16.f(tp_dst.getTransportPort()));
-				break;
-				
-			case SET_TP_SRC:
-				OFActionTransportLayerSource tp_src = (OFActionTransportLayerSource) act;
-				cache.put("OFPAT_SET_TP_SRC type", tp_src.getType().toString());
-				cache.put("OFPAT_SET_TP_SRC len", U16.f(tp_src.getLength()));		
-				cache.put("OFPAT_SET_TP_SRC tp_port", U16.f(tp_src.getTransportPort()));
-				break;		
-				
-			case VENDOR:
-				OFActionVendor ven = (OFActionVendor) act;
-				cache.put("OFPAT_VENDOR type", ven.getType().toString());
-				cache.put("OFPAT_VENDOR len", U16.f(ven.getLength()));
-				cache.put("OFPAT_VENDOR vendor", ven.getVendor());
-				break;
-					
-			default:
-				//Error
-				FVLog.log(LogLevel.ALERT, this, "Shouldn't have come here- No default ActionType ");
-				break;
-			}
-			}
-			
-			//Put all the individual match fields into the cache
-			//cache.put("OFMatch", reply.getMatch().toString());
-			int wildcards = reply.getMatch().getWildcards();
-			if((wildcards & OFMatch.OFPFW_IN_PORT) == 0)
-				cache.put(FlowSpace.INPORT, U16.f(reply.getMatch().getInputPort()));
-			if((wildcards & OFMatch.OFPFW_DL_DST) == 0)
-				cache.put(FlowSpace.DLDST, HexString.toHexString(reply.getMatch().getDataLayerDestination()));
-			if((wildcards & OFMatch.OFPFW_DL_SRC) == 0)
-				cache.put(FlowSpace.DLSRC, HexString.toHexString(reply.getMatch().getDataLayerSource()));
-			if((wildcards & OFMatch.OFPFW_DL_TYPE) == 0)
-				cache.put(FlowSpace.DLTYPE, Integer.toHexString(U16.f(reply.getMatch().getDataLayerType())));
-			if((wildcards & OFMatch.OFPFW_DL_VLAN) == 0)
-				cache.put(FlowSpace.VLAN, U16.f(reply.getMatch().getDataLayerVirtualLan()));
-			if((wildcards & OFMatch.OFPFW_DL_VLAN_PCP) == 0)
-				cache.put(FlowSpace.VPCP, U8.f(reply.getMatch().getDataLayerVirtualLanPriorityCodePoint()));
-			if(reply.getMatch().getNetworkDestinationMaskLen() > 0)
-				cache.put(FlowSpace.NWDST,  cidrToString(reply.getMatch().getNetworkDestination(),reply.getMatch().getNetworkDestinationMaskLen()));
-			if(reply.getMatch().getNetworkSourceMaskLen() > 0)
-				cache.put(FlowSpace.NWSRC, cidrToString(reply.getMatch().getNetworkSource(),reply.getMatch().getNetworkSourceMaskLen()));
-			if((wildcards & OFMatch.OFPFW_NW_PROTO) == 0)
-				cache.put(FlowSpace.NWPROTO, reply.getMatch().getNetworkProtocol());
-			if((wildcards & OFMatch.OFPFW_NW_TOS) == 0)
-				cache.put(FlowSpace.NWTOS,reply.getMatch().getNetworkTypeOfService());
-			if((wildcards & OFMatch.OFPFW_TP_DST) == 0)
-				cache.put(FlowSpace.TPDST,reply.getMatch().getTransportDestination());
-			if((wildcards & OFMatch.OFPFW_TP_SRC) == 0)
-				cache.put(FlowSpace.TPSRC,reply.getMatch().getTransportSource());
-			
-			cache.put(FlowSpace.DPID, getDPID());
-			cache.put("tableId ", HexString.toHexString(reply.getTableId()));
-			cache.put("nanoSecondDuration ", reply.getDurationNanoseconds());
-			cache.put("durationInSeconds ",reply.getDurationSeconds());
-			cache.put("hardTimeOut ",reply.getHardTimeout());
-			cache.put("idleTimeOut ", reply.getIdleTimeout());
-			cache.put("cookie ",reply.getCookie());
-			cache.put("packetCount ", reply.getPacketCount());
-			cache.put("byteCount ",reply.getByteCount());
-			cache.put("length ", reply.getLength());
-			
-			//cache.put(FlowSpace.DLDST, HexString.toHexString(reply.getMatch().getDataLayerDestination()));
-			//cache.put(FlowSpace.DLSRC, HexString.toHexString(reply.getMatch().getDataLayerSource()));
-			//cache.put(FlowSpace.DLTYPE, reply.getMatch().getDataLayerType());
-			//cache.put(FlowSpace.INPORT, reply.getMatch().getInputPort());
-			//cache.put(FlowSpace.NWDST, reply.getMatch().getNetworkDestination());
-			//cache.put(FlowSpace.NWPROTO, reply.getMatch().getNetworkProtocol());
-			//cache.put(FlowSpace.NWSRC, reply.getMatch().getNetworkSource());
-			//cache.put(FlowSpace.NWTOS, reply.getMatch().getNetworkTypeOfService());
-			//cache.put(FlowSpace.TPDST, reply.getMatch().getTransportDestination());
-			//cache.put(FlowSpace.TPSRC, reply.getMatch().getTransportSource());
-			//cache.put(FlowSpace.VLAN, reply.getMatch().getDataLayerVirtualLan());
-			//cache.put(FlowSpace.VPCP, reply.getMatch().getDataLayerVirtualLanPriorityCodePoint());
-			//cache.put(FlowSpace.WILDCARDS, reply.getMatch().getWildcards());
-
-	        params.add(cache);
-		}
-		//Probably not the most efficient way of doing but for now - 
-		/*HashMap <String,Object> cache = new HashMap<String,Object>();
-    	int initOffset=0;
-    	int finalOffset=0;
-
-    	for (int i=0; i<stats.size(); i++){
-        String st = stats.toString();
-
-        String temp = new String();
-       
-        initOffset =  stats.indexOf("=", stats.indexOf("length") + "length".length());
-        finalOffset = stats.indexOf(",",initOffset);
-        temp = stats.substring(initOffset+1, finalOffset);
-        System.out.println("Length is: "+temp);
-        cache.put("length", temp);
-       
-        initOffset =  stats.indexOf("=", stats.indexOf("tableId") + "tableId".length());
-        finalOffset = stats.indexOf(",",initOffset);
-        System.out.println("initOffset : "+initOffset+"finalOffset: "+finalOffset);
-        temp = stats.substring(initOffset+1, finalOffset);
-        System.out.println("Temp is: "+temp);
-        cache.put("tableId", temp);
-       
-        System.out.println("Cache is: "+cache);
-		
-    	}*/
 		//Adding for registering a FlowTable
 		if (this.registeredForFlowTable == true && !this.flowTableList.isEmpty()){
 			FVLog.log(LogLevel.DEBUG, this, "Inside registeredForFlowTable ",this.registeredForFlowTable);
+			
+			HashMap <String,Object> cache = new HashMap<String,Object>();
+			cache = FVFlowStatisticsReply.toMap(fvStatisticsReply, this.getDPID());
+			
 			for (FlowTableCallback fcb : this.flowTableList) {
 				fcb.clearParams();
-				fcb.setParams(params);
+				fcb.setParams(cache);
 				fcb.spawn(); // Is this ok to use run, there will be only one thread of fcb per classifier?
 				
 			}
@@ -1391,19 +1195,5 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 				it.remove();
 		}		
 	}
-	
-    private String cidrToString(int ip, int prefix) {
-        String str;
-        if (prefix >= 32) {
-            str = OFMatch.ipToString(ip);;
-            
-        } else {
-            // use the negation of mask to fake endian magic
-            int mask = ~((1 << (32 - prefix)) - 1);
-            str = OFMatch.ipToString(ip & mask) + "/" + prefix;
-        }
-
-        return str;
-    }
 
 }

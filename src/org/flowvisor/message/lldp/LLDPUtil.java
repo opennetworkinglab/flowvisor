@@ -4,7 +4,6 @@
 package org.flowvisor.message.lldp;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 
 import org.flowvisor.FlowVisor;
 import org.flowvisor.classifier.FVClassifier;
@@ -13,9 +12,6 @@ import org.flowvisor.log.LogLevel;
 import org.flowvisor.message.FVPacketIn;
 import org.flowvisor.message.FVPacketOut;
 import org.flowvisor.slicer.FVSlicer;
-import org.openflow.protocol.OFPhysicalPort;
-import org.openflow.protocol.action.OFAction;
-import org.openflow.protocol.action.OFActionOutput;
 
 /**
  * Set of utilities for handling our LLDP virtualization hacks
