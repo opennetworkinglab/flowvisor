@@ -37,7 +37,7 @@ public class FVQueueStatisticsReply extends OFQueueStatisticsReply implements
 
     @Override
     public void classifyFromSwitch(FVStatisticsReply msg, FVClassifier fvClassifier) {
-    	statsMap = toMap(msg);
+    	//statsMap = toMap(msg);
     	FVSlicer fvSlicer = FVMessageUtil.untranslateXid(msg, fvClassifier);
     	if (fvSlicer == null) {
     		FVLog.log(LogLevel.WARN, fvClassifier,

@@ -21,7 +21,7 @@ public class FVAggregateStatisticsReply extends OFAggregateStatisticsReply
 	public void classifyFromSwitch(FVStatisticsReply msg, FVClassifier fvClassifier) {
 		FVLog.log(LogLevel.WARN, fvClassifier, "dropping unexpected msg: "
 				+ msg);
-		statsMap = toMap(msg);
+		//statsMap = toMap(msg);
 	}
 
 	@Override

@@ -1107,13 +1107,18 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	}
 
 	
-	public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply, HashMap<String,Object> cache) {
+	//public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply, HashMap<String,Object> cache) {
+	public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply) {
 		flowStats.clear();
 		List<OFStatistics> stats = fvStatisticsReply.getStatistics();
 
 		//Adding for registering a FlowTable
 		if (this.registeredForFlowTable == true && !this.flowTableList.isEmpty()){
 			FVLog.log(LogLevel.DEBUG, this, "Inside registeredForFlowTable ",this.registeredForFlowTable);
+			
+			HashMap <String,Object> cache = new HashMap<String,Object>();
+			cache = FVFlowStatisticsReply.toMap(fvStatisticsReply, this.getDPID());
+			
 			for (FlowTableCallback fcb : this.flowTableList) {
 				fcb.clearParams();
 				fcb.setParams(cache);

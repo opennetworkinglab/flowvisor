@@ -23,7 +23,7 @@ public class FVPortStatisticsReply extends OFPortStatisticsReply implements
 	@Override
 	public void classifyFromSwitch(FVStatisticsReply msg,
 			FVClassifier fvClassifier) {
-		statsMap = toMap(msg);
+		//statsMap = toMap(msg);
 		
 		FVSlicer fvSlicer = FVMessageUtil.untranslateXid(msg, fvClassifier);
         if (fvSlicer == null) {

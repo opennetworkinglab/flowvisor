@@ -1,7 +1,10 @@
 package org.flowvisor.message.statistics;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.classifier.XidPairWithMessage;
@@ -52,9 +55,10 @@ public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 		FVLog.log(LogLevel.DEBUG, null, "Inside classifyFromSwitch in FVFlowStatisticsReply");
 		//Make a map structure out of the FVStatisticsReply msg	
 		HashMap <String, Object> statsMap = new HashMap<String, Object>();
-		statsMap = toMap(msg, fvClassifier);
+		//statsMap = toMap(msg, fvClassifier);
 		
-		fvClassifier.classifyFlowStats(msg,statsMap);
+		//fvClassifier.classifyFlowStats(msg,statsMap);
+		fvClassifier.classifyFlowStats(msg);
 		XidPairWithMessage pair = FVMessageUtil
 				.untranslateXidMsg(msg, fvClassifier);
 		if (pair == null) {
@@ -86,107 +90,174 @@ public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 		this.trans_cookie = cookie;
 	}
 	
-	public HashMap<String,Object> toMap(FVStatisticsReply msg, FVClassifier fvc){
+	public static HashMap<String,Object> toMap(FVStatisticsReply msg, long dpid){
 		List<OFStatistics> stats = msg.getStatistics();
 		HashMap <String,Object> cache = new HashMap<String,Object>();
-		for (int i=0; i<stats.size(); i++){
-			OFFlowStatisticsReply reply = (OFFlowStatisticsReply) stats.get(i);
-
-			cache.put(FlowSpace.PRIO, String.valueOf(reply.getPriority()));
-		
+		for(OFStatistics stat :stats){
+			OFFlowStatisticsReply reply = (OFFlowStatisticsReply) stat;
+			
 			//Put all the individual action fields into the cache
 			//cache.put(FlowSpace.ACTION, reply.getActions().toString());
+			List<HashMap <String, Object>> actionList = new ArrayList <HashMap <String, Object>>();
 			for (OFAction act : reply.getActions()) {
+				//HashMap <String,Object> actionMap = new HashMap<String,Object>();
+				//Set<HashMap <String, Object>> actionSet = new HashSet <HashMap <String, Object>>();
+				
 				switch (act.getType()) {
 				case OUTPUT:
+					HashMap <String,Object> outMap = new HashMap<String,Object>();
+					HashMap <String,Object> outputMap = new HashMap<String,Object>();
 					OFActionOutput out = (OFActionOutput) act;
-					cache.put("OFPAT_OUTPUT type", out.getType().toString());
-					cache.put("OFPAT_OUTPUT len", U16.f(out.getLength()));
-					cache.put("OFPAT_OUTPUT port", U16.f(out.getPort()));
-					cache.put("OFPAT_OUTPUT max_len", U16.f(out.getMaxLength()));
+					outputMap.put("type", out.getType().toString());
+					outputMap.put("len", U16.f(out.getLength()));
+					outputMap.put("port", U16.f(out.getPort()));
+					outputMap.put("max_len", U16.f(out.getMaxLength()));
+					
+					outMap.put("ofp_action_output", outputMap);
+					actionList.add(outMap);
 					break;
 		
 				case OPAQUE_ENQUEUE:
+					HashMap <String,Object> enqMap = new HashMap<String,Object>();
+					HashMap <String,Object> enqueueMap = new HashMap<String,Object>();
 					OFActionEnqueue enq = (OFActionEnqueue) act;
-					cache.put("OFPAT_ENQUEUE type", enq.getType().toString());
-					cache.put("OFPAT_ENQUEUE len", U16.f(enq.getLength()));
-					cache.put("OFPAT_ENQUEUE port", U16.f(enq.getPort()));
-					cache.put("OFPAT_ENQUEUE queue_id", enq.getQueueId());
+					enqueueMap.put("type", enq.getType().toString());
+					enqueueMap.put("len", U16.f(enq.getLength()));
+					enqueueMap.put("port", U16.f(enq.getPort()));
+					enqueueMap.put("queue_id", enq.getQueueId());
+					
+					enqMap.put("ofp_action_enqueue", enqueueMap);
+					actionList.add(enqMap);
 					break;
 		
 				case SET_VLAN_VID:
+					HashMap <String,Object> vidMap = new HashMap<String,Object>();
+					HashMap <String,Object> vlanVidMap = new HashMap<String,Object>();
 					OFActionVirtualLanIdentifier vid = (OFActionVirtualLanIdentifier)act;
-					cache.put("OFPAT_SET_VLAN_VID type", vid.getType().toString());
-					cache.put("OFPAT_SET_VLAN_VID len", U16.f(vid.getLength()));	
-					cache.put("OFPAT_SET_VLAN_VID vlan_vid", U16.f(vid.getVirtualLanIdentifier()));
+					vlanVidMap.put("type", vid.getType().toString());
+					vlanVidMap.put("len", U16.f(vid.getLength()));	
+					vlanVidMap.put("vlan_vid", U16.f(vid.getVirtualLanIdentifier()));
+					
+					vidMap.put("ofp_action_vlan_vid", vlanVidMap);
+					actionList.add(vidMap);					
 					break;
 			
 				case SET_VLAN_PCP:
+					HashMap <String,Object> vpcpMap = new HashMap<String,Object>();
+					HashMap <String,Object> vlanPcpMap = new HashMap<String,Object>();
 					OFActionVirtualLanPriorityCodePoint vpcp = (OFActionVirtualLanPriorityCodePoint) act;
-					cache.put("OFPAT_SET_VLAN_PCP type", vpcp.getType().toString());
-					cache.put("OFPAT_SET_VLAN_PCP len", U16.f(vpcp.getLength()));
-					cache.put("OFPAT_SET_VLAN_PCP vlan_pcp", U8.f(vpcp.getVirtualLanPriorityCodePoint()));
+					vlanPcpMap.put("type", vpcp.getType().toString());
+					vlanPcpMap.put("len", U16.f(vpcp.getLength()));
+					vlanPcpMap.put("vlan_pcp", U8.f(vpcp.getVirtualLanPriorityCodePoint()));
+					
+					vpcpMap.put("ofp_action_vlan_pcp", vlanPcpMap);
+					actionList.add(vpcpMap);
 					break;
 		
 				case STRIP_VLAN:	
+					HashMap <String,Object> svMap = new HashMap<String,Object>();
+					HashMap <String,Object> stripVlanMap = new HashMap<String,Object>();
 					OFActionStripVirtualLan svlan = (OFActionStripVirtualLan) act;
-					cache.put("OFPAT_STRIP_VLAN type", svlan.getType().toString());
+					stripVlanMap.put("type", svlan.getType().toString());
+					
+					svMap.put("action_strip_vlan", stripVlanMap);
+					actionList.add(svMap);
 					break;
 		
 				case SET_DL_DST:
+					HashMap <String,Object> dlDMap = new HashMap<String,Object>();
+					HashMap <String,Object> dlDstMap = new HashMap<String,Object>();
 					OFActionDataLayerDestination dl_dst = (OFActionDataLayerDestination) act;
-					cache.put("OFPAT_SET_DL_DST type",dl_dst.getType().toString());
-					cache.put("OFPAT_SET_DL_DST len",U16.f(dl_dst.getLength()));
-					cache.put("OFPAT_SET_DL_DST dl_addr", HexString.toHexString(dl_dst.getDataLayerAddress()));
+					dlDstMap.put("type",dl_dst.getType().toString());
+					dlDstMap.put("len",U16.f(dl_dst.getLength()));
+					dlDstMap.put("dl_addr", HexString.toHexString(dl_dst.getDataLayerAddress()));
+					
+					dlDMap.put("ofp_action_dl_addr", dlDstMap);
+					actionList.add(dlDMap);
 					break;
 			
 				case SET_DL_SRC:
+					HashMap <String,Object> dlSMap = new HashMap<String,Object>();
+					HashMap <String,Object> dlSrcMap = new HashMap<String,Object>();
 					OFActionDataLayerSource dl_src = (OFActionDataLayerSource) act;
-					cache.put("OFPAT_SET_DL_SRC type",dl_src.getType().toString());
-					cache.put("OFPAT_SET_DL_SRC len",U16.f(dl_src.getLength()));
-					cache.put("OFPAT_SET_DL_SRC dl_addr", HexString.toHexString(dl_src.getDataLayerAddress()));
+					dlSrcMap.put("type",dl_src.getType().toString());
+					dlSrcMap.put("len",U16.f(dl_src.getLength()));
+					dlSrcMap.put("dl_addr", HexString.toHexString(dl_src.getDataLayerAddress()));
+					
+					dlSMap.put("ofp_action_dl_addr", dlSrcMap);
+					actionList.add(dlSMap);
 					break;
 		
 				case SET_NW_DST:
+					HashMap <String,Object> nwDMap = new HashMap<String,Object>();
+					HashMap <String,Object> nwDstMap = new HashMap<String,Object>();
 					OFActionNetworkLayerDestination nw_dst = (OFActionNetworkLayerDestination) act;
-					cache.put("OFPAT_SET_NW_DST type", nw_dst.getType().toString());
-					cache.put("OFPAT_SET_NW_DST len", U16.f(nw_dst.getLength()));
-					cache.put("OFPAT_SET_NW_DST	nw_addr", FlowSpaceUtil.intToIp(nw_dst.getNetworkAddress()));	
+					nwDstMap.put("type", nw_dst.getType().toString());
+					nwDstMap.put("len", U16.f(nw_dst.getLength()));
+					nwDstMap.put("nw_addr", FlowSpaceUtil.intToIp(nw_dst.getNetworkAddress()));	
+					
+					nwDMap.put("ofp_action_nw_addr", nwDstMap);
+					actionList.add(nwDMap);
 					break;
 
 				case SET_NW_SRC:
+					HashMap <String,Object> nwSMap = new HashMap<String,Object>();
+					HashMap <String,Object> nwSrcMap = new HashMap<String,Object>();
 					OFActionNetworkLayerSource nw_src = (OFActionNetworkLayerSource) act;
-					cache.put("OFPAT_SET_NW_SRC type", nw_src.getType().toString());
-					cache.put("OFPAT_SET_NW_SRC len", U16.f(nw_src.getLength()));
-					cache.put("OFPAT_SET_NW_SRC	nw_addr", FlowSpaceUtil.intToIp(nw_src.getNetworkAddress()));	
+					nwSrcMap.put("type", nw_src.getType().toString());
+					nwSrcMap.put("len", U16.f(nw_src.getLength()));
+					nwSrcMap.put("nw_addr", FlowSpaceUtil.intToIp(nw_src.getNetworkAddress()));
+					
+					nwSMap.put("ofp_action_nw_addr", nwSrcMap);
+					actionList.add(nwSMap);
 					break;
 			
 				case SET_NW_TOS:
+					HashMap <String,Object> nwTMap = new HashMap<String,Object>();
+					HashMap <String,Object> nwTosMap = new HashMap<String,Object>();
 					OFActionNetworkTypeOfService nw_tos = (OFActionNetworkTypeOfService) act;
-					cache.put("OFPAT_SET_NW_TOS type", nw_tos.getType().toString());
-					cache.put("OFPAT_SET_NW_TOS len", U16.f(nw_tos.getLength()));
-					cache.put("OFPAT_SET_NW_TOS nw_tos", U8.f(nw_tos.getNetworkTypeOfService()));
+					nwTosMap.put("type", nw_tos.getType().toString());
+					nwTosMap.put("len", U16.f(nw_tos.getLength()));
+					nwTosMap.put("nw_tos", U8.f(nw_tos.getNetworkTypeOfService()));
+					
+					nwTMap.put("ofp_action_nw_tos", nwTosMap);
+					actionList.add(nwTMap);
 					break;
 			
 				case SET_TP_DST:
+					HashMap <String,Object> tpDMap = new HashMap<String,Object>();
+					HashMap <String,Object> tpDstMap = new HashMap<String,Object>();
 					OFActionTransportLayerDestination tp_dst = (OFActionTransportLayerDestination) act;
-					cache.put("OFPAT_SET_TP_DST type", tp_dst.getType().toString());
-					cache.put("OFPAT_SET_TP_DST len", U16.f(tp_dst.getLength()));		
-					cache.put("OFPAT_SET_TP_DST tp_port", U16.f(tp_dst.getTransportPort()));
+					tpDstMap.put("type", tp_dst.getType().toString());
+					tpDstMap.put("len", U16.f(tp_dst.getLength()));		
+					tpDstMap.put("tp_port", U16.f(tp_dst.getTransportPort()));
+					
+					tpDMap.put("ofp_action_tp_port", tpDstMap);
+					actionList.add(tpDMap);
 					break;
 			
 				case SET_TP_SRC:
+					HashMap <String,Object> tpSMap = new HashMap<String,Object>();
+					HashMap <String,Object> tpSrcMap = new HashMap<String,Object>();
 					OFActionTransportLayerSource tp_src = (OFActionTransportLayerSource) act;
-					cache.put("OFPAT_SET_TP_SRC type", tp_src.getType().toString());
-					cache.put("OFPAT_SET_TP_SRC len", U16.f(tp_src.getLength()));		
-					cache.put("OFPAT_SET_TP_SRC tp_port", U16.f(tp_src.getTransportPort()));
+					tpSrcMap.put("type", tp_src.getType().toString());
+					tpSrcMap.put("len", U16.f(tp_src.getLength()));		
+					tpSrcMap.put("tp_port", U16.f(tp_src.getTransportPort()));
+					
+					tpSMap.put("ofp_action_tp_port", tpSrcMap);
+					actionList.add(tpSMap);
 					break;		
 			
 				case VENDOR:
+					HashMap <String,Object> vMap = new HashMap<String,Object>();
+					HashMap <String,Object> vendorMap = new HashMap<String,Object>();
 					OFActionVendor ven = (OFActionVendor) act;
-					cache.put("OFPAT_VENDOR type", ven.getType().toString());
-					cache.put("OFPAT_VENDOR len", U16.f(ven.getLength()));
-					cache.put("OFPAT_VENDOR vendor", ven.getVendor());
+					vendorMap.put("type", ven.getType().toString());
+					vendorMap.put("len", U16.f(ven.getLength()));
+					vendorMap.put("vendor", ven.getVendor());
+					
+					vMap.put("ofp_action_vendor_header", vendorMap);
+					actionList.add(vMap);
 					break;
 				
 				default:
@@ -195,45 +266,51 @@ public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 					break;
 				}
 			}
+			cache.put("ofp_action_header actions",actionList);
+			
 		
 			//Put all the individual match fields into the cache
 			//cache.put("OFMatch", reply.getMatch().toString());
+			HashMap <String,Object> matchMap = new HashMap<String,Object>();
 			int wildcards = reply.getMatch().getWildcards();
+			matchMap.put(FlowSpace.WILDCARDS, wildcards);
 			if((wildcards & OFMatch.OFPFW_IN_PORT) == 0)
-				cache.put(FlowSpace.INPORT, U16.f(reply.getMatch().getInputPort()));
+				matchMap.put(FlowSpace.INPORT, U16.f(reply.getMatch().getInputPort()));
 			if((wildcards & OFMatch.OFPFW_DL_DST) == 0)
-				cache.put(FlowSpace.DLDST, HexString.toHexString(reply.getMatch().getDataLayerDestination()));
+				matchMap.put(FlowSpace.DLDST, HexString.toHexString(reply.getMatch().getDataLayerDestination()));
 			if((wildcards & OFMatch.OFPFW_DL_SRC) == 0)
-				cache.put(FlowSpace.DLSRC, HexString.toHexString(reply.getMatch().getDataLayerSource()));
+				matchMap.put(FlowSpace.DLSRC, HexString.toHexString(reply.getMatch().getDataLayerSource()));
 			if((wildcards & OFMatch.OFPFW_DL_TYPE) == 0)
-				cache.put(FlowSpace.DLTYPE, Integer.toHexString(U16.f(reply.getMatch().getDataLayerType())));
+				matchMap.put(FlowSpace.DLTYPE, Integer.toHexString(U16.f(reply.getMatch().getDataLayerType())));
 			if((wildcards & OFMatch.OFPFW_DL_VLAN) == 0)
-				cache.put(FlowSpace.VLAN, U16.f(reply.getMatch().getDataLayerVirtualLan()));
+				matchMap.put(FlowSpace.VLAN, U16.f(reply.getMatch().getDataLayerVirtualLan()));
 			if((wildcards & OFMatch.OFPFW_DL_VLAN_PCP) == 0)
-				cache.put(FlowSpace.VPCP, U8.f(reply.getMatch().getDataLayerVirtualLanPriorityCodePoint()));
+				matchMap.put(FlowSpace.VPCP, U8.f(reply.getMatch().getDataLayerVirtualLanPriorityCodePoint()));
 			if(reply.getMatch().getNetworkDestinationMaskLen() > 0)
-				cache.put(FlowSpace.NWDST,  cidrToIp.cidrToString(reply.getMatch().getNetworkDestination(),reply.getMatch().getNetworkDestinationMaskLen()));
+				matchMap.put(FlowSpace.NWDST,  cidrToIp.cidrToString(reply.getMatch().getNetworkDestination(),reply.getMatch().getNetworkDestinationMaskLen()));
 			if(reply.getMatch().getNetworkSourceMaskLen() > 0)
-				cache.put(FlowSpace.NWSRC,  cidrToIp.cidrToString(reply.getMatch().getNetworkSource(),reply.getMatch().getNetworkSourceMaskLen()));
+				matchMap.put(FlowSpace.NWSRC,  cidrToIp.cidrToString(reply.getMatch().getNetworkSource(),reply.getMatch().getNetworkSourceMaskLen()));
 			if((wildcards & OFMatch.OFPFW_NW_PROTO) == 0)
-				cache.put(FlowSpace.NWPROTO, reply.getMatch().getNetworkProtocol());
+				matchMap.put(FlowSpace.NWPROTO, reply.getMatch().getNetworkProtocol());
 			if((wildcards & OFMatch.OFPFW_NW_TOS) == 0)
-				cache.put(FlowSpace.NWTOS,reply.getMatch().getNetworkTypeOfService());
+				matchMap.put(FlowSpace.NWTOS,reply.getMatch().getNetworkTypeOfService());
 			if((wildcards & OFMatch.OFPFW_TP_DST) == 0)
-				cache.put(FlowSpace.TPDST,reply.getMatch().getTransportDestination());
+				matchMap.put(FlowSpace.TPDST,reply.getMatch().getTransportDestination());
 			if((wildcards & OFMatch.OFPFW_TP_SRC) == 0)
-				cache.put(FlowSpace.TPSRC,reply.getMatch().getTransportSource());
+				matchMap.put(FlowSpace.TPSRC,reply.getMatch().getTransportSource());
+			cache.put("ofp_match match", matchMap);
 		
-			cache.put(FlowSpace.DPID, fvc.getDPID());
-			cache.put("tableId ", HexString.toHexString(reply.getTableId()));
-			cache.put("nanoSecondDuration ", reply.getDurationNanoseconds());
-			cache.put("durationInSeconds ",reply.getDurationSeconds());
-			cache.put("hardTimeOut ",reply.getHardTimeout());
-			cache.put("idleTimeOut ", reply.getIdleTimeout());
-			cache.put("cookie ",reply.getCookie());
-			cache.put("packetCount ", reply.getPacketCount());
-			cache.put("byteCount ",reply.getByteCount());
-			cache.put("length ", reply.getLength());
+			cache.put(FlowSpace.DPID, dpid);
+			cache.put("table_id", HexString.toHexString(reply.getTableId()));
+			cache.put("duraction_nsec", reply.getDurationNanoseconds());
+			cache.put("duration_sec",reply.getDurationSeconds());
+			cache.put("hard_timeout",reply.getHardTimeout());
+			cache.put("idle_timeout", reply.getIdleTimeout());
+			cache.put("cookie",reply.getCookie());
+			cache.put(FlowSpace.PRIO, String.valueOf(reply.getPriority()));
+			cache.put("packet_count", reply.getPacketCount());
+			cache.put("byte_count",reply.getByteCount());
+			cache.put("length", reply.getLength());
 
 		}
 		return cache;
