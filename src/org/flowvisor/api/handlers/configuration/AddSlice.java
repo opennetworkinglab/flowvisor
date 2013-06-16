@@ -16,7 +16,10 @@ import org.flowvisor.config.SwitchImpl;
 import org.flowvisor.exceptions.DuplicateControllerException;
 import org.flowvisor.exceptions.MissingRequiredField;
 import org.flowvisor.exceptions.PermissionDeniedException;
+import org.flowvisor.exceptions.SliceNameDisallowedException;
 import org.flowvisor.flows.FlowMap;
+import org.flowvisor.log.FVLog;
+import org.flowvisor.log.LogLevel;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
@@ -51,7 +54,7 @@ public class AddSlice implements ApiHandler<Map<String, Object>> {
 				ctrlPort = FVConfig.OFP_TCP_PORT;
 			String dropPolicy = HandlerUtils.<String>fetchField(DROP, params, false, "exact");
 			Boolean lldpOptIn = HandlerUtils.<Boolean>fetchField(LLDP, params, false, false);
-			String sliceName = HandlerUtils.<String>fetchField(SLICENAME, params, true, null);
+			String sliceName = HandlerUtils.<String>fetchField(SLICENAME, params, true, null);			
 			String adminInfo = HandlerUtils.<String>fetchField(ADMIN, params, true, null);
 			String password = HandlerUtils.<String>fetchField(PASS, params, true, null);
 			Number maxFM =  HandlerUtils.<Number>fetchField(MAX, params, false, -1);
@@ -85,7 +88,10 @@ public class AddSlice implements ApiHandler<Map<String, Object>> {
 		} catch (DuplicateControllerException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_REQUEST.getCode(), 
 					cmdName() + ": " + e.getMessage()), 0);
-		} 
+		} catch (SliceNameDisallowedException e){
+			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(),
+					cmdName() + ": The length of the sliceName: " + e.getMessage() + "  should be less than 45 characters"), 0);
+		}
 		return resp;
 		
 	}
@@ -100,11 +106,18 @@ public class AddSlice implements ApiHandler<Map<String, Object>> {
 
 
 	private void validateSliceName(String sliceName)
-		throws ConfigError, PermissionDeniedException {
+		throws ConfigError, PermissionDeniedException, SliceNameDisallowedException  {
 		List<String> slices = FVConfig.getAllSlices();
 		if (slices.contains(sliceName))
 			throw new PermissionDeniedException(
 					"Cannot create slice with existing name.");
+		
+		//Check if the sliceName length is within 45 char, if not throw out an error.
+		if (sliceName.length()>45){
+			FVLog.log(LogLevel.ALERT, null,"The length of the sliceName:",sliceName,
+					" should be less than 45 characters");
+			throw new SliceNameDisallowedException(sliceName);
+		}
 	
 	}
 
