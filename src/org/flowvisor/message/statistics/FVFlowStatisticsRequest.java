@@ -26,7 +26,7 @@ public final class FVFlowStatisticsRequest extends OFFlowStatisticsRequest
 			FVSlicer fvSlicer) {
 		FVMessageUtil.translateXidMsg(msg,fvClassifier, fvSlicer);
 		if (!fvClassifier.pollFlowTableStats(msg))
-			fvClassifier.sendFlowStatsResp(fvSlicer, msg);
+			fvClassifier.sendFlowStatsResp(fvSlicer, msg, (short)0);
 		
 	}
 	
