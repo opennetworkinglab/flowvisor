@@ -8,6 +8,7 @@ import org.flowvisor.message.FVMessageUtil;
 import org.flowvisor.message.FVStatisticsReply;
 import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.slicer.FVSlicer;
+import org.openflow.protocol.OFStatisticsReply.OFStatisticsReplyFlags;
 import org.openflow.protocol.statistics.OFFlowStatisticsReply;
 import org.openflow.protocol.statistics.OFStatisticsType;
 
@@ -33,10 +34,14 @@ public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 			return;
 		}
 		FVStatisticsRequest original = (FVStatisticsRequest) pair.getOFMessage();
-		if (original.getStatisticType() == OFStatisticsType.FLOW)
-			fvClassifier.sendFlowStatsResp(pair.getSlicer(), original);
-		else if (original.getStatisticType() == OFStatisticsType.AGGREGATE)
-			fvClassifier.sendAggStatsResp(pair.getSlicer(), original);
+		
+		if(msg.getFlags() != OFStatisticsReplyFlags.REPLY_MORE.getTypeValue()){
+			if (original.getStatisticType() == OFStatisticsType.FLOW)
+				fvClassifier.sendFlowStatsResp(pair.getSlicer(), original, msg.getFlags());
+				//fvClassifier.sendFlowStatsResp(pair.getSlicer(), original);
+			else if (original.getStatisticType() == OFStatisticsType.AGGREGATE)
+				fvClassifier.sendAggStatsResp(pair.getSlicer(), original);
+		}	
 	}
 
 
