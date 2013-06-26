@@ -6,14 +6,23 @@ FlowVisor 1.1.3-DEV: May 15 2013
     * FLOWVISOR-15 : LLDP packet made by FlowVisor doesn't have "the end of LLDPDU" nor a TLV header before padding(0xcafebabe) 
     * FLOWVISOR-158: Control planes with multiple flowvisors should not broadcast LLDP packet-ins to all slices  
 
+FlowVisor 1.0.9 : June 25 2013
+    * FLOWVISOR-244 : Flow stats reply sent by FlowVisor doesn't set the "more replies" flag
+
+FlowVisor 1.0.8 : May 29 2013
+    * FLOWVISOR-238 : fvctl-xml and fvctl-json 
+
+FlowVisor 1.0.7 : May 14 2013
+    * FLOWVISOR-234 : Slices in updated config are set to disabled.
+
 FlowVisor 1.0.6 : May 10 2013
-   * FLOWVISOR-230 : fvctl list-slice-info gives confusing error message if you specify a non-existent slice
-   * FLOWVISOR-231 : fvctl and network specs
-   * FLOWVISOR-232 : Error adding flowspace rules with MAC addresses
+    * FLOWVISOR-230 : fvctl list-slice-info gives confusing error message if you specify a non-existent slice
+    * FLOWVISOR-231 : fvctl and network specs
+    * FLOWVISOR-232 : Error adding flowspace rules with MAC addresses
 
 FlowVisor 1.0.5 : May 2 2013
-   * FLOWVISOR-216 : Undo changes to default port configurations
-   * Potential fix for FV crashes; awaiting confirmation
+    * FLOWVISOR-216 : Undo changes to default port configurations
+    * Potential fix for FV crashes; awaiting confirmation
 
 FlowVisor 1.0.4 : May 1 2013
     * FLOWVISOR-226 : fvconfig load hangs

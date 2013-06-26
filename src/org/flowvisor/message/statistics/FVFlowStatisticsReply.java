@@ -17,6 +17,7 @@ import org.flowvisor.message.FVStatisticsReply;
 import org.flowvisor.message.FVStatisticsRequest;
 import org.flowvisor.openflow.protocol.FVMatch.cidrToIp;
 import org.flowvisor.slicer.FVSlicer;
+
 import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.action.OFAction;
 import org.openflow.protocol.action.OFActionDataLayerDestination;
@@ -32,6 +33,8 @@ import org.openflow.protocol.action.OFActionTransportLayerSource;
 import org.openflow.protocol.action.OFActionVendor;
 import org.openflow.protocol.action.OFActionVirtualLanIdentifier;
 import org.openflow.protocol.action.OFActionVirtualLanPriorityCodePoint;
+import org.openflow.protocol.OFStatisticsReply.OFStatisticsReplyFlags;
+
 import org.openflow.protocol.statistics.OFFlowStatisticsReply;
 import org.openflow.protocol.statistics.OFStatistics;
 import org.openflow.protocol.statistics.OFStatisticsType;
@@ -67,10 +70,14 @@ public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 			return;
 		}
 		FVStatisticsRequest original = (FVStatisticsRequest) pair.getOFMessage();
-		if (original.getStatisticType() == OFStatisticsType.FLOW)
-			fvClassifier.sendFlowStatsResp(pair.getSlicer(), original);
-		else if (original.getStatisticType() == OFStatisticsType.AGGREGATE)
-			fvClassifier.sendAggStatsResp(pair.getSlicer(), original);
+		
+		if(msg.getFlags() != OFStatisticsReplyFlags.REPLY_MORE.getTypeValue()){
+			if (original.getStatisticType() == OFStatisticsType.FLOW)
+				fvClassifier.sendFlowStatsResp(pair.getSlicer(), original, msg.getFlags());
+				//fvClassifier.sendFlowStatsResp(pair.getSlicer(), original);
+			else if (original.getStatisticType() == OFStatisticsType.AGGREGATE)
+				fvClassifier.sendAggStatsResp(pair.getSlicer(), original);
+		}	
 	}
 
 
