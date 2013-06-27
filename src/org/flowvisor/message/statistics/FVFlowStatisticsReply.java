@@ -2,9 +2,7 @@ package org.flowvisor.message.statistics;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.classifier.XidPairWithMessage;
@@ -32,6 +30,9 @@ import org.openflow.protocol.action.OFActionTransportLayerSource;
 import org.openflow.protocol.action.OFActionVendor;
 import org.openflow.protocol.action.OFActionVirtualLanIdentifier;
 import org.openflow.protocol.action.OFActionVirtualLanPriorityCodePoint;
+
+import org.openflow.protocol.OFStatisticsReply.OFStatisticsReplyFlags;
+
 import org.openflow.protocol.statistics.OFFlowStatisticsReply;
 import org.openflow.protocol.statistics.OFStatistics;
 import org.openflow.protocol.statistics.OFStatisticsType;
@@ -53,9 +54,6 @@ public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 	@Override
 	public void classifyFromSwitch(FVStatisticsReply msg, FVClassifier fvClassifier) {
 		FVLog.log(LogLevel.DEBUG, null, "Inside classifyFromSwitch in FVFlowStatisticsReply");
-		//Make a map structure out of the FVStatisticsReply msg	
-		HashMap <String, Object> statsMap = new HashMap<String, Object>();
-		//statsMap = toMap(msg, fvClassifier);
 		
 		//fvClassifier.classifyFlowStats(msg,statsMap);
 		fvClassifier.classifyFlowStats(msg);
@@ -67,10 +65,14 @@ public class FVFlowStatisticsReply extends OFFlowStatisticsReply implements
 			return;
 		}
 		FVStatisticsRequest original = (FVStatisticsRequest) pair.getOFMessage();
-		if (original.getStatisticType() == OFStatisticsType.FLOW)
-			fvClassifier.sendFlowStatsResp(pair.getSlicer(), original);
-		else if (original.getStatisticType() == OFStatisticsType.AGGREGATE)
-			fvClassifier.sendAggStatsResp(pair.getSlicer(), original);
+		
+		if(msg.getFlags() != OFStatisticsReplyFlags.REPLY_MORE.getTypeValue()){
+			if (original.getStatisticType() == OFStatisticsType.FLOW)
+				fvClassifier.sendFlowStatsResp(pair.getSlicer(), original, msg.getFlags());
+				//fvClassifier.sendFlowStatsResp(pair.getSlicer(), original);
+			else if (original.getStatisticType() == OFStatisticsType.AGGREGATE)
+				fvClassifier.sendAggStatsResp(pair.getSlicer(), original);
+		}	
 	}
 
 
