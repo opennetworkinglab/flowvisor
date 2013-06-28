@@ -12,9 +12,12 @@ import org.flowvisor.config.FlowvisorImpl;
 import org.flowvisor.config.SliceImpl;
 import org.flowvisor.config.SwitchImpl;
 import org.flowvisor.exceptions.MissingRequiredField;
+import org.flowvisor.exceptions.NoParam;
 import org.flowvisor.exceptions.PermissionDeniedException;
 import org.flowvisor.flows.FlowEntry;
 import org.flowvisor.flows.FlowSpaceUtil;
+import org.flowvisor.log.FVLog;
+import org.flowvisor.log.LogLevel;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
@@ -25,10 +28,13 @@ public class SetConfig implements ApiHandler<Map<String, Object>> {
 	
 	
 	@Override
-	public JSONRPC2Response process(Map<String, Object> params) {
+	public JSONRPC2Response process(Map<String, Object> params){
 		JSONRPC2Response resp = null;
 		
 		try {
+			//Check for no parameters. Throw out an error if there are no parameters specified in the cmd.
+			checkForNoParams(params);
+			
 			Map<String, Object> floodperm = HandlerUtils.<Map<String, Object>>fetchField(FLOOD, params, false, null);
 			if (floodperm != null)
 				processFloodPerm(floodperm);
@@ -67,13 +73,25 @@ public class SetConfig implements ApiHandler<Map<String, Object>> {
 		} catch (PermissionDeniedException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					cmdName() + ": " + e.getMessage()), 0);
-		}  
+		} catch (NoParam e) {
+			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
+					cmdName()  + e.getMessage()), 0);
+		} 
 		return resp;
 		
 	}
 
 
-    private void processFMLimit(Map<String, Object> fmlimit) 
+    private void checkForNoParams(Map<String, Object> params)
+    		throws NoParam{
+		if(params.isEmpty()){
+			FVLog.log(LogLevel.DEBUG, null, "No parameters are specified. Please input the parameters and the value you want them to be set");
+			throw new NoParam(" No parameters are specified. Please input the parameters and the value you want them to be set! ");
+		}		
+	}
+
+
+	private void processFMLimit(Map<String, Object> fmlimit) 
     		throws ClassCastException, MissingRequiredField, ConfigError {
     	String sliceName = HandlerUtils.<String>fetchField(SLICENAME, fmlimit, true, null);
     	Long dpid = FlowSpaceUtil.parseDPID(
