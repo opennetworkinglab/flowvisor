@@ -56,6 +56,8 @@ public class FVMessageUtil {
 			FVClassifier fvClassifier, FVSlicer fvSlicer) {
 		XidTranslatorWithMessage xidTranslator = (XidTranslatorWithMessage) fvClassifier.getXidTranslator();
 		int newXid = xidTranslator.translate(msg.clone(), msg.getXid(), fvSlicer);
+		FVLog.log(LogLevel.DEBUG,null,"Inside translateXidMsg - msg.getXid() is: ", msg.getXid(),
+				" newXid is: ",newXid);
 		msg.setXid(newXid);
 	}
 
@@ -73,6 +75,8 @@ public class FVMessageUtil {
 		XidPair pair = xidTranslator.untranslate(msg.getXid());
 		if (pair == null)
 			return null;
+		FVLog.log(LogLevel.DEBUG,null,"Inside untranslateXid - msg.getXid() is: ", msg.getXid(),
+				" pair.getXid() is: ",pair.getXid());
 		msg.setXid(pair.getXid());
 		String sliceName = pair.getSliceName();
 		return fvClassifier.getSlicerByName(sliceName);

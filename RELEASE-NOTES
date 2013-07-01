@@ -1,3 +1,6 @@
+FlowVisor 1.0.10 : July 1 2013
+    * FLOWVISOR-244-extension : Fixed an issue with the translation and untranslation of xids with the controller and switches.
+
 FlowVisor 1.0.9 : June 25 2013
     * FLOWVISOR-244 : Flow stats reply sent by FlowVisor doesn't set the "more replies" flag
 

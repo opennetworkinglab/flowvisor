@@ -1074,6 +1074,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		}
 		statsReply.setStatistics(stats);
 		statsReply.setFlags(flag);	
+		FVLog.log(LogLevel.DEBUG, null, "xid is: ", original.getXid());
 		statsReply.setXid(original.getXid());
 		
 		statsReply.setVersion(original.getVersion());
@@ -1097,6 +1098,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 				FVLog.log(LogLevel.WARN, this, "Unable to classify stats - ignoring - ", stat);
 				continue;
 			}
+			//FVLog.log(LogLevel.DEBUG, this, " stat.getCookie: ",stat.getCookie(), " pair.getCookie: ", pair.getCookie());
 			stat.setTransCookie(stat.getCookie());
 			stat.setCookie(pair.getCookie());
 			addToFlowStats(stat, pair.getSliceName());
@@ -1138,6 +1140,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		stats.add(statsReq);
 		request.setStatistics(stats);
 		request.setLengthU(FVStatisticsRequest.MINIMUM_LENGTH + statsReq.computeLength());
+		FVLog.log(LogLevel.DEBUG, null, "orig.getXid() inside pollFlowTableStats: ", orig.getXid());
 		request.setXid(orig == null ? -1 : orig.getXid());
 		this.sendMsg(request, this);
 		
