@@ -48,7 +48,7 @@ public class CookieTranslator {
 		return ret;
 	}
 
-	public List<Long> getCookieList(String deleteSlice) {
+	public  synchronized List<Long> getCookieList(String deleteSlice) {
 		List<Long> cookies = new LinkedList<Long>();
 		for (Entry<Long, CookiePair> entry : cookieMap.entrySet()) {
 			if (entry.getValue().sliceName.equalsIgnoreCase(deleteSlice)) 
