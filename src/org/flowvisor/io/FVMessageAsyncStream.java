@@ -86,12 +86,22 @@ public class FVMessageAsyncStream extends OFMessageAsyncStream {
 	}
 
 	@Override
-	public List<OFMessage> read(int limit) throws IOException {
-		List<OFMessage> list = super.read(limit);
+	public List<OFMessage> read(int limit) throws IOException, ArrayIndexOutOfBoundsException {
+		List<OFMessage> list=null;
+		try{
+		list = super.read(limit);
 		if (list != null)
 			for (OFMessage m : list)
 				this.stats.increment(FVStatsType.RECV, this.sender, m);
+		}catch(ArrayIndexOutOfBoundsException aio){
+			FVLog.log(LogLevel.CRIT, null,
+					"got ArrayIndexOutOfBound exception; closing because : ", aio);
+			return null;
+		}catch(Exception e){
+			FVLog.log(LogLevel.CRIT, null,
+					"got an exception; closing because : ", e);
+			return null;
+		}
 		return list;
-
 	}
 }
