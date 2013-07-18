@@ -42,6 +42,9 @@ public class FVMessageAsyncStream extends OFMessageAsyncStream {
 	public void testAndWrite(OFMessage m) throws BufferFull,
 			MalformedOFMessage, IOException {
 		int len = m.getLengthU();
+		
+		FVLog.log(LogLevel.DEBUG, null, "Length of OF Message: " + len);
+		
 		if (this.outBuf.remaining() < len) {
 			this.flush(); // try a quick write to flush buffer
 			if (this.outBuf.remaining() < len) {
@@ -72,6 +75,7 @@ public class FVMessageAsyncStream extends OFMessageAsyncStream {
 			this.stats.increment(FVStatsType.SEND, (FVSendMsg) source, m);
 		this.consecutiveDropped = 0;
 		int wrote = this.outBuf.position() - start;
+		FVLog.log(LogLevel.DEBUG, null, "this.outBuf.position(): " + this.outBuf.position() + "start: "+start);
 		if (len != wrote) { // was the packet correctly written
 			// no! back it out and throw an error
 			this.outBuf.position(start);
@@ -82,12 +86,22 @@ public class FVMessageAsyncStream extends OFMessageAsyncStream {
 	}
 
 	@Override
-	public List<OFMessage> read(int limit) throws IOException {
-		List<OFMessage> list = super.read(limit);
+	public List<OFMessage> read(int limit) throws IOException, ArrayIndexOutOfBoundsException {
+		List<OFMessage> list=null;
+		try{
+		list = super.read(limit);
 		if (list != null)
 			for (OFMessage m : list)
 				this.stats.increment(FVStatsType.RECV, this.sender, m);
+		}catch(ArrayIndexOutOfBoundsException aio){
+			FVLog.log(LogLevel.CRIT, null,
+					"got ArrayIndexOutOfBound exception; closing because : ", aio);
+			return null;
+		}catch(Exception e){
+			FVLog.log(LogLevel.CRIT, null,
+					"got an exception; closing because : ", e);
+			return null;
+		}
 		return list;
-
 	}
 }

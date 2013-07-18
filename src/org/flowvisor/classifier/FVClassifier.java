@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 
+import org.eclipse.jetty.util.log.Log;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.ConfigurationEvent;
 import org.flowvisor.config.FVConfig;
@@ -480,6 +481,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 							continue;
 						}
 						if (switchInfo != null) {
+							FVLog.log(LogLevel.DEBUG, this, "Inside handleIOEvent of FVClassifier:",  m.toString(), " ", m.getLength());
 							classifyOFMessage(m);
 							// mark this channel as still alive
 							this.keepAlive.registerPong();
@@ -982,7 +984,10 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	}
 	
 	public boolean isRateLimited(String sliceName) {
-		return slicerLimits.getRateLimiter(/*FlowSpaceUtil.dpidToString(this.getDPID()) + */sliceName).consume();
+		TokenBucket tok = slicerLimits.getRateLimiter(sliceName);
+		if (tok != null)
+			return tok.consume();
+		return false;
 	}
 	
 	private synchronized ArrayList<FVFlowStatisticsReply> getFlowStats(String sliceName) {
@@ -1048,43 +1053,91 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		}
 		return false;
 	}
+	
+	private class StatsResponder implements Runnable {	
+		private FVClassifier classifier;
+		private ArrayList<FVFlowStatisticsReply> replies;
+		private FVSlicer fvSlicer;
+		private FVStatisticsRequest original;
+		
+		public StatsResponder(FVClassifier classifier, ArrayList<FVFlowStatisticsReply> replies,
+				FVSlicer fvSlicer, FVStatisticsRequest original) {
+			this.classifier = classifier;
+			this.replies = replies;
+			this.fvSlicer = fvSlicer;
+			this.original = original; 
+		}
+		@Override
+		public void run() {
+			FVFlowStatisticsRequest orig = (FVFlowStatisticsRequest) original.getStatistics().get(0);
+			List<OFStatistics> stats = new LinkedList<OFStatistics>();
+			FVStatisticsReply statsReply = new FVStatisticsReply();
+			statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
 
-	public void sendFlowStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original, short flag) {
-		FVFlowStatisticsRequest orig = (FVFlowStatisticsRequest) original.getStatistics().get(0);
-		
-	
-		// Don't think this is required as we only return whatever THAT slice pushed. Thanks to cookies!
-	//	List<FlowIntersect> intersections = this.getSwitchFlowMap().intersects(this.getDPID(), new FVMatch(orig.getMatch()));
-	
-		ArrayList<FVFlowStatisticsReply> replies = getFlowStats(fvSlicer.getSliceName());
-		
-		List<OFStatistics> stats = new LinkedList<OFStatistics>();
-		FVStatisticsReply statsReply = new FVStatisticsReply();
-		statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
-		for (FVFlowStatisticsReply reply : replies) {
-			if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
-				if (orig.getOutPort() == OFPort.OFPP_NONE.getValue() ||
-						matchContainsPort(reply, orig.getOutPort())) {	 
-					FVLog.log(LogLevel.DEBUG, this, "Appending FlowStats reply: ", reply);
-					stats.add(reply);
-					statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
+			for (FVFlowStatisticsReply reply : replies) {
+				if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
+					if (orig.getOutPort() == OFPort.OFPP_NONE.getValue() ||
+							matchContainsPort(reply, orig.getOutPort())) {	 
+						FVLog.log(LogLevel.DEBUG, classifier, "Appending FlowStats reply: ", reply);
+						//Add to statsReply only if the total length is less than 88*700 = 61600B
+						//slightly less than 64kB and a multiplier of 88 which is the size of the struct
+						//ofp_flow_stats_reply according to the OF1.0 spec
+						FVLog.log(LogLevel.DEBUG, null, "statsReply.getLength() + reply.computeLength(): ", (statsReply.getLength() + reply.computeLength()));
+						if ((statsReply.getLength() + reply.computeLength())<(88*700) ){
+							statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
+							stats.add(reply);
+						}
+						else{
+							statsReply.setStatistics(stats);
+							statsReply.setFlags((short)1);	
+							FVLog.log(LogLevel.DEBUG, null, "xid is: ", original.getXid());
+							statsReply.setXid(original.getXid());
+						
+							statsReply.setVersion(original.getVersion());
+							statsReply.setStatisticType(original.getStatisticType());
+						
+							FVLog.log(LogLevel.DEBUG, null, "STATS_REPLY SIZE: ", statsReply.getStatistics().size(),"Stats Reply Length: ", statsReply.getLengthU());
+						
+							if (statsReply.getStatistics().size() == 0) 
+								FVLog.log(LogLevel.WARN, fvSlicer, "Stats request resulted in an empty set ", original);
+							
+							fvSlicer.sendMsg(statsReply, classifier);
+							
+							//Clear the stats list and add the reply for next segment of FlowStatsReply
+							stats.clear();
+							stats.add(reply);
+							statsReply = new FVStatisticsReply();
+							statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH+reply.computeLength());
+						}
+					}
 				}
 			}
-
+			//If it is the last segment of the statsReply msg, send it!
+			statsReply.setStatistics(stats);
+			statsReply.setFlags((short)0);	
+			FVLog.log(LogLevel.DEBUG, null, "xid is: ", original.getXid());
+			statsReply.setXid(original.getXid());
+		
+			statsReply.setVersion(original.getVersion());
+			statsReply.setStatisticType(original.getStatisticType());
+		
+			FVLog.log(LogLevel.DEBUG, null, "STATS_REPLY SIZE1: ", statsReply.getStatistics().size(),"Stats Reply Length1: ", statsReply.getLengthU());
+		
+			if (statsReply.getStatistics().size() == 0) 
+				FVLog.log(LogLevel.WARN, fvSlicer, "Stats request resulted in an empty set ", original);
+			
+			fvSlicer.sendMsg(statsReply, classifier);
+			
 		}
-		statsReply.setStatistics(stats);
-		statsReply.setFlags(flag);	
-		FVLog.log(LogLevel.DEBUG, null, "xid is: ", original.getXid());
-		statsReply.setXid(original.getXid());
 		
-		statsReply.setVersion(original.getVersion());
-		statsReply.setStatisticType(original.getStatisticType());
+	}
+
+	public void sendFlowStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original, short flag) {
 	
-		if (statsReply.getStatistics().size() == 0) 
-			FVLog.log(LogLevel.WARN, fvSlicer, "Stats request resulted in an empty set ", original);
-		
-		fvSlicer.sendMsg(statsReply, this);
-	
+		ArrayList<FVFlowStatisticsReply> replies = this.getFlowStats(fvSlicer.getSliceName());
+		Thread stats = new Thread(new StatsResponder(this, replies, fvSlicer, original));
+		stats.start();
+				
 	}
 
 	
@@ -1121,6 +1174,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			stats = new ArrayList<FVFlowStatisticsReply>();
 		stats.add(stat);
 		flowStats.put(sliceName, stats);
+		
+		
 	}
 	
 	public boolean pollFlowTableStats(FVStatisticsRequest orig) {
@@ -1140,7 +1195,6 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		stats.add(statsReq);
 		request.setStatistics(stats);
 		request.setLengthU(FVStatisticsRequest.MINIMUM_LENGTH + statsReq.computeLength());
-		FVLog.log(LogLevel.DEBUG, null, "orig.getXid() inside pollFlowTableStats: ", orig.getXid());
 		request.setXid(orig == null ? -1 : orig.getXid());
 		this.sendMsg(request, this);
 		

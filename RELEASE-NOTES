@@ -1,3 +1,10 @@
+FlowVisor 1.0.11
+    * FLOWVISOR-249 : NullPointerExceptions in UpdateFlowSpace
+    * FLOWVISOR-252 : FV crashes when packaging up a large flowstats reply
+    * FLOWVISOR-253 : FlowVisor semi-stuck
+    * FLOWVISOR-254 : FlowVisor crash: java.lang.ArrayIndexOutOfBoundsException
+
+
 FlowVisor 1.0.10 : July 1 2013
     * FLOWVISOR-244-extension : Fixed an issue with the translation and untranslation of xids with the controller and switches.
 
