@@ -1114,6 +1114,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	//public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply, HashMap<String,Object> cache) {
 	public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply) {
 		actualStats.clear();
+
 		List<OFStatistics> stats = fvStatisticsReply.getStatistics();
 
 		//Adding for registering a FlowTable
