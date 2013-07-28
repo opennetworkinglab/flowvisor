@@ -43,7 +43,10 @@ public class FlowvisorImpl implements Flowvisor {
  	private static String GLOGFACILITY = "SELECT " + LOGFACILITY + " FROM FlowVisor WHERE id = ?";
  	private static String GTOPO = "SELECT " + TOPO + " FROM Flowvisor WHERE id = ?";
  	private static String GFSTIME = "SELECT " + FSCACHE + " FROM Flowvisor WHERE id = ?";
- 	
+ 	private static String GCONFIG = "SELECT " + CONFIG + " FROM Flowvisor WHERE id = ?";
+ 	private static String GVERSION = "SELECT " + VERSION + " FROM Flowvisor WHERE id = ?";
+ 	private static String GHOST = "SELECT " + HOST + " FROM Flowvisor WHERE id = ?";
+ 	private static String GDBVERSION = "SELECT " + DB_VERSION + " FROM Flowvisor WHERE id = ?";
  	
  	private static String STRACKID = "UPDATE Flowvisor SET " + TRACK + " = ? WHERE id = ?";
 	private static String SSTATSID = "UPDATE Flowvisor SET " + STATS + " = ? WHERE id = ?";
@@ -56,6 +59,10 @@ public class FlowvisorImpl implements Flowvisor {
 	private static String SAPIPORT = "UPDATE Flowvisor SET " + APIPORT + " = ? WHERE id = ?";
 	private static String SJETTYPORT = "UPDATE Flowvisor SET " + JETTYPORT + " = ? WHERE id = ?";
 	private static String SFSTIME = "UPDATE Flowvisor SET " + FSCACHE + " = ? WHERE id = ?";
+ 	private static String SCONFIG = "UPDATE Flowvisor SET " + CONFIG + " = ? WHERE id = ?";
+ 	private static String SVERSION = "SELECT " + VERSION + " FROM Flowvisor WHERE id = ?";
+ 	private static String SHOST = "SELECT " + HOST + " FROM Flowvisor WHERE id = ?";
+ 	private static String SDBVERSION = "SELECT " + DB_VERSION + " FROM Flowvisor WHERE id = ?";
 	
 	private static String INSERT = "INSERT INTO " + FLOWVISOR + "(" + APIPORT + "," + 
 					JETTYPORT + "," + CHECKPOINT + "," + LISTEN + "," + TRACK + "," +
@@ -217,6 +224,120 @@ public class FlowvisorImpl implements Flowvisor {
 	}
 	public Integer getAPIWSPort() throws ConfigError {
 		return getAPIWSPort(1);
+	}
+	
+	//Additions for get config
+	
+	public String getConfigName(Integer id) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(GCONFIG);
+			ps.setInt(1, id);
+			set = ps.executeQuery();
+			if (set.next())
+				return set.getString(CONFIG);
+			else
+				throw new ConfigError("Config Name not found");
+		} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+		} finally {
+			
+			close(set);
+			close(ps);
+			close(conn);
+			
+		}
+		return null;
+	}
+	public String getConfigName() throws ConfigError {
+		return getConfigName(1);
+	}
+	
+	public String getVersion(Integer id) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(GVERSION);
+			ps.setInt(1, id);
+			set = ps.executeQuery();
+			if (set.next())
+				return set.getString(VERSION);
+			else
+				throw new ConfigError("Version not found");
+		} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+		} finally {
+			
+			close(set);
+			close(ps);
+			close(conn);
+			
+		}
+		return null;
+	}
+	public String getVersion() throws ConfigError {
+		return getVersion(1);
+	}	
+	
+	public String getDBVersion(Integer id) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(GDBVERSION);
+			ps.setInt(1, id);
+			set = ps.executeQuery();
+			if (set.next())
+				return set.getString(DB_VERSION);
+			else
+				throw new ConfigError("DBVersion not found");
+		} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+		} finally {
+			
+			close(set);
+			close(ps);
+			close(conn);
+			
+		}
+		return null;
+	}
+	public String getDBVersion() throws ConfigError {
+		return getDBVersion(1);
+	}
+	
+	public String getHost(Integer id) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(GHOST);
+			ps.setInt(1, id);
+			set = ps.executeQuery();
+			if (set.next())
+				return set.getString(HOST);
+			else
+				throw new ConfigError("Host not found");
+		} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+		} finally {
+			
+			close(set);
+			close(ps);
+			close(conn);
+			
+		}
+		return null;
+	}
+	public String getHost() throws ConfigError {
+		return getHost(1);
 	}
 
 	public Integer getJettyPort(Integer id) throws ConfigError {
@@ -689,6 +810,117 @@ public class FlowvisorImpl implements Flowvisor {
 			close(conn);	
 		}
 	}
+	
+	//Additions for get config
+	@Override
+	public void setConfigName(String config) throws ConfigError{
+		setConfigName(1, config);
+	}
+	
+	@Override
+	public void setConfigName(Integer id, String config) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(SCONFIG);
+			ps.setString(1, config);
+			ps.setInt(2, id);
+			if (ps.executeUpdate() == 0)
+				FVLog.log(LogLevel.WARN, null, "Unable to set the config name.");
+			} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+			
+		} finally {
+			close(set);
+			close(ps);
+			close(conn);	
+		}
+	}
+
+	@Override
+	public void setVersion(String version) throws ConfigError{
+		setVersion(1, version);
+	}
+	
+	@Override
+	public void setVersion(Integer id, String version) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(SVERSION);
+			ps.setString(1, version);
+			ps.setInt(2, id);
+			if (ps.executeUpdate() == 0)
+				FVLog.log(LogLevel.WARN, null, "Unable to set the version.");
+			} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+			
+		} finally {
+			close(set);
+			close(ps);
+			close(conn);	
+		}
+	}
+
+	@Override
+	public void setHost(String host) throws ConfigError{
+		setHost(1, host);
+	}
+	
+	@Override
+	public void setHost(Integer id, String host) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(SHOST);
+			ps.setString(1, host);
+			ps.setInt(2, id);
+			if (ps.executeUpdate() == 0)
+				FVLog.log(LogLevel.WARN, null, "Unable to set the host.");
+			} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+			
+		} finally {
+			close(set);
+			close(ps);
+			close(conn);	
+		}
+	}
+
+	@Override
+	public void setDBVersion(Integer dbVersion) throws ConfigError{
+		setDBVersion(1, dbVersion);
+	}
+	
+	@Override
+	public void setDBVersion(Integer id, Integer dbVersion) throws ConfigError {
+		Connection conn = null;
+		PreparedStatement ps = null;
+		ResultSet set = null;
+		try {
+			conn = settings.getConnection();
+			ps = conn.prepareStatement(SDBVERSION);
+			ps.setInt(1, dbVersion);
+			ps.setInt(2, id);
+			if (ps.executeUpdate() == 0)
+				FVLog.log(LogLevel.WARN, null, "Unable to set the dbVersion.");
+			} catch (SQLException e) {
+			FVLog.log(LogLevel.WARN, null, e.getMessage());
+			
+		} finally {
+			close(set);
+			close(ps);
+			close(conn);	
+		}
+	}
+	
+	
 	
 	@Override
 	public void setJettyPort(Integer port) throws ConfigError{
