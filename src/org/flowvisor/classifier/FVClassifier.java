@@ -1078,13 +1078,12 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 				if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
 					if (orig.getOutPort() == OFPort.OFPP_NONE.getValue() ||
 							matchContainsPort(reply, orig.getOutPort())) {	 
-						FVLog.log(LogLevel.DEBUG, classifier, "Appending FlowStats reply: ", reply);
 						//Add to statsReply only if the total length is less than 88*700 = 61600B
 						//slightly less than 64kB and a multiplier of 88 which is the size of the struct
 						//ofp_flow_stats_reply according to the OF1.0 spec
-						FVLog.log(LogLevel.DEBUG, null, "statsReply.getLength() + reply.computeLength(): ", (statsReply.getLength() + reply.computeLength()));
-						if ((statsReply.getLength() + reply.computeLength())<(88*700) ){
-							statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
+						FVLog.log(LogLevel.DEBUG, null, "statsReply.getLengthU() & reply.computeLength(): ", statsReply.getLengthU(), " ", reply.computeLength());
+						if ((statsReply.getLengthU() + reply.computeLength())<(44*700) ){
+							statsReply.setLengthU(statsReply.getLengthU() + reply.computeLength());
 							stats.add(reply);
 						}
 						else{
@@ -1115,13 +1114,13 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			//If it is the last segment of the statsReply msg, send it!
 			statsReply.setStatistics(stats);
 			statsReply.setFlags((short)0);	
-			FVLog.log(LogLevel.DEBUG, null, "xid is: ", original.getXid());
+			FVLog.log(LogLevel.DEBUG, null, "xid is: ", original.getXid(), "STATS REPLY FLAG: ", statsReply.getFlags());
 			statsReply.setXid(original.getXid());
 		
 			statsReply.setVersion(original.getVersion());
 			statsReply.setStatisticType(original.getStatisticType());
 		
-			FVLog.log(LogLevel.DEBUG, null, "STATS_REPLY SIZE1: ", statsReply.getStatistics().size(),"Stats Reply Length1: ", statsReply.getLengthU());
+			FVLog.log(LogLevel.DEBUG, null, "END STATS_REPLY SIZE: ", statsReply.getStatistics().size(),"End Stats Reply Length: ", statsReply.getLengthU());
 		
 			if (statsReply.getStatistics().size() == 0) 
 				FVLog.log(LogLevel.WARN, fvSlicer, "Stats request resulted in an empty set ", original);
