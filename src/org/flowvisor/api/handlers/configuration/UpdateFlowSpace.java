@@ -62,7 +62,7 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 			throws ClassCastException, MissingRequiredField, ConfigError, FlowEntryNotFound, UnknownMatchField {
 		String name = null;
 		Long dpid = null;
-		Integer priority = null;
+		Number priority = null;
 		FlowEntry update = null;
 		LinkedList<FlowEntry> list = new LinkedList<FlowEntry>();
 		FlowMap flowSpace = FlowSpaceImpl.getProxy().getFlowMap();
@@ -80,10 +80,9 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 			
 			}
 			
-			priority = HandlerUtils.<Number>fetchField(FlowSpace.PRIO, fe, false, null).intValue();
+			priority = HandlerUtils.<Number>fetchField(FlowSpace.PRIO, fe, false, null);
 			if (priority != null) {
-				update.setPriority(priority);
-			
+				update.setPriority(priority.intValue());
 			}
 			
 			/*
