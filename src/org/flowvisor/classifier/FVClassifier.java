@@ -119,10 +119,6 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	private boolean wantStatsDescHack;
 	String floodPermsSlice; // the slice that has permission to use native
 	private Boolean flowTracking = false;
-	public static final int STATS_SEG_SIZE = 30800; // (44*700=30800), a multiplier of 44 which is half of 88,
-													// which is the size of the struct
-													// ofp_flow_stats_reply according to the OF1.0 spec
-
 	
 	private HashMap<String, Integer> fmlimits = new HashMap<String, Integer>();
 	private HashMap<String, Integer> currfmlimits = new HashMap<String, Integer>();
@@ -1075,6 +1071,9 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			FVFlowStatisticsRequest orig = (FVFlowStatisticsRequest) original.getStatistics().get(0);
 			List<OFStatistics> stats = new LinkedList<OFStatistics>();
 			FVStatisticsReply statsReply = new FVStatisticsReply();
+			final int STATS_SEG_SIZE = 30800; // (44*700=30800), a multiplier of 44 which is half of 88,
+											  // which is the size of the struct
+								   			  // ofp_flow_stats_reply according to the OF1.0 spec
 			statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
 
 			for (FVFlowStatisticsReply reply : replies) {
@@ -1083,7 +1082,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 							matchContainsPort(reply, orig.getOutPort())) {	 
 						//Add to statsReply only if the total length is less than 44*700 = 30800B
 						//slightly less than half of 64kB 
-						if ((statsReply.getLengthU() + reply.computeLength())<(44*700) ){
+						if ((statsReply.getLengthU() + reply.computeLength())<STATS_SEG_SIZE){
 							statsReply.setLengthU(statsReply.getLengthU() + reply.computeLength());
 							stats.add(reply);
 						}
