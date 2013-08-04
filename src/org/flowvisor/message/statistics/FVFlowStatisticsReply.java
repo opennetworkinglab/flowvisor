@@ -31,7 +31,6 @@ import org.openflow.protocol.action.OFActionTransportLayerSource;
 import org.openflow.protocol.action.OFActionVendor;
 import org.openflow.protocol.action.OFActionVirtualLanIdentifier;
 import org.openflow.protocol.action.OFActionVirtualLanPriorityCodePoint;
-
 import org.openflow.protocol.OFStatisticsReply.OFStatisticsReplyFlags;
 
 import org.openflow.protocol.statistics.OFFlowStatisticsReply;
