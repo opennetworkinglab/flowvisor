@@ -119,7 +119,6 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	private boolean wantStatsDescHack;
 	String floodPermsSlice; // the slice that has permission to use native
 	private Boolean flowTracking = false;
-
 	
 	private HashMap<String, Integer> fmlimits = new HashMap<String, Integer>();
 	private HashMap<String, Integer> currfmlimits = new HashMap<String, Integer>();
@@ -1072,19 +1071,19 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			FVFlowStatisticsRequest orig = (FVFlowStatisticsRequest) original.getStatistics().get(0);
 			List<OFStatistics> stats = new LinkedList<OFStatistics>();
 			FVStatisticsReply statsReply = new FVStatisticsReply();
+			final int STATS_SEG_SIZE = 30800; // (44*700=30800), a multiplier of 44 which is half of 88,
+											  // which is the size of the struct
+								   			  // ofp_flow_stats_reply according to the OF1.0 spec
 			statsReply.setLengthU(FVStatisticsReply.MINIMUM_LENGTH);
 
 			for (FVFlowStatisticsReply reply : replies) {
 				if (new FVMatch(orig.getMatch()).subsumes(new FVMatch(reply.getMatch()))) {
 					if (orig.getOutPort() == OFPort.OFPP_NONE.getValue() ||
 							matchContainsPort(reply, orig.getOutPort())) {	 
-						FVLog.log(LogLevel.DEBUG, classifier, "Appending FlowStats reply: ", reply);
-						//Add to statsReply only if the total length is less than 88*700 = 61600B
-						//slightly less than 64kB and a multiplier of 88 which is the size of the struct
-						//ofp_flow_stats_reply according to the OF1.0 spec
-						FVLog.log(LogLevel.DEBUG, null, "statsReply.getLength() + reply.computeLength(): ", (statsReply.getLength() + reply.computeLength()));
-						if ((statsReply.getLength() + reply.computeLength())<(88*700) ){
-							statsReply.setLengthU(statsReply.getLength() + reply.computeLength());
+						//Add to statsReply only if the total length is less than 44*700 = 30800B
+						//slightly less than half of 64kB 
+						if ((statsReply.getLengthU() + reply.computeLength())<STATS_SEG_SIZE){
+							statsReply.setLengthU(statsReply.getLengthU() + reply.computeLength());
 							stats.add(reply);
 						}
 						else{
@@ -1096,7 +1095,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 							statsReply.setVersion(original.getVersion());
 							statsReply.setStatisticType(original.getStatisticType());
 						
-							FVLog.log(LogLevel.DEBUG, null, "STATS_REPLY SIZE: ", statsReply.getStatistics().size(),"Stats Reply Length: ", statsReply.getLengthU());
+							FVLog.log(LogLevel.DEBUG, null, "STATS_REPLY SIZE: ", statsReply.getStatistics().size(),
+										"Stats Reply Length: ", statsReply.getLengthU());
 						
 							if (statsReply.getStatistics().size() == 0) 
 								FVLog.log(LogLevel.WARN, fvSlicer, "Stats request resulted in an empty set ", original);
@@ -1115,13 +1115,10 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			//If it is the last segment of the statsReply msg, send it!
 			statsReply.setStatistics(stats);
 			statsReply.setFlags((short)0);	
-			FVLog.log(LogLevel.DEBUG, null, "xid is: ", original.getXid());
 			statsReply.setXid(original.getXid());
 		
 			statsReply.setVersion(original.getVersion());
 			statsReply.setStatisticType(original.getStatisticType());
-		
-			FVLog.log(LogLevel.DEBUG, null, "STATS_REPLY SIZE1: ", statsReply.getStatistics().size(),"Stats Reply Length1: ", statsReply.getLengthU());
 		
 			if (statsReply.getStatistics().size() == 0) 
 				FVLog.log(LogLevel.WARN, fvSlicer, "Stats request resulted in an empty set ", original);
