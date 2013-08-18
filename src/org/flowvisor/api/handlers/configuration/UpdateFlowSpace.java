@@ -125,19 +125,18 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 				update.setForcedQueue(fqueue.longValue());
 			
 			}
-			
 			//list.add(update);
-			try {
-				//flowSpace.removeRule(update.getId());
-				FlowSpaceImpl.getProxy().removeRule(update.getId());
-				FlowSpaceImpl.getProxy().addRule(update);
-				//flowSpace.addRule(update);
-			} catch (ConfigError e) {
-				FVLog.log(LogLevel.DEBUG, null, e.getMessage());
-			}
 			//updateFlowEntry(flowSpace, update);
-			
 		}
+		try {
+                        flowSpace.removeRule(update.getId());
+                        FlowSpaceImpl.getProxy().removeRule(update.getId());
+                        FlowSpaceImpl.getProxy().addRule(update);
+                        flowSpace.addRule(update);
+                } catch (ConfigError e) {
+                        FVLog.log(LogLevel.DEBUG, null, e.getMessage());
+                }
+
 		return update.getId();
 	}
 
