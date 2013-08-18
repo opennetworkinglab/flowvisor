@@ -19,6 +19,8 @@ import org.flowvisor.flows.FlowSpaceUtil;
 import org.flowvisor.flows.SliceAction;
 import org.flowvisor.openflow.protocol.FVMatch;
 import org.openflow.protocol.action.OFAction;
+import org.flowvisor.log.FVLog;
+import org.flowvisor.log.LogLevel;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
@@ -33,8 +35,8 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		JSONRPC2Response resp = null;
 		try {
 			
-			final List<FlowEntry> list = processFlows(params);
-			int index = FVConfigurationController.instance().pendFlowSpace(list);
+			int index = processFlows(params);	
+			//int index = FVConfigurationController.instance().pendFlowSpace(list);
 			resp = new JSONRPC2Response(index, 0);
 		} catch (ClassCastException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
@@ -58,13 +60,13 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		
 	}
 
-	private List<FlowEntry> processFlows(List<Map<String, Object>> params) 
+	private int processFlows(List<Map<String, Object>> params) 
 			throws ClassCastException, MissingRequiredField, ConfigError, FlowEntryNotFound, UnknownMatchField {
 		String name = null;
 		Long dpid = null;
 		Integer priority = null;
 		FlowEntry update = null;
-		LinkedList<FlowEntry> list = new LinkedList<FlowEntry>();
+		//LinkedList<FlowEntry> list = new LinkedList<FlowEntry>();
 		FlowMap flowSpace = FlowSpaceImpl.getProxy().getFlowMap();
 		for (Map<String,Object> fe : params) {
 			name = HandlerUtils.<String>fetchField(FSNAME, fe, false, null);
@@ -123,17 +125,20 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 				update.setForcedQueue(fqueue.longValue());
 			
 			}
-			
-			list.add(update);
+			//list.add(update);
 			//updateFlowEntry(flowSpace, update);
-			
-			
 		}
-		return list;
-		
-	}
+		try {
+                        flowSpace.removeRule(update.getId());
+                        FlowSpaceImpl.getProxy().removeRule(update.getId());
+                        FlowSpaceImpl.getProxy().addRule(update);
+                        flowSpace.addRule(update);
+                } catch (ConfigError e) {
+                        FVLog.log(LogLevel.DEBUG, null, e.getMessage());
+                }
 
-	
+		return update.getId();
+	}
 
 	private List<OFAction> parseSliceActions(List<Map<String, Object>> sactions) 
 			throws ClassCastException, MissingRequiredField {
@@ -157,6 +162,4 @@ public class UpdateFlowSpace implements ApiHandler<List<Map<String, Object>>> {
 		return "update-flowspace";
 	}
 	
-	
-
 }
