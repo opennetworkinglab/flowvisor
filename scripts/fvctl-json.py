@@ -303,7 +303,7 @@ def pa_addFlowSpace(args, cmd):
             help="Define list of queues permitted on this flowspace.")
     parser.add_option("-f", "--forced-queue", default=None, dest="fqueue", type="int",
             help="Force a queue id upon output action.")
-    parser.add_option("-r", "--range", default="vlan", dest="rng", type = "string",
+    parser.add_option("-r", "--range", default=None, dest="rng", type = "string",
             help="Specify a range for vlan ids.")
 
     return parser.parse_args(args)
@@ -317,7 +317,7 @@ def do_addFlowSpace(gopts, opts, args):
         sys.exit()
     passwd = getPassword(gopts)
     #Check for range in the options
-    if opts.rng:        
+    if opts.rng == "vlan":        
         #Get the ranges
         ranges = getRange(args[3])
         if((int(ranges[0]) < 1) or (int(ranges[0]) > 4095) or (int(ranges[1]) < 1) or (int(ranges[1]) > 4095)):
@@ -340,6 +340,9 @@ def do_addFlowSpace(gopts, opts, args):
             ret = connect(gopts, "add-flowspace", passwd, data=[req])
             if ret:
                 print "FlowSpace %s was added with request id %s." % (args[0], ret)
+    elif opts.rng:
+        print "When -r option is specified, the format of adding flowspace is as below:"
+        print "add-flowspace -r vlan <flowspace-name> <dpid> <priority> <dl_vlan=1-10> <slice-perm>"
     else:
         match = makeMatch(args[3])
         req = { "name" : args[0], "dpid" : args[1], "priority" : int(args[2]), "match" : match }
@@ -746,6 +749,7 @@ def makeMatch(matchStr):
     for item in matchItems:
         it = item.split('=')
         if len(it) != 2:
+            print it
             print "Match items must be of the form <key>=<val>"
             sys.exit()
         try:
@@ -764,6 +768,7 @@ def makeMatchWithRanges(matchStr,rng):
     for item in matchItems:
         it = item.split('=')
         if len(it) != 2:
+            print it
             print "Match items must be of the form <key>=<val>"
             sys.exit()
         try:
