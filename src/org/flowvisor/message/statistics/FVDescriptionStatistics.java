@@ -33,9 +33,8 @@ public class FVDescriptionStatistics extends OFDescriptionStatistics implements
 
 			this.datapathDescription += " (" + remote.getAddress().getHostAddress() + ":"
 					+ remote.getPort() + ")";
-			
 			this.datapathDescription += " (" + FlowVisor.FLOWVISOR_VERSION + ")";
-			
+
 			if (this.datapathDescription.length() > FVDescriptionStatistics.DESCRIPTION_STRING_LENGTH)
 				this.datapathDescription = this.datapathDescription.substring(
 						0,
