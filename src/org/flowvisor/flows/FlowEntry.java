@@ -570,7 +570,7 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 
 	/**
 	 * Does this slice have permissions 'perms' for this flowEntry
-	 *
+	 * Also checks if this action is specific to that slice by checking for sliceName.
 	 * @param sliceName
 	 * @param perms
 	 * @return true == yes, false == no
@@ -588,6 +588,17 @@ public class FlowEntry implements Comparable<FlowEntry>, Cloneable,
 			}
 		}
 		return false;
+	}
+	
+	public String getSliceName() {
+		String slice = new String();
+		for (OFAction ofaction : this.actionsList) {
+			if (ofaction instanceof SliceAction) {
+				SliceAction sliceAction = (SliceAction) ofaction;
+				slice = sliceAction.getSliceName();
+			}
+		}
+		return slice;
 	}
 	
 	public Map<String, Object> toMap() {

@@ -77,6 +77,7 @@ import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
+import org.openflow.protocol.OFStatisticsReply.OFStatisticsReplyFlags;
 import org.openflow.protocol.OFType;
 import org.openflow.protocol.OFError.OFHelloFailedCode;
 import org.openflow.protocol.action.*;
@@ -132,6 +133,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	//If the window is open, pollFlowTableStats can be called to poll for the statistics from the switch!
 	private boolean statsWindowOpen = true;
 	private HashMap<String, ArrayList<FVFlowStatisticsReply>> flowStats = 
+			new HashMap<String, ArrayList<FVFlowStatisticsReply>>();
+	private HashMap<String, ArrayList<FVFlowStatisticsReply>> actualStats = 
 			new HashMap<String, ArrayList<FVFlowStatisticsReply>>();
 	private ConcurrentLinkedQueue<String> toDeleteSlices = new ConcurrentLinkedQueue<String>();
 
@@ -1008,8 +1011,9 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	
 	private synchronized ArrayList<FVFlowStatisticsReply> getFlowStats(String sliceName) {
 		ArrayList<FVFlowStatisticsReply> stats = new ArrayList<FVFlowStatisticsReply>();
-		if (flowStats.get(sliceName) != null)
-			stats.addAll(flowStats.get(sliceName));
+		if (actualStats.get(sliceName) != null)
+			stats.addAll(actualStats.get(sliceName));
+		FVLog.log(LogLevel.DEBUG, null, actualStats.toString());
 		return stats;
 	}
 	
@@ -1069,7 +1073,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		return false;
 	}
 
-	public void sendFlowStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original) {
+	public void sendFlowStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original, short flag) {
 		FVFlowStatisticsRequest orig = (FVFlowStatisticsRequest) original.getStatistics().get(0);
 		
 	
@@ -1093,7 +1097,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 
 		}
 		statsReply.setStatistics(stats);
-			
+		statsReply.setFlags(flag);	
 		statsReply.setXid(original.getXid());
 		
 		statsReply.setVersion(original.getVersion());
@@ -1109,7 +1113,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	
 	//public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply, HashMap<String,Object> cache) {
 	public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply) {
-		flowStats.clear();
+		actualStats.clear();
+
 		List<OFStatistics> stats = fvStatisticsReply.getStatistics();
 
 		//Adding for registering a FlowTable
@@ -1137,6 +1142,11 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			stat.setTransCookie(stat.getCookie());
 			stat.setCookie(pair.getCookie());
 			addToFlowStats(stat, pair.getSliceName());
+		}
+		actualStats.putAll(flowStats);
+		FVLog.log(LogLevel.DEBUG, this, " actualStats: ",actualStats.toString(), "flowStats: ", flowStats.toString()); 
+		if ((fvStatisticsReply.getFlags() != OFStatisticsReplyFlags.REPLY_MORE.getTypeValue()) ){
+			flowStats.clear();
 		}
 		for (String slice : toDeleteSlices) {
 			cleanUpFlowMods(slice);
