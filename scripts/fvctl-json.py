@@ -750,7 +750,7 @@ def makeMatch(matchStr):
         it = item.split('=')
         if len(it) != 2:
             print it
-            print "Match items must be of the form <key>=<val>"
+            print "Match items must be of the form =, not %s" % it
             sys.exit()
         try:
             (mstr, func) = MATCHSTRS[it[0].lower()]

@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -18,6 +19,7 @@ import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
 import org.flowvisor.openflow.protocol.FVMatch;
 import org.openflow.protocol.OFMatch;
+import org.openflow.util.U16;
 
 
 /**
@@ -31,7 +33,7 @@ import org.openflow.protocol.OFMatch;
  * rule or find all matching rules quickly without having to go through all the
  * flowmap.
  * 
- * At the end of a match, this flowmap returns a a set ordered by flowentry
+ * At the end of a match, this flowmap returns a set ordered by flowentry
  * priority.
  * 
  * @author ash
@@ -98,7 +100,7 @@ public class FlowSpaceRuleStore {
 	 * This sorted structure maintains bitsets representing the rules for every
 	 * priority. Makes it easy to return the rule with the highest priority.
 	 */
-	private TreeMap<Integer, BitSet> prioSet = new TreeMap<Integer, BitSet>();
+	private static TreeMap<Integer, BitSet> prioSet = new TreeMap<Integer, BitSet>();
 
 	/**
 	 * Keep track of the number of rules we have so far.
@@ -142,7 +144,7 @@ public class FlowSpaceRuleStore {
 
 	/**
 	 * Adds a rule to the flowmap. It does so by exploding the rule into its
-	 * fields and storing each field into its independant structure.
+	 * fields and storing each field into its independent structure.
 	 * 
 	 * @param rule
 	 *            - the rule which will be added to the flowmap
@@ -216,9 +218,31 @@ public class FlowSpaceRuleStore {
 								.getDataLayerDestination()), flowRuleSet);
 
 		add(prioSet, rule.getPriority(), flowRuleSet);
-
+		FVLog.log(LogLevel.DEBUG, null, "prioSet:",prioSet);
 		rules.put(rule.getId(), rule);
+		prioSetRange();
+	}
 
+	public static synchronized HashMap<Integer,ArrayList<Integer>> prioSetRange() {
+		FVLog.log(LogLevel.DEBUG,null,"prioSet: ",prioSet);
+		Set<Integer> prios = prioSet.keySet();
+		Integer pSize = prioSet.size();
+		
+		Integer range = 65536/pSize;
+
+		HashMap<Integer,ArrayList<Integer>> prioRange = new HashMap<Integer,ArrayList<Integer>>();
+		Short index = 0;
+		for(Integer prio: prios){
+			index++;
+			Integer rangeEnd = (index * range) - 1;
+			Integer rangeStart = rangeEnd - range + 1;
+			ArrayList<Integer> pRange = new ArrayList<Integer>();
+			pRange.add(rangeStart);
+			pRange.add(rangeEnd);
+			prioRange.put(prio, pRange);
+		}
+		FVLog.log(LogLevel.DEBUG,null,"prioRange: ",prioRange);
+		return prioRange;
 	}
 
 	/**
@@ -308,6 +332,7 @@ public class FlowSpaceRuleStore {
 	 */
 
 	public List<FlowIntersect> intersect(long dpid, FVMatch match) {
+		FVLog.log(LogLevel.DEBUG,null,"dpid: ", dpid, " match: ",match.toString());
 		BitSet set = new BitSet();
 		normalize(match);
 		int wildcards = match.getWildcards();
@@ -317,13 +342,6 @@ public class FlowSpaceRuleStore {
 		
 		
 		set.or(allRules);
-		
-		/*if ((wildcards & FVMatch.OFPFW_ALL) != 0) {
-			set.or(allRules);
-		} else {
-			set.or(get(dpids, dpid));
-			set.or(get(dpids, FlowEntry.ALL_DPIDS));
-		}*/
 
 		try {
 
@@ -396,33 +414,25 @@ public class FlowSpaceRuleStore {
 							match.getTransportDestination() << 16,
 							ANY_TP << 16, wildcards, FVMatch.OFPFW_TP_DST), set));
 
-			
-
 			int field = 0;
 			boolean rewrite = false;
 			BitSet inters = null;
 			FlowIntersect flow = null;
 			FlowEntry rule = null;
-			
-			//FlowEntry flowMatch = new FlowEntry(dpid, match, new List<OFAction>());
-			
+						
 			for (Entry<Integer, Pair<Boolean, BitSet>> entry : rewrites
 					.entrySet()) {
 				field = entry.getKey();
 				rewrite = entry.getValue().getFirst();
 				inters = entry.getValue().getSecond();
+				FVLog.log(LogLevel.DEBUG,null,"Rule ids which intersect: ",inters.toString());
 				for (int i = inters.nextSetBit(0); i >= 0; i = inters
 						.nextSetBit(i + 1)) {
 					rule = rules.get(i).clone();
-
-					flow = getIntersect(rule, intersections);// new// FlowIntersect(rule);
-					//flow = getIntersect(fe, intersections);
-					
+					flow = getIntersect(rule, intersections);
 					
 					if (!rewrite) {
 						rule.setRuleMatch(match);
-						/*if ((rule.getRuleMatch().getWildcards() & entry
-								.getKey()) != 0)*/
 						setField(flow, rule.getRuleMatch(), field);
 					} 
 
@@ -446,9 +456,7 @@ public class FlowSpaceRuleStore {
 							ruleMatch.getNetworkSource()));
 					if (inter.getMatchType() == MatchType.NONE)
 						continue;
-
 					intersections.put(flow.getFlowEntry().getId(), flow);
-					
 				}
 			}
 
@@ -460,12 +468,12 @@ public class FlowSpaceRuleStore {
 			 * rules. Right??
 			 */
 			ret.addAll(intersections.values());
+			FVLog.log(LogLevel.DEBUG,null,"Intersections: ",intersections);
 
 		} catch (NoMatch e) {
 			FVLog.log(LogLevel.FATAL, null, "Failed to intersect flow mod "
 					+ match);
 			return new ArrayList<FlowIntersect>(ret);
-			// return new ArrayList<FlowIntersect>(intersections.values());
 		} catch (UnknownMatchField umf) {
 			FVLog.log(LogLevel.FATAL, null, umf.getMessage());
 		}
@@ -485,6 +493,7 @@ public class FlowSpaceRuleStore {
 	 */
 
 	private void normalize(FVMatch match) {
+		
 		int wildcards = match.getWildcards();
 		short etherType = match.getDataLayerType();
 		short proto = match.getNetworkProtocol();
@@ -501,6 +510,7 @@ public class FlowSpaceRuleStore {
 			wildcards |= FVMatch.OFPFW_TP_SRC;
 		}
 		match.setWildcards(wildcards);
+		FVLog.log(LogLevel.DEBUG,null,match.toString());
 	}
 
 	private FlowIntersect getIntersect(FlowEntry fe,
@@ -601,15 +611,11 @@ public class FlowSpaceRuleStore {
 		BitSet set = new BitSet();
 		LinkedList<FlowEntry> flowrules = new LinkedList<FlowEntry>();
 		int wildcards = match.getWildcards();
-
-		set.or(allRules);
+		FVLog.log(LogLevel.DEBUG, null, "dpid: ",dpid, "match: ",match.toString());
 		
-		/*if ((wildcards & FVMatch.OFPFW_ALL) != 0) {
-			set.or(allRules);
-		} else {
-			set.or(get(dpids, dpid));
-			set.or(get(dpids, FlowEntry.ALL_DPIDS));
-		}*/
+		set.or(allRules);
+		FVLog.log(LogLevel.DEBUG, null, "allRules: ",set.toString());
+
 		try {
 			
 			testEmpty(set, dpids, dpid, FlowEntry.ALL_DPIDS, wildcards,0);
@@ -630,9 +636,7 @@ public class FlowSpaceRuleStore {
 
 				set.andNot(vlan_ignore);
 			}
-
 		
-			
 			testEmpty(set, dl_type, match.getDataLayerType(), ANY_ETHER,
 					wildcards, FVMatch.OFPFW_DL_TYPE);
 			
@@ -715,11 +719,10 @@ public class FlowSpaceRuleStore {
 		 */
 
 		TreeSet<FlowEntry> entries = new TreeSet<FlowEntry>();
-		for (int i = set.nextSetBit(0); i >= 0; i = set.nextSetBit(i + 1))
+		for (int i = set.nextSetBit(0); i >= 0; i = set.nextSetBit(i + 1)){
 			entries.add(rules.get(i));
-
+		}
 		flowrules.addAll(entries);
-
 		return flowrules;
 
 	}
