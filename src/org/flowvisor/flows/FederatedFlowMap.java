@@ -1,5 +1,6 @@
 package org.flowvisor.flows;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,6 +106,11 @@ public class FederatedFlowMap implements FlowMap, Cloneable {
 		if (fe != null)
 			return fe;
 		throw new FlowEntryNotFound(name);
+	}
+
+	@Override
+	public HashMap<Integer,ArrayList<Integer>> getPriorityRangeMap() {
+		return (fsrs.getPrioSetRange());
 		
 	}
 

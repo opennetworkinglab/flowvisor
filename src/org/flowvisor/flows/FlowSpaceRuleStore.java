@@ -100,7 +100,7 @@ public class FlowSpaceRuleStore {
 	 * This sorted structure maintains bitsets representing the rules for every
 	 * priority. Makes it easy to return the rule with the highest priority.
 	 */
-	private static TreeMap<Integer, BitSet> prioSet = new TreeMap<Integer, BitSet>();
+	private TreeMap<Integer, BitSet> prioSet = new TreeMap<Integer, BitSet>();
 
 	/**
 	 * Keep track of the number of rules we have so far.
@@ -220,10 +220,10 @@ public class FlowSpaceRuleStore {
 		add(prioSet, rule.getPriority(), flowRuleSet);
 		FVLog.log(LogLevel.DEBUG, null, "prioSet:",prioSet);
 		rules.put(rule.getId(), rule);
-		prioSetRange();
+		getPrioSetRange();
 	}
 
-	public static synchronized HashMap<Integer,ArrayList<Integer>> prioSetRange() {
+	public synchronized HashMap<Integer,ArrayList<Integer>> getPrioSetRange() {
 		FVLog.log(LogLevel.DEBUG,null,"prioSet: ",prioSet);
 		Set<Integer> prios = prioSet.keySet();
 		Integer pSize = prioSet.size();

@@ -31,10 +31,10 @@ import org.openflow.util.U16;
 public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 		Classifiable, Slicable, Cloneable {
 	
-	private static HashMap<String,FVFlowMod> sliceModMap = new HashMap<String,FVFlowMod>();;
+	private HashMap<String,FVFlowMod> sliceModMap = new HashMap<String,FVFlowMod>();;
 	private FVMatch mat;
 	
-	private static HashMap<Integer,Integer> priorityMap = new HashMap<Integer,Integer>();
+	private HashMap<Integer,Integer> priorityMap = new HashMap<Integer,Integer>();
 	@Override
 	public void classifyFromSwitch(FVClassifier fvClassifier) {
 		FVMessageUtil.dropUnexpectedMesg(this, fvClassifier);
@@ -132,13 +132,13 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 				newFlowMod.setMatch(intersect.getMatch());
 				//If there is more than one intersection i.e.
 				//flowspace overlap, then assign the new priority
-				if(intersections.size()>1 && FlowSpaceRuleStore.prioSetRange().size()>1
+				if(intersections.size()>1 && (fvSlicer.getFlowSpace().getPriorityRangeMap().size())>1
 						&& sliceModMap.size()>1){
 					//Get the intersected flowspace priority
 					Integer intersectPrio = intersect.getFlowEntry().getPriority();
 					//Get the new flow mod priority
 					Integer oldPriority = U16.f(newFlowMod.getPriority());
-					Integer newPriority = getNewPriority(oldPriority,intersectPrio);
+					Integer newPriority = getNewPriority(oldPriority,intersectPrio,fvSlicer);
 					newFlowMod.setPriority(U16.t(newPriority));
 					FVLog.log(LogLevel.DEBUG,null,"newPriority: ",newPriority);
 					FVLog.log(LogLevel.DEBUG,null,"newFlowMod: ",newFlowMod.toString());
@@ -237,14 +237,15 @@ public class FVFlowMod extends org.openflow.protocol.OFFlowMod implements
 	}
 	
 
-	private Integer getNewPriority(int oldPriority, Integer intersectPrio){
+	private Integer getNewPriority(int oldPriority, Integer intersectPrio, FVSlicer fvSlicer){
 		if(oldPriority > 65535){
 			FVLog.log(LogLevel.CRIT, null, "The range of priority is between 0 & 65535");
 		}
 		FVLog.log(LogLevel.DEBUG,null,"FVFlowMod oldPriority:",oldPriority);
 
-		HashMap<Integer,ArrayList<Integer>> prioRangeMap = FlowSpaceRuleStore.prioSetRange();
-
+		HashMap<Integer,ArrayList<Integer>> prioRangeMap 
+			= fvSlicer.getFlowSpace().getPriorityRangeMap();
+		
 		Integer rangeStart=0;
 		Integer rangeEnd=0;
 		Integer range;
