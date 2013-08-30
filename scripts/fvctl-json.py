@@ -303,9 +303,6 @@ def pa_addFlowSpace(args, cmd):
             help="Define list of queues permitted on this flowspace.")
     parser.add_option("-f", "--forced-queue", default=None, dest="fqueue", type="int",
             help="Force a queue id upon output action.")
-    parser.add_option("-r", "--range", default=None, dest="rng", type = "string",
-            help="Specify a range for vlan ids.")
-
     return parser.parse_args(args)
 
 def do_addFlowSpace(gopts, opts, args):
@@ -313,11 +310,10 @@ def do_addFlowSpace(gopts, opts, args):
         print "add-flowpace : Requires 5 arguments; only %d given" % len(args)
         print "add-flowspace: <flowspace-name> <dpid> <priority> <match> <slice-perm>"
         print "If range is specified for vlan, the format for add-flowspace is as below:(Currently only vlan ranges are supported)"
-        print "add-flowspace -r vlan <flowspace-name> <dpid> <priority> <dl_vlan=1-10> <slice-perm>"
+        print "add-flowspace <flowspace-name> <dpid> <priority> <dl_vlan=1-10> <slice-perm>"
         sys.exit()
     passwd = getPassword(gopts)
-    #Check for range in the options
-    if opts.rng == "vlan":        
+    if(args[3].find('-') != -1):   
         #Get the ranges
         ranges = getRange(args[3])
         if((int(ranges[0]) < 1) or (int(ranges[0]) > 4095) or (int(ranges[1]) < 1) or (int(ranges[1]) > 4095)):
@@ -340,9 +336,6 @@ def do_addFlowSpace(gopts, opts, args):
             ret = connect(gopts, "add-flowspace", passwd, data=[req])
             if ret:
                 print "FlowSpace %s was added with request id %s." % (args[0], ret)
-    elif opts.rng:
-        print "When -r option is specified, the format of adding flowspace is as below:"
-        print "add-flowspace -r vlan <flowspace-name> <dpid> <priority> <dl_vlan=1-10> <slice-perm>"
     else:
         match = makeMatch(args[3])
         req = { "name" : args[0], "dpid" : args[1], "priority" : int(args[2]), "match" : match }
@@ -992,9 +985,9 @@ DESCS = {
                     "replaced with the queue id given in the forced queue option. Note: The forced queue "
                     "should be defined in the queue option and all these queue ids should be defined with "
                     "the appropriate port on the switch."
-                    "If a -r option is used a range can be given for the dl_vlan match field."
-                    "After the option -r, the match field for the range should be specified. But presently only vlan ranges are supported." 
-                    "Eg. ./fvctl.py add-flowspace -r vlan flow1 all 1000 dl_vlan=1-10 slice1=6"
+                    "A range can be specified only for the dl_vlan match field."
+                    "To specify the range for dl_vlan match field, the add-flowspace api has to be used as in the below example:" 
+                    "Eg. ./fvctl.py add-flowspace flow1 all 1000 dl_vlan=1-10 slice1=6"
                     "See the fvctl man page for information "
                     "on the format of <dpid>, <match>, and <slice-perm>." 
                     )),
