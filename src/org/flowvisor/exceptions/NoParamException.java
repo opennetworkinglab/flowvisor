@@ -1,12 +1,12 @@
 package org.flowvisor.exceptions;
 
-public class NoParam extends Exception {
+public class NoParamException extends Exception {
 	/**
 	 *
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public NoParam(String err) {
+	public NoParamException(String err) {
 		super(err);
 	}
 }

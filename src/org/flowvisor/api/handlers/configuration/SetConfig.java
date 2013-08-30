@@ -12,7 +12,7 @@ import org.flowvisor.config.FlowvisorImpl;
 import org.flowvisor.config.SliceImpl;
 import org.flowvisor.config.SwitchImpl;
 import org.flowvisor.exceptions.MissingRequiredField;
-import org.flowvisor.exceptions.NoParam;
+import org.flowvisor.exceptions.NoParamException;
 import org.flowvisor.exceptions.PermissionDeniedException;
 import org.flowvisor.flows.FlowEntry;
 import org.flowvisor.flows.FlowSpaceUtil;
@@ -73,7 +73,7 @@ public class SetConfig implements ApiHandler<Map<String, Object>> {
 		} catch (PermissionDeniedException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					cmdName() + ": " + e.getMessage()), 0);
-		} catch (NoParam e) {
+		} catch (NoParamException e) {
 			resp = new JSONRPC2Response(new JSONRPC2Error(JSONRPC2Error.INVALID_PARAMS.getCode(), 
 					cmdName()  + e.getMessage()), 0);
 		} 
@@ -83,10 +83,10 @@ public class SetConfig implements ApiHandler<Map<String, Object>> {
 
 
     private void checkForNoParams(Map<String, Object> params)
-    		throws NoParam{
+    		throws NoParamException{
 		if(params.isEmpty()){
 			FVLog.log(LogLevel.DEBUG, null, "No parameters are specified. Please input the parameters and the value you want them to be set");
-			throw new NoParam(" No parameters are specified. Please input the parameters and the value you want them to be set! ");
+			throw new NoParamException(" No parameters are specified. Please input the parameters and the value you want them to be set.");
 		}		
 	}
 

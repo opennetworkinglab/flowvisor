@@ -54,7 +54,14 @@ public interface Flowvisor extends FVAppConfig {
 	public Boolean getTopologyServer(int id) throws ConfigError;
 	public Boolean getTopologyServer() throws ConfigError;
 	public Integer getFlowStatsCache() throws ConfigError;
-	
+	public String getConfigName(Integer id) throws ConfigError;
+	public String getConfigName() throws ConfigError;
+	public String getVersion(Integer id) throws ConfigError;
+	public String getVersion() throws ConfigError;
+	public String getHost(Integer id) throws ConfigError;
+	public String getHost() throws ConfigError;
+	public String getDBVersion(Integer id) throws ConfigError;
+	public String getDBVersion() throws ConfigError;	
 	
 	public void settrack_flows(Integer id, Boolean track_flows);
 	public void settrack_flows(Boolean track_flows);
@@ -77,8 +84,14 @@ public interface Flowvisor extends FVAppConfig {
 	public void setJettyPort(Integer id, Integer port) throws ConfigError;
 	public void setJettyPort(Integer port) throws ConfigError;
 	public void setFlowStatsCache(Integer timer) throws ConfigError;
-	
-	
+	public void setConfigName(Integer id, String config) throws ConfigError;
+	public void setConfigName(String config) throws ConfigError;
+	public void setVersion(Integer id, String version) throws ConfigError;
+	public void setVersion(String version) throws ConfigError;	
+	public void setDBVersion(Integer id, Integer version) throws ConfigError;
+	public void setDBVersion(Integer version) throws ConfigError;	
+	public void setHost(Integer id, String version) throws ConfigError;
+	public void setHost(String version) throws ConfigError;
 	
 	public int fetchDBVersion();
 	

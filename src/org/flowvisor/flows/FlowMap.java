@@ -1,5 +1,7 @@
 package org.flowvisor.flows;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.SortedSet;
 
@@ -170,4 +172,6 @@ public interface FlowMap {
 	public FlowMap instance();
 	
 	public type getType();
+	
+	public HashMap<Integer,ArrayList<Integer>> getPriorityRangeMap();
 }
