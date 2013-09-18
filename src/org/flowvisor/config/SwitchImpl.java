@@ -462,7 +462,7 @@ public class SwitchImpl implements Switch {
 	
 	@Override
 	public void close(Connection conn) {
-		settings.returnConnection(conn);
+		//settings.returnConnection(conn);
 		try {
 			conn.close();
 		} catch (SQLException e) {

@@ -37,6 +37,17 @@ public class GetConfig implements ApiHandler<Map<String, Object>> {
 			configs.put(STATSDESC, FlowvisorImpl.getProxy().getstats_desc_hack());
 			configs.put(TOPOCTRL, FlowvisorImpl.getProxy().getTopologyServer());
 			configs.put(FSCACHE, FlowvisorImpl.getProxy().getFlowStatsCache());
+			configs.put(APIPORT, FlowvisorImpl.getProxy().getAPIWSPort());
+			configs.put(CONFIG, FlowvisorImpl.getProxy().getConfigName());
+			configs.put(JETTYPORT, FlowvisorImpl.getProxy().getJettyPort());
+			configs.put(LOGFACILITY, FlowvisorImpl.getProxy().getLogFacility());
+			configs.put(LOGGING, FlowvisorImpl.getProxy().getLogging());
+			configs.put(CHECKPOINT, FlowvisorImpl.getProxy().getCheckPoint());
+			configs.put(LOGIDENT, FlowvisorImpl.getProxy().getLogIdent());
+			configs.put(VERSION, FlowvisorImpl.getProxy().getVersion());
+			configs.put(HOST, FlowvisorImpl.getProxy().getHost());
+			configs.put(DB_VERSION, FlowvisorImpl.getProxy().getDBVersion());
+			
 			addFloodPerms(dpidStr, configs);
 			addFlowmodLimits(sliceName, dpidStr, configs);
 			

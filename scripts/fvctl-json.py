@@ -245,6 +245,9 @@ def toHex(match):
             match[field] = hex(value)
     return match
 
+def prettify(fs):
+    pass
+
 
 def do_listFlowSpace(gopts, opts, args):
     passwd = getPassword(gopts)
@@ -264,6 +267,7 @@ def do_listFlowSpace(gopts, opts, args):
         print "  None"
         sys.exit()
     for item in ret:
+        prettify(item)
         if opts.pretty:
             print json.dumps(item, sort_keys=True, indent=1)
             print "\n\n"
@@ -299,34 +303,56 @@ def pa_addFlowSpace(args, cmd):
             help="Define list of queues permitted on this flowspace.")
     parser.add_option("-f", "--forced-queue", default=None, dest="fqueue", type="int",
             help="Force a queue id upon output action.")
-
     return parser.parse_args(args)
 
 def do_addFlowSpace(gopts, opts, args):
     if len(args) != 5:
         print "add-flowpace : Requires 5 arguments; only %d given" % len(args)
         print "add-flowspace: <flowspace-name> <dpid> <priority> <match> <slice-perm>"
+        print "If range is specified for vlan, the format for add-flowspace is as below:(Currently only vlan ranges are supported)"
+        print "add-flowspace <flowspace-name> <dpid> <priority> <dl_vlan=1-10> <slice-perm>"
         sys.exit()
     passwd = getPassword(gopts)
-    match = makeMatch(args[3])
-    req = { "name" : args[0], "dpid" : args[1], "priority" : int(args[2]), "match" : match }
-    if opts.queues is not None:
-        req['queues'] = opts.queues
-    if opts.fqueue is not None:
-        req['force-enqueue'] = opts.fqueue
-    actions = args[4].split(',')
-    acts = []
-    for action in actions:
-        parts = action.split('=')
-        act = { 'slice-name' : parts[0], "permission" : int(parts[1]) }
-        acts.append(act)
-    req['slice-action'] = acts
-    ret = connect(gopts, "add-flowspace", passwd, data=[req])  
-    if type(ret) is list:
-        for name in ret:
-            print "FlowSpace %s was ignored because it already exists" % name
-    else: 
-        print "Flowspace %s has been created." % args[0]
+    if(args[3].find('-') != -1):   
+        #Get the ranges
+        ranges = getRange(args[3])
+        if((int(ranges[0]) < 1) or (int(ranges[0]) > 4095) or (int(ranges[1]) < 1) or (int(ranges[1]) > 4095)):
+            print "The vlan range should be within 1 and 4095"
+            sys.exit()
+        for r in range((int(ranges[0])), (int(ranges[1])+1)):
+            match = makeMatchWithRanges(args[3],r)
+            req = { "name" : args[0], "dpid" : args[1], "priority" : int(args[2]), "match" : match }
+            if opts.queues is not None:
+                req['queues'] = opts.queues
+            if opts.fqueue is not None:
+                req['force-enqueue'] = opts.fqueue
+            actions = args[4].split(',')
+            acts = []
+            for action in actions:
+                parts = action.split('=')
+                act = { 'slice-name' : parts[0], "permission" : parts[1] }
+                acts.append(act)
+            req['slice-action'] = acts
+            ret = connect(gopts, "add-flowspace", passwd, data=[req])
+            if ret:
+                print "FlowSpace %s was added with request id %s." % (args[0], ret)
+    else:
+        match = makeMatch(args[3])
+        req = { "name" : args[0], "dpid" : args[1], "priority" : int(args[2]), "match" : match }
+        if opts.queues is not None:
+            req['queues'] = opts.queues
+        if opts.fqueue is not None:
+            req['force-enqueue'] = opts.fqueue
+        actions = args[4].split(',')
+        acts = []
+        for action in actions:
+            parts = action.split('=')
+            act = { 'slice-name' : parts[0], "permission" : parts[1] }
+            acts.append(act)
+        req['slice-action'] = acts
+        ret = connect(gopts, "add-flowspace", passwd, data=[req])  
+        if ret:
+            print "FlowSpace %s was added with request id %s." % (args[0], ret)
 
 def pa_updateFlowSpace(args, cmd):
     usage = "%s [options] <flowspace-name>" % USAGE.format(cmd)
@@ -381,7 +407,7 @@ def do_updateFlowSpace(gopts, opts, args):
         sys.exit()
     ret = connect(gopts, "update-flowspace", passwd, data=[req])  
     if ret:
-        print "Flowspace %s has been updated." % args[0]
+        print "Flowspace %s was updated with request id %s" % (args[0], ret)
 
 def do_listVersion(gopts, opts, args):
     passwd = getPassword(gopts)
@@ -575,6 +601,8 @@ def pa_regEventCB(args, cmd):
     
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
+    parser.add_option("-d", "--dpid", dest="dpid", type="string", default=None,
+            help="Set the dpid for registering for the flowtable information; default='all'")
     return parser.parse_args(args)
 
 def do_regEventCB(gopts, opts, args):
@@ -583,6 +611,10 @@ def do_regEventCB(gopts, opts, args):
         sys.exit()
     passwd = getPassword(gopts)
     req = { 'url' : args[0], 'method' : args[1], 'event-type' : args[2], 'cookie' : args[3]}
+    if opts.dpid is not None:
+        req['dpid'] = opts.dpid
+    else:
+        req['dpid'] = 'all'
     ret = connect(gopts, "register-event-callback", passwd, data=req)
     if ret:
         print "Callback %s successfully added" % args[3]
@@ -593,6 +625,8 @@ def pa_unregEventCB(args, cmd):
     
     (sdesc, ldesc) = DESCS[cmd]
     parser = OptionParser(usage=usage, description=ldesc)
+    parser.add_option("-d", "--dpid", dest="dpid", type="string", default=None,
+        help="Set the dpid for unregistering for the flowtable information; default='all'")
     return parser.parse_args(args)
 
 def do_unregEventCB(gopts, opts, args):
@@ -600,11 +634,14 @@ def do_unregEventCB(gopts, opts, args):
         print "unregister-event-callback : Must specify all the arguments"
         sys.exit()
     passwd = getPassword(gopts)
-    req = { 'method' : args[1], 'event-type' : args[2], 'cookie' : args[3]}
+    req = { 'method' : args[0], 'event-type' : args[1], 'cookie' : args[2]}
+    if opts.dpid is not None:
+        req['dpid'] = opts.dpid
+    else:
+        req['dpid'] = 'all'
     ret = connect(gopts, "unregister-event-callback", passwd, data=req)
     if ret:
-        print "Callback %s successfully removed" % args[3]
-
+        print "Callback %s successfully removed" % args[2]
 
 def do_listFVHealth(gopts, opts, args):
     passwd = getPassword(gopts)
@@ -665,6 +702,21 @@ def do_listrewritedb(gopts, opts, args):
     for fbe in ret:
         print fbe
 
+def pa_listFSStatus(args, cmd):
+    usage = "%s <fs-id>" % USAGE.format(cmd)
+    (sdesc, ldesc) = DESCS[cmd]
+    parser = OptionParser(usage, description=ldesc)
+    return parser.parse_args(args)
+
+def do_listFSStatus(gopts, opts, args):
+    if len(args) != 1:
+        print "list-fs-status : Please specify a flowspace id"
+        sys.exit()
+    passwd = getPassword(gopts)
+    req = { 'fs-id' : int(args[0]) }
+    ret = connect(gopts, "list-fs-status", passwd, data=req)
+    print "FlowSpace Request id %s : %s" % (args[0], ret)
+
 
 def pa_help(args, cmd):
     usage = "%s <cmd>" % USAGE.format(cmd)
@@ -690,7 +742,8 @@ def makeMatch(matchStr):
     for item in matchItems:
         it = item.split('=')
         if len(it) != 2:
-            print "Match items must be of the form <key>=<val>"
+            print it
+            print "Match items must be of the form =, not %s" % it
             sys.exit()
         try:
             (mstr, func) = MATCHSTRS[it[0].lower()]
@@ -699,8 +752,44 @@ def makeMatch(matchStr):
             print "Unknown match item %s" % it[0]
             sys.exit()
     return match
-        
 
+def makeMatchWithRanges(matchStr,rng):
+    if matchStr == 'any' or matchStr == 'all':
+        return {}
+    matchItems = matchStr.split(',')
+    match = {}
+    for item in matchItems:
+        it = item.split('=')
+        if len(it) != 2:
+            print it
+            print "Match items must be of the form <key>=<val>"
+            sys.exit()
+        try:
+            if it[0].lower() != 'dl_vlan':
+                (mstr, func) = MATCHSTRS[it[0].lower()]
+                match[mstr] = func(it[1])
+            else:
+                match['dl_vlan'] = rng
+        except KeyError, e:
+            print "Unknown match item %s" % it[0]
+            sys.exit()
+    return match
+
+def getRange(matchStr):
+    matchItems = matchStr.split(',')
+    match = {}
+    ranges = []
+    for item in matchItems:
+        it = item.split('=')
+        if len(it) != 2:
+            print "Match items must be of the form <key>=<val>"
+            sys.exit()
+        if it[0].lower() == 'dl_vlan':
+            ranges = it[1].split('-')
+            if len(ranges) !=2:
+                print "The vlan range should be given in the form <from>-<to>, for eg. dl_vlan=10-100"
+    return ranges
+               
 def connect(opts, cmd, passwd, data=None):
     try:
         url = getUrl(opts)
@@ -742,6 +831,14 @@ def toInt(val):
         return int(val,16) 
     return int(val)
 
+def toMacInt(val):
+    if val is None:
+        return
+    if val.find(":") != -1:
+        return int(val.replace(':', ''),16)
+    if val.find("-") != -1:
+        int(val.replace('-', ''),16)
+
 def toStr(val):
     return str(val)
 
@@ -777,10 +874,10 @@ CONVFIELDS = [ 'dl_type', 'dl_vlan', 'dl_vpcp' ]
 MATCHSTRS = {
     'in_port' : ('in_port', toInt),
     'input_port' : ('in_port', toInt),
-    'dl_dst' : ('dl_dst', toInt),
-    'eth_dst' : ('dl_dst', toInt),
-    'dl_src' : ('dl_src', toInt),
-    'eth_src' : ('dl_src',toInt),
+    'dl_dst' : ('dl_dst', toStr),
+    'eth_dst' : ('dl_dst', toStr),
+    'dl_src' : ('dl_src', toStr),
+    'eth_src' : ('dl_src',toStr),
     'dl_type' : ('dl_type',toInt),
     'eth_type' : ('dl_type',toInt),
     'dl_vlan' : ('dl_vlan', toInt),
@@ -810,6 +907,7 @@ CMDS = {
     'save-config' : (pa_saveConfig, do_saveConfig),
     'get-config' : (pa_getConfig, do_getConfig),
     'set-config' : (pa_setConfig, do_setConfig),
+    'list-fs-status' : (pa_listFSStatus, do_listFSStatus),
     'list-slice-info' : (pa_listSliceInfo, do_listSliceInfo),
     'list-datapaths' : (pa_none, do_listDatapaths),
     'list-datapath-info' : (pa_listDatapathInfo, do_listDatapathInfo),
@@ -887,6 +985,9 @@ DESCS = {
                     "replaced with the queue id given in the forced queue option. Note: The forced queue "
                     "should be defined in the queue option and all these queue ids should be defined with "
                     "the appropriate port on the switch."
+                    "A range can be specified only for the dl_vlan match field."
+                    "To specify the range for dl_vlan match field, the add-flowspace api has to be used as in the below example:" 
+                    "Eg. ./fvctl.py add-flowspace flow1 all 1000 dl_vlan=1-10 slice1=6"
                     "See the fvctl man page for information "
                     "on the format of <dpid>, <match>, and <slice-perm>." 
                     )),
@@ -918,6 +1019,14 @@ DESCS = {
                     "global flood permissions. For flowmod limits, the limit is set per slice per dpid. The dpid in "
                     "case could be 'any'."
                    )),
+    'list-fs-status' : ("Check the insertion status of a add-flowspace or update-flowspace request.",
+                   ("In some cases, inserting FlowSpace can take a long time. This command allows you to check "
+                    "whether the FlowSpace request has been processed or rejected. Return values are: UNKNOWN, PENDING, "
+                    "SUCCESS, or an error message. PENDING means the request has not been handled yet, UNKNOWN means the "
+                    "given id is not known to the system and SUCCESS means the request was successfully handled. An error "
+                    "is returned when a request fails."
+                   )),
+
     'list-slice-info' : ("Displays slice information",
                     ("Displays slice information about the configured slices at the FlowVisor, "
                     "including the current message rate and the number of currently installed "
@@ -954,7 +1063,8 @@ DESCS = {
                     )),
     'register-event-callback' : ("Registers your server, for events from FlowVisor",
                     ("Registers for events from FlowVisor. Possible events are: DEVICE_CONNECTED, "
-                    "SLICE_CONNECTED, and SLICE_DISCONNECTED. More may be added later."
+                    "SLICE_CONNECTED, SLICE_DISCONNECTED and FLOWTABLE_CALLBACK. For FLOWTABLE_CALLBACK"
+                    " event type dpid has to be input with -d option. More events may be added later."
                     )),
     'unregister-event-callback' : ("Unregisters your server from FlowVisor",
                     ("Unregisters your server from FlowVisor thereby deactivating event "

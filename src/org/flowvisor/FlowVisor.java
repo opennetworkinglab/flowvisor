@@ -40,7 +40,9 @@ public class FlowVisor {
 	public final static int FLOWVISOR_VENDOR_EXTENSION = 0x80000001;
 
 	// VERSION
-	public final static String FLOWVISOR_VERSION = "flowvisor-1.0.2";
+	public final static String FLOWVISOR_VERSION = "flowvisor-1.4.0";
+
+
 	public final static int FLOWVISOR_DB_VERSION = 2;
 
 
@@ -149,6 +151,7 @@ public class FlowVisor {
 	}
 
 	public void run() throws ConfigError, IOException, UnhandledEvent {
+		FVLog.log(LogLevel.DEBUG, null, "HALLO");
 		FlowVisor.setInstance(this);
 		Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 				// init polling loop

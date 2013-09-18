@@ -15,7 +15,6 @@ import org.flowvisor.api.handlers.monitoring.ListSliceStats;
 import org.flowvisor.api.handlers.monitoring.RegisterEventCallback;
 import org.flowvisor.api.handlers.monitoring.UnRegisterEventCallback;
 
-
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Request;

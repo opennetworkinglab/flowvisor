@@ -2,8 +2,6 @@ package org.flowvisor.api.handlers.configuration;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
 
 import org.flowvisor.api.APIAuth;
 import org.flowvisor.api.APIUserCred;
@@ -12,17 +10,13 @@ import org.flowvisor.api.handlers.HandlerUtils;
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.FVConfig;
-import org.flowvisor.config.FVConfigurationController;
 import org.flowvisor.config.FlowSpaceImpl;
 import org.flowvisor.config.InvalidDropPolicy;
 import org.flowvisor.config.SliceImpl;
 import org.flowvisor.config.SwitchImpl;
-
 import org.flowvisor.exceptions.DuplicateControllerException;
 import org.flowvisor.exceptions.MissingRequiredField;
 import org.flowvisor.exceptions.PermissionDeniedException;
-import org.flowvisor.log.FVLog;
-import org.flowvisor.log.LogLevel;
 
 import com.thetransactioncompany.jsonrpc2.JSONRPC2Error;
 import com.thetransactioncompany.jsonrpc2.JSONRPC2ParamsType;
@@ -94,15 +88,7 @@ public class UpdateSlice implements ApiHandler<Map<String, Object>> {
 		if (status == null)
 			return;
 		SliceImpl.getProxy().setAdminStatus(sliceName, status);
-		FVLog.log(LogLevel.WARN, null, "Setting slice status to ", status ? "enabled" : "disabled");
-		FutureTask<Object> future = new FutureTask<Object>(
-                new Callable<Object>() {
-                    public Object call() {
-                    	FlowSpaceImpl.getProxy().notifyChange(FVConfig.getFlowSpaceFlowMap());
-                    	return null;
-                    }
-                });
-		FVConfigurationController.instance().execute(future);
+		FlowSpaceImpl.getProxy().notifyChange(FVConfig.getFlowSpaceFlowMap());
 	}
 
 

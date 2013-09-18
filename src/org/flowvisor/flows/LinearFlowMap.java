@@ -4,6 +4,7 @@
 package org.flowvisor.flows;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -219,6 +220,12 @@ public class LinearFlowMap implements FlowMap, Cloneable {
 			if (fe.getName().equals(name))
 				return fe;
 		throw new FlowEntryNotFound(name);
+		
+	}
+
+	@Override
+	public HashMap<Integer,ArrayList<Integer>> getPriorityRangeMap() {
+		return null;
 		
 	}
 

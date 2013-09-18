@@ -30,7 +30,18 @@ public interface ApiHandler<T> {
 	final static String FQUEUE = "force-enqueue";
 	final static String QUEUE = "queues";
 	final static String SHOW = "show-disabled";
-	
+	final static String FSID = "fs-id";
+	//Additions to get config
+	public static String APIPORT = "api_webserver_port";
+	public static String CONFIG = "config_name";
+	public static String JETTYPORT = "api_jetty_webserver_port";
+	public static String LOGFACILITY = "log_facility";
+	public static String LOGGING = "logging";
+	public static String CHECKPOINT = "checkpointing";
+	public static String LOGIDENT = "log_ident";
+	public static String VERSION = "version";
+	public static String HOST = "host";
+	public static String DB_VERSION = "db_version";
 	
 	final static String MSG = "msg";
 	final static String CURRRATE = "current-rate";

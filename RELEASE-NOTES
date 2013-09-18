@@ -1,3 +1,50 @@
+FlowVisor 1.4: Aug 30 2013
+    * FLOWVISOR-229 : Don't destroy derby.log at startup
+    * FLOWVISOR-215 : Configuration variables aren't documented
+    * FLOWVISOR-214 : fvctl set-config with no arguments seems to succeed
+    * FLOWVISOR-213 : fvctl set-config should let you set all configurable variables
+    * FLOWVISOR-212 : fvctl get-config should show all configurable variables
+    * FLOWVISOR-243 : datapath description: append FV version info
+    * FLOWVISOR-249 : NullPointerExceptions in UpdateFlowSpace
+    * FLOWVISOR-208 : Flowspace rules should support ranges
+    * FLOWVISOR-23  : slice names longer than 255 will break lldp
+    * FLOWVISOR-42  : need to virtualize flow_mod priorities
+
+
+
+FlowVisor 1.2: May 31 2013
+    * FLOWVISOR-59 : Flowvisor should be able to ask the flow table from the switch
+    * FLOWVISOR-62 : Allow slice perms to be specfied with "rwd" in addition to by number
+    * FLOWVISOR-191: fvctl add-flowspace should check whether a slice exist before returning
+    * FLOWVISOR-187: Log level of packets not matching any slice in Flowvisor
+    * FLOWVISOR-15 : LLDP packet made by FlowVisor doesn't have "the end of LLDPDU" nor a TLV header before padding(0xcafebabe) 
+    * FLOWVISOR-158: Control planes with multiple flowvisors should not broadcast LLDP packet-ins to all slices  
+
+FlowVisor 1.0.9 : June 25 2013
+    * FLOWVISOR-244 : Flow stats reply sent by FlowVisor doesn't set the "more replies" flag
+
+FlowVisor 1.0.8 : May 29 2013
+    * FLOWVISOR-238 : fvctl-xml and fvctl-json 
+
+FlowVisor 1.0.7 : May 14 2013
+    * FLOWVISOR-234 : Slices in updated config are set to disabled.
+
+FlowVisor 1.0.6 : May 10 2013
+    * FLOWVISOR-230 : fvctl list-slice-info gives confusing error message if you specify a non-existent slice
+    * FLOWVISOR-231 : fvctl and network specs
+    * FLOWVISOR-232 : Error adding flowspace rules with MAC addresses
+
+FlowVisor 1.0.5 : May 2 2013
+    * FLOWVISOR-216 : Undo changes to default port configurations
+    * Potential fix for FV crashes; awaiting confirmation
+
+FlowVisor 1.0.4 : May 1 2013
+    * FLOWVISOR-226 : fvconfig load hangs
+
+FlowVisor 1.0.3 : April 30 2013
+    * FLOWVISOR-187 : Log level of packets not matching any slice in Flowvisor
+    * FLOWVISOR-217 : Clients can't detect failures that happen after a request is accepted
+
 FlowVisor 1.0.2 : April 29 2013
     * FLOWVISOR-193 : fvctl add-flowspace <match> not working Right
     * FLOWVISOR-195 : improve error reporting when FV is not running
@@ -26,6 +73,7 @@ FlowVisor 1.0.0 : February 28 2013
     * FLOWVISOR-65  : Provide RPC API as JSON service
     * FLOWVISOR-60  : Need to be able to set a slice as "administratively down"
     * FLOWVISOR-49  : dl_vlan only accepts in decimal and only prints in hex
+    * FLOWVISOR-24  : Need to flush old flow entries
     * FLOWVISOR-7   : Queue_stats: FV doesn't filter the ports for a slice
     * FLOWVISOR-6   : Aggregate_flow_stats_req: FV doesn't extract the request
 

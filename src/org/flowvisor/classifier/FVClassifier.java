@@ -16,7 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
-
+import org.flowvisor.api.FlowTableCallback;
+import org.flowvisor.api.TopologyCallback;
 import org.flowvisor.config.ConfigError;
 import org.flowvisor.config.ConfigurationEvent;
 import org.flowvisor.config.FVConfig;
@@ -76,10 +77,10 @@ import org.openflow.protocol.OFMatch;
 import org.openflow.protocol.OFMessage;
 import org.openflow.protocol.OFPhysicalPort;
 import org.openflow.protocol.OFPort;
+import org.openflow.protocol.OFStatisticsReply.OFStatisticsReplyFlags;
 import org.openflow.protocol.OFType;
 import org.openflow.protocol.OFError.OFHelloFailedCode;
-import org.openflow.protocol.action.OFAction;
-import org.openflow.protocol.action.OFActionOutput;
+import org.openflow.protocol.action.*;
 import org.openflow.protocol.statistics.OFStatistics;
 import org.openflow.protocol.statistics.OFStatisticsType;
 
@@ -117,15 +118,23 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	private boolean wantStatsDescHack;
 	String floodPermsSlice; // the slice that has permission to use native
 	private Boolean flowTracking = false;
+	private Boolean registeredForFlowTable;
+
+	/*private HashMap<String, TopologyCallback> flowTableCallbackDb;
+	private HashMap<String, HashMap<Long, FlowTableCallback>> flowTableCallbackDb;
+	private HashMap<Long, FlowTableCallback> dpidMap;*/
+	private List<FlowTableCallback> flowTableList;
 
 	
 	private HashMap<String, Integer> fmlimits = new HashMap<String, Integer>();
 	private HashMap<String, Integer> currfmlimits = new HashMap<String, Integer>();
 	private SlicerLimits slicerLimits;
 	
-	
+	//If the window is open, pollFlowTableStats can be called to poll for the statistics from the switch!
 	private boolean statsWindowOpen = true;
 	private HashMap<String, ArrayList<FVFlowStatisticsReply>> flowStats = 
+			new HashMap<String, ArrayList<FVFlowStatisticsReply>>();
+	private HashMap<String, ArrayList<FVFlowStatisticsReply>> actualStats = 
 			new HashMap<String, ArrayList<FVFlowStatisticsReply>>();
 	private ConcurrentLinkedQueue<String> toDeleteSlices = new ConcurrentLinkedQueue<String>();
 
@@ -155,6 +164,14 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		this.activePorts = new HashSet<Short>();
 		this.wantStatsDescHack = true;
 		FlowvisorImpl.addListener(this);
+	
+		//Initializing the below two var for the new feature - obtaining flowTable from the switch
+		this.registeredForFlowTable = false;
+		this.flowTableList= new ArrayList<FlowTableCallback>();
+		//this.flowTableCallbackDb = new HashMap<String, TopologyCallback>();
+		/*this.flowTableCallbackDb = new HashMap<String,  HashMap<Long , FlowTableCallback>>();
+		this.dpidMap = new HashMap<Long, FlowTableCallback>();*/
+		
 		// need to initialize values.
 		try {
 			setFlowTracking(FlowvisorImpl.getProxy().gettrack_flows());
@@ -375,18 +392,27 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			loop.queueEvent(e); // queue event
 			return; // and process later
 		}
-		if (e instanceof FVIOEvent)
+		if (e instanceof FVIOEvent){
 			handleIOEvent((FVIOEvent) e);
-		else if (e instanceof OFKeepAlive)
+		}
+		else if (e instanceof OFKeepAlive){
 			handleKeepAlive(e);
+		}
 	/*	else if (e instanceof ConfigUpdateEvent)
 			updateConfig((ConfigUpdateEvent) e);*/
-		else if (e instanceof TearDownEvent)
+		else if (e instanceof TearDownEvent){
 			this.tearDown();
-		else if (e instanceof FVRequestTimeoutEvent)
+		}
+		else if (e instanceof FVRequestTimeoutEvent){
 			handleRequestTimeout();
-		else if (e instanceof FVStatsTimer)
+		}
+		else if (e instanceof FVStatsTimer){
 			this.statsWindowOpen = true;
+			//TopologyController tc = TopologyController.getRunningInstance();
+			//this.registeredForFlowTable = tc.getRegisteredForFlowTable();
+			if (this.registeredForFlowTable)
+				pollFlowTableStats(null);		
+		}
 		else
 			throw new UnhandledEvent(e);
 	}
@@ -480,7 +506,8 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 							classifyOFMessage(m);
 							// mark this channel as still alive
 							this.keepAlive.registerPong();
-						} else
+						}
+						else
 							handleOFMessage_unidenitified(m);
 
 					}
@@ -984,8 +1011,9 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	
 	private synchronized ArrayList<FVFlowStatisticsReply> getFlowStats(String sliceName) {
 		ArrayList<FVFlowStatisticsReply> stats = new ArrayList<FVFlowStatisticsReply>();
-		if (flowStats.get(sliceName) != null)
-			stats.addAll(flowStats.get(sliceName));
+		if (actualStats.get(sliceName) != null)
+			stats.addAll(actualStats.get(sliceName));
+		FVLog.log(LogLevel.DEBUG, null, actualStats.toString());
 		return stats;
 	}
 	
@@ -1045,7 +1073,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		return false;
 	}
 
-	public void sendFlowStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original) {
+	public void sendFlowStatsResp(FVSlicer fvSlicer, FVStatisticsRequest original, short flag) {
 		FVFlowStatisticsRequest orig = (FVFlowStatisticsRequest) original.getStatistics().get(0);
 		
 	
@@ -1069,7 +1097,7 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 
 		}
 		statsReply.setStatistics(stats);
-			
+		statsReply.setFlags(flag);	
 		statsReply.setXid(original.getXid());
 		
 		statsReply.setVersion(original.getVersion());
@@ -1083,10 +1111,27 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 	}
 
 	
+	//public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply, HashMap<String,Object> cache) {
 	public synchronized void classifyFlowStats(FVStatisticsReply fvStatisticsReply) {
-		
-		flowStats.clear();
+		actualStats.clear();
+
 		List<OFStatistics> stats = fvStatisticsReply.getStatistics();
+
+		//Adding for registering a FlowTable
+		if (this.registeredForFlowTable == true && !this.flowTableList.isEmpty()){
+			FVLog.log(LogLevel.DEBUG, this, "Inside registeredForFlowTable ",this.registeredForFlowTable);
+			
+			HashMap <String,Object> cache = new HashMap<String,Object>();
+			cache = FVFlowStatisticsReply.toMap(fvStatisticsReply, this.getDPID());
+			
+			for (FlowTableCallback fcb : this.flowTableList) {
+				fcb.clearParams();
+				fcb.setParams(cache);
+				fcb.spawn(); // Is this ok to use run, there will be only one thread of fcb per classifier?
+				
+			}
+		}
+		
 		for (OFStatistics s : stats) {
 			FVFlowStatisticsReply stat = (FVFlowStatisticsReply) s;
 			CookiePair pair = getCookieTranslator().untranslate(stat.getCookie());
@@ -1097,6 +1142,11 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 			stat.setTransCookie(stat.getCookie());
 			stat.setCookie(pair.getCookie());
 			addToFlowStats(stat, pair.getSliceName());
+		}
+		actualStats.putAll(flowStats);
+		FVLog.log(LogLevel.DEBUG, this, " actualStats: ",actualStats.toString(), "flowStats: ", flowStats.toString()); 
+		if ((fvStatisticsReply.getFlags() != OFStatisticsReplyFlags.REPLY_MORE.getTypeValue()) ){
+			flowStats.clear();
 		}
 		for (String slice : toDeleteSlices) {
 			cleanUpFlowMods(slice);
@@ -1139,8 +1189,21 @@ public class FVClassifier implements FVEventHandler, FVSendMsg, FlowMapChangedLi
 		return !this.statsWindowOpen;
 	}
 
+	public void registerCallBack(String userName, String url, String method, String cookie, TopologyCallback.EventType eventType, Long dpid) {
+			this.registeredForFlowTable = true;
+			pollFlowTableStats(null);
+			this.flowTableList.add(new FlowTableCallback(userName,url,method,cookie,dpid));
+	}
 	
-
-	
+	public void deRegisterCallBack(String userName, String method,String cookie, TopologyCallback.EventType eventType, Long dpid){
+		Iterator<FlowTableCallback> it = flowTableList.iterator();
+		
+		while (it.hasNext()) {
+			FlowTableCallback callback = it.next();
+			if (callback.getMethodName().equals(method) && callback.getCookie().equals(cookie) &&
+					callback.getUser().equals(userName))
+				it.remove();
+		}		
+	}
 
 }

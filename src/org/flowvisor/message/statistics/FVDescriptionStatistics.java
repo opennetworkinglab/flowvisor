@@ -2,6 +2,7 @@ package org.flowvisor.message.statistics;
 
 import java.net.InetSocketAddress;
 
+import org.flowvisor.FlowVisor;
 import org.flowvisor.classifier.FVClassifier;
 import org.flowvisor.log.FVLog;
 import org.flowvisor.log.LogLevel;
@@ -32,6 +33,7 @@ public class FVDescriptionStatistics extends OFDescriptionStatistics implements
 
 			this.datapathDescription += " (" + remote.getAddress().getHostAddress() + ":"
 					+ remote.getPort() + ")";
+			this.datapathDescription += " (" + FlowVisor.FLOWVISOR_VERSION + ")";
 
 			if (this.datapathDescription.length() > FVDescriptionStatistics.DESCRIPTION_STRING_LENGTH)
 				this.datapathDescription = this.datapathDescription.substring(
